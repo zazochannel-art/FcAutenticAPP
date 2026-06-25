@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "FC Autentic",
+    "slug": "fc-autentic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon-square.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/icon-square.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#07192b"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fcautentic.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon-square.png",
+        "backgroundColor": "#07192b"
+      },
+      "package": "com.fcautentic.app"
+    },
+    "web": {
+      "favicon": "./assets/icon-square.png"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
