@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
+import { supabaseService } from "./supabaseService";
 
 const C = {
   navy: "#061726",
@@ -649,221 +650,6 @@ function RegisterPlayerScreen({ onBack, onRegister, loading, error }) {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function DashboardOld({ tasks, toggleTask, players, trainings, transactions, currentUser }) {
-  const incomeTotal = transactions.filter((row) => row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
-  const expenseTotal = transactions.filter((row) => !row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
-  const balance = incomeTotal - expenseTotal;
-  const canSeeClubState = currentUser?.role === "admin" || currentUser?.role === "coach";
-  return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title={`Bun venit, ${currentUser?.name || "Manager"}!`} eyebrow={`${roleLabels[currentUser?.role] || "FC AUTENTIC"} • DASHBOARD`} />
-
-      {canSeeClubState ? (
-        <View style={styles.controlCard}>
-          <View style={styles.controlTop}>
-            <View>
-              <Text style={styles.controlKicker}>STAREA CLUBULUI</Text>
-              <Text style={styles.controlTitle}>Totul este în regulă</Text>
-            </View>
-            <View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.liveText}>ACTIV</Text></View>
-          </View>
-          <View style={styles.metricsRow}>
-            <Metric icon="people" value={players.length} label="Jucători" color={C.blue} />
-            <Metric icon="calendar" value={trainings.length} label="Antrenamente" color={C.amber} />
-            {canManageFinance(currentUser)
-              ? <Metric icon="wallet" value={balance.toLocaleString("ro-RO")} label="Sold MDL" color={C.green} />
-              : <Metric icon="notifications-outline" value="3" label="Notificări" color={C.green} />}
-          </View>
-        </View>
-      ) : financeView === "Cotizații lunare" ? (
-        <>
-          <Text style={styles.paymentSectionLabel}>LUNA</Text>
-          <View style={styles.paymentTrainingList}>
-            {["Iunie 2026", "Iulie 2026", "August 2026"].map((month) => (
-              <Pressable key={month} style={[styles.paymentTrainingChip, selectedMonth === month && styles.paymentTrainingChipActive]} onPress={() => setSelectedMonth(month)}>
-                <Text style={[styles.paymentTrainingGroup, selectedMonth === month && { color: C.white }]}>{month}</Text>
-                <Text style={[styles.paymentTrainingDate, selectedMonth === month && { color: C.white }]}>cotizație</Text>
-              </Pressable>
-            ))}
-          </View>
-          <Text style={styles.paymentSectionLabel}>GRUPA</Text>
-          <View style={styles.paymentTrainingList}>
-            {clubGroups.map((group) => (
-              <Pressable key={group} style={[styles.paymentTrainingChip, selectedPaymentGroup === group && styles.paymentTrainingChipActive]} onPress={() => setSelectedPaymentGroup(group)}>
-                <Text style={[styles.paymentTrainingGroup, selectedPaymentGroup === group && { color: C.white }]}>{group}</Text>
-                <Text style={[styles.paymentTrainingDate, selectedPaymentGroup === group && { color: C.white }]}>{players.filter((player) => player.group === group).length} juc.</Text>
-              </Pressable>
-            ))}
-          </View>
-          <View style={styles.paymentHero}>
-            <View style={styles.paymentHeroTop}>
-              <View>
-                <Text style={styles.paymentHeroTag}>{selectedPaymentGroup} • {selectedMonth}</Text>
-                <Text style={styles.paymentHeroTitle}>Cotizații lunare</Text>
-                <Text style={styles.paymentHeroMeta}>Standard: {clubSettings.monthlyFee} {clubSettings.currency}</Text>
-              </View>
-              <View style={styles.paymentCountCircle}>
-                <Text style={styles.paymentCountValue}>{monthlyPaidPlayers.length}/{monthlyPlayers.length}</Text>
-                <Text style={styles.paymentCountLabel}>achitat</Text>
-              </View>
-            </View>
-            <View style={styles.paymentProgressTrack}>
-              <View style={[styles.paymentProgressFill, { width: `${monthlyPlayers.length ? (monthlyPaidPlayers.length / monthlyPlayers.length) * 100 : 0}%` }]} />
-            </View>
-            <View style={styles.paymentTotals}>
-              <View><Text style={styles.paymentTotalLabel}>ÎNCASAT</Text><Text style={[styles.paymentTotalValue, { color: C.green }]}>{monthlyCollected} {clubSettings.currency}</Text></View>
-              <View><Text style={styles.paymentTotalLabel}>RESTANT</Text><Text style={[styles.paymentTotalValue, { color: C.amber }]}>{Math.max(monthlyExpected - monthlyCollected, 0)} {clubSettings.currency}</Text></View>
-            </View>
-          </View>
-          <SectionTitle title="Restanțieri" action={`${monthlyDebtors.length} jucători`} />
-          {monthlyDebtors.length === 0 ? (
-            <Text style={styles.emptyText}>Toți jucătorii din grupă au cotizația achitată.</Text>
-          ) : monthlyDebtors.map((player) => (
-            <View style={styles.historyRow} key={`debtor-${player.id}`}>
-              <View>
-                <Text style={styles.historyTitle}>{player.name}</Text>
-                <Text style={styles.historyMeta}>{player.group} • {selectedMonth}</Text>
-              </View>
-              <Text style={[styles.historyStatus, { color: C.amber }]}>{clubSettings.monthlyFee} {clubSettings.currency}</Text>
-            </View>
-          ))}
-          <SectionTitle title="Jucători și cotizații" action="Salvare automată" />
-          {monthlyPlayers.map((player) => {
-            const payment = groupMonthlyPayments[player.id] || {};
-            return (
-              <View style={[styles.paymentPlayerCard, payment.paid && styles.paymentPlayerPaid]} key={player.id}>
-                <View style={styles.paymentPlayerTop}>
-                  <View style={styles.paymentAvatar}><Text style={styles.paymentAvatarText}>{player.no}</Text></View>
-                  <View style={styles.paymentPlayerInfo}>
-                    <Text style={styles.paymentPlayerName}>{player.name}</Text>
-                    <Text style={[styles.paymentStatus, { color: payment.paid ? C.green : C.amber }]}>{payment.paid ? payment.paidAt || "Achitat" : "Restanță"}</Text>
-                  </View>
-                  <View style={styles.amountWrap}>
-                    <TextInput style={styles.amountInput} keyboardType="numeric" value={String(payment.amount || clubSettings.monthlyFee || "600")} onChangeText={(value) => changeMonthlyAmount(player.id, value)} />
-                    <Text style={styles.amountCurrency}>{clubSettings.currency}</Text>
-                  </View>
-                </View>
-                <Pressable style={[styles.markPaidButton, payment.paid && styles.markPaidButtonActive]} onPress={() => toggleMonthlyPaid(player.id)}>
-                  <Ionicons name={payment.paid ? "checkmark-circle" : "cash-outline"} size={19} color={payment.paid ? C.white : C.green} />
-                  <Text style={[styles.markPaidText, payment.paid && { color: C.white }]}>{payment.paid ? "Achitat" : "Marchează achitat"}</Text>
-                </Pressable>
-              </View>
-            );
-          })}
-        </>
-      ) : financeView === "Cotizații lunare" || financeView === "CotizaИ›ii lunare" ? (
-        <>
-          <Text style={styles.paymentSectionLabel}>LUNA</Text>
-          <View style={styles.paymentTrainingList}>
-            {["Iunie 2026", "Iulie 2026", "August 2026"].map((month) => (
-              <Pressable key={month} style={[styles.paymentTrainingChip, selectedMonth === month && styles.paymentTrainingChipActive]} onPress={() => setSelectedMonth(month)}>
-                <Text style={[styles.paymentTrainingGroup, selectedMonth === month && { color: C.white }]}>{month}</Text>
-                <Text style={[styles.paymentTrainingDate, selectedMonth === month && { color: C.white }]}>cotizație</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Text style={styles.paymentSectionLabel}>GRUPA</Text>
-          <View style={styles.paymentTrainingList}>
-            {clubGroups.map((group) => (
-              <Pressable key={group} style={[styles.paymentTrainingChip, selectedPaymentGroup === group && styles.paymentTrainingChipActive]} onPress={() => setSelectedPaymentGroup(group)}>
-                <Text style={[styles.paymentTrainingGroup, selectedPaymentGroup === group && { color: C.white }]}>{group}</Text>
-                <Text style={[styles.paymentTrainingDate, selectedPaymentGroup === group && { color: C.white }]}>{players.filter((player) => player.group === group).length} juc.</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <View style={styles.paymentHero}>
-            <View style={styles.paymentHeroTop}>
-              <View>
-                <Text style={styles.paymentHeroTag}>{selectedPaymentGroup} • {selectedMonth}</Text>
-                <Text style={styles.paymentHeroTitle}>Cotizații lunare</Text>
-                <Text style={styles.paymentHeroMeta}>Standard: {clubSettings.monthlyFee} {clubSettings.currency}</Text>
-              </View>
-              <View style={styles.paymentCountCircle}>
-                <Text style={styles.paymentCountValue}>{monthlyPaidPlayers.length}/{monthlyPlayers.length}</Text>
-                <Text style={styles.paymentCountLabel}>achitat</Text>
-              </View>
-            </View>
-            <View style={styles.paymentProgressTrack}>
-              <View style={[styles.paymentProgressFill, { width: `${monthlyPlayers.length ? (monthlyPaidPlayers.length / monthlyPlayers.length) * 100 : 0}%` }]} />
-            </View>
-            <View style={styles.paymentTotals}>
-              <View><Text style={styles.paymentTotalLabel}>ÎNCASAT</Text><Text style={[styles.paymentTotalValue, { color: C.green }]}>{monthlyCollected} {clubSettings.currency}</Text></View>
-              <View><Text style={styles.paymentTotalLabel}>RESTANT</Text><Text style={[styles.paymentTotalValue, { color: C.amber }]}>{Math.max(monthlyExpected - monthlyCollected, 0)} {clubSettings.currency}</Text></View>
-            </View>
-          </View>
-
-          <SectionTitle title="Jucători și cotizații" action="Salvare automată" />
-          {monthlyPlayers.map((player) => {
-            const payment = groupMonthlyPayments[player.id] || {};
-            return (
-              <View style={[styles.paymentPlayerCard, payment.paid && styles.paymentPlayerPaid]} key={player.id}>
-                <View style={styles.paymentPlayerTop}>
-                  <View style={styles.paymentAvatar}><Text style={styles.paymentAvatarText}>{player.no}</Text></View>
-                  <View style={styles.paymentPlayerInfo}>
-                    <Text style={styles.paymentPlayerName}>{player.name}</Text>
-                    <Text style={[styles.paymentStatus, { color: payment.paid ? C.green : C.amber }]}>{payment.paid ? payment.paidAt || "Achitat" : "Restanță"}</Text>
-                  </View>
-                  <View style={styles.amountWrap}>
-                    <TextInput style={styles.amountInput} keyboardType="numeric" value={String(payment.amount || clubSettings.monthlyFee || "600")} onChangeText={(value) => changeMonthlyAmount(player.id, value)} />
-                    <Text style={styles.amountCurrency}>{clubSettings.currency}</Text>
-                  </View>
-                </View>
-                <Pressable style={[styles.markPaidButton, payment.paid && styles.markPaidButtonActive]} onPress={() => toggleMonthlyPaid(player.id)}>
-                  <Ionicons name={payment.paid ? "checkmark-circle" : "cash-outline"} size={19} color={payment.paid ? C.white : C.green} />
-                  <Text style={[styles.markPaidText, payment.paid && { color: C.white }]}>{payment.paid ? "Achitat" : "Marchează achitat"}</Text>
-                </Pressable>
-              </View>
-            );
-          })}
-        </>
-      ) : (
-        <View style={styles.personalCard}>
-          <View style={styles.personalIcon}>
-            <Ionicons name={currentUser?.role === "parent" ? "people-circle-outline" : "person-circle-outline"} size={30} color={C.blue} />
-          </View>
-          <View style={styles.personalInfo}>
-            <Text style={styles.controlKicker}>SPAȚIUL TĂU</Text>
-            <Text style={styles.personalTitle}>{currentUser?.role === "parent" ? "Programul copilului" : "Programul meu"}</Text>
-            <Text style={styles.personalText}>Ai acces doar la antrenamente, meciuri, prezență și notificările permise rolului tău.</Text>
-          </View>
-        </View>
-      )}
-
-      <SectionTitle title="Următorul eveniment" action="Calendar" onAction={() => setTab("Calendar")} />
-      <Pressable style={styles.nextEvent} onPress={() => setTab("Calendar")}>
-        <View style={styles.dateBlock}><Text style={styles.dateDay}>29</Text><Text style={styles.dateMonth}>IUN</Text></View>
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventTag}>MECI OFICIAL • 18:00</Text>
-          <Text style={styles.eventTitle}>FC Autentic vs FC Speranța</Text>
-          <Text style={styles.eventMeta}><Ionicons name="location-outline" size={13} /> Stadionul Municipal</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={C.muted} />
-      </Pressable>
-
-      <SectionTitle title="Sarcini de azi" action={`${tasks.filter((task) => task.done).length}/${tasks.length}`} />
-      <View style={styles.taskList}>
-        {tasks.map((task) => (
-          <Pressable key={task.id} style={styles.taskRow} onPress={() => toggleTask(task.id)}>
-            <View style={[styles.check, task.done && styles.checkDone]}>
-              {task.done && <Ionicons name="checkmark" size={15} color={C.white} />}
-            </View>
-            <View style={styles.taskTextWrap}>
-              <Text style={[styles.taskText, task.done && styles.taskTextDone]}>{task.title}</Text>
-              <Text style={styles.taskMeta}>{task.meta}</Text>
-            </View>
-            <View style={[styles.priority, { backgroundColor: `${task.color}20` }]}>
-              <Text style={[styles.priorityText, { color: task.color }]}>{task.priority}</Text>
-            </View>
-          </Pressable>
-        ))}
-      </View>
-
-    </ScrollView>
   );
 }
 
@@ -2332,7 +2118,7 @@ function formatMoney(value, positive) {
   return `${positive ? "+" : "−"} ${Number(value || 0).toLocaleString("ro-RO")} MDL`;
 }
 
-const demoFinanceLabels = ["Cotizații jucători", "CotizaИ›ii jucДѓtori", "Sponsor local", "Închiriere teren", "ГЋnchiriere teren", "Echipament sportiv"];
+const demoFinanceLabels = ["Cotizații jucători", "Sponsor local", "Închiriere teren", "Echipament sportiv"];
 
 function getPlayerName(players, playerId) {
   return players.find((player) => String(player.id) === String(playerId))?.name || `Jucător ${playerId}`;
@@ -2666,7 +2452,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
         </>
       ) : (
         <>
-          <Text style={styles.paymentSectionLabel}>ALEGE CATEGORIA DE VIRSTA</Text>
+          <Text style={styles.paymentSectionLabel}>ALEGE CATEGORIA DE VÂRSTĂ</Text>
           <View style={styles.paymentTrainingList}>
             {clubGroups.map((group) => {
               const trainingCount = trainings.filter((training) => training.group === group).length;
@@ -2695,7 +2481,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
                 onPress={() => setSelectedTrainingId(training.id)}
               >
                 <Text style={[styles.paymentTrainingGroup, selectedTraining?.id === training.id && { color: C.white }]}>{training.date}</Text>
-                <Text style={[styles.paymentTrainingDate, selectedTraining?.id === training.id && { color: C.white }]}>{training.time} вЂў {training.location}</Text>
+                <Text style={[styles.paymentTrainingDate, selectedTraining?.id === training.id && { color: C.white }]}>{training.time} • {training.location}</Text>
               </Pressable>
             ))}
             {!groupTrainings.length && (
@@ -3332,29 +3118,29 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [tab, setTab] = useState("Panou");
-  const [players, setPlayers] = useState(initialPlayers);
-  const [trainings, setTrainings] = useState(initialTrainings);
-  const [matches, setMatches] = useState(initialMatches);
-  const [attendance, setAttendance] = useState({
+  const [players, rawSetPlayers] = useState(initialPlayers);
+  const [trainings, rawSetTrainings] = useState(initialTrainings);
+  const [matches, rawSetMatches] = useState(initialMatches);
+  const [attendance, rawSetAttendance] = useState({
     103: { 5: "present", 6: "late" },
   });
-  const [payments, setPayments] = useState({
+  const [payments, rawSetPayments] = useState({
     101: { 1: { paid: true, amount: "150", paidAt: "Achitat azi" } },
   });
-  const [monthlyPayments, setMonthlyPayments] = useState({});
-  const [events, setEvents] = useState([]);
-  const [transactions, setTransactions] = useState(initialFinanceRows);
+  const [monthlyPayments, rawSetMonthlyPayments] = useState({});
+  const [events, rawSetEvents] = useState([]);
+  const [transactions, rawSetTransactions] = useState(initialFinanceRows);
   const [clubSettings, setClubSettings] = useState(initialClubSettings);
-  const [documents, setDocuments] = useState(initialDocuments);
+  const [documents, rawSetDocuments] = useState(initialDocuments);
   const [announcements, setAnnouncements] = useState(initialAnnouncements);
-  const [playerObservations, setPlayerObservations] = useState(initialPlayerObservations);
-  const [equipment, setEquipment] = useState(initialEquipment);
-  const [evaluations, setEvaluations] = useState(initialEvaluations);
-  const [developmentPlans, setDevelopmentPlans] = useState(initialDevelopmentPlans);
-  const [discipline, setDiscipline] = useState(initialDiscipline);
-  const [chatMessages, setChatMessages] = useState(initialChatMessages);
-  const [mediaGallery, setMediaGallery] = useState(initialMediaGallery);
-  const [scouting, setScouting] = useState(initialScouting);
+  const [playerObservations, rawSetPlayerObservations] = useState(initialPlayerObservations);
+  const [equipment, rawSetEquipment] = useState(initialEquipment);
+  const [evaluations, rawSetEvaluations] = useState(initialEvaluations);
+  const [developmentPlans, rawSetDevelopmentPlans] = useState(initialDevelopmentPlans);
+  const [discipline, rawSetDiscipline] = useState(initialDiscipline);
+  const [chatMessages, rawSetChatMessages] = useState(initialChatMessages);
+  const [mediaGallery, rawSetMediaGallery] = useState(initialMediaGallery);
+  const [scouting, rawSetScouting] = useState(initialScouting);
   const [hydrated, setHydrated] = useState(false);
   const [tasks, setTasks] = useState([
     { id: 1, title: "Confirmă lotul pentru meci", meta: "Termen: azi, 16:00", priority: "URGENT", color: C.red, done: false },
@@ -3362,7 +3148,569 @@ export default function App() {
     { id: 3, title: "Verifică echipamentul", meta: "Responsabil: Andrei", priority: "NORMAL", color: C.blue, done: true },
   ]);
 
-  const togglePresence = (id) => setPlayers((current) => current.map((player) => player.id === id ? { ...player, present: !player.present } : player));
+  const loadAllFromSupabase = async () => {
+    try {
+      const [
+        dbPlayers,
+        dbTrainings,
+        dbMatches,
+        dbAttendance,
+        dbPayments,
+        dbMonthlyPayments,
+        dbEvents,
+        dbTransactions,
+        dbDocuments,
+        dbObservations,
+        dbEquipment,
+        dbEvaluations,
+        dbDevelopmentPlans,
+        dbDiscipline,
+        dbChatMessages,
+        dbMediaGallery,
+        dbScouting
+      ] = await Promise.all([
+        supabaseService.getPlayers().catch(() => initialPlayers),
+        supabaseService.getTrainings().catch(() => initialTrainings),
+        supabaseService.getMatches().catch(() => initialMatches),
+        supabaseService.getAttendance().catch(() => ({})),
+        supabaseService.getTrainingPayments().catch(() => ({})),
+        supabaseService.getMonthlyPayments().catch(() => ({})),
+        supabaseService.getEvents().catch(() => []),
+        supabaseService.getTransactions().catch(() => initialFinanceRows),
+        supabaseService.getDocuments().catch(() => initialDocuments),
+        supabaseService.getObservations().catch(() => initialPlayerObservations),
+        supabaseService.getEquipment().catch(() => initialEquipment),
+        supabaseService.getEvaluations().catch(() => initialEvaluations),
+        supabaseService.getDevelopmentPlans().catch(() => initialDevelopmentPlans),
+        supabaseService.getDiscipline().catch(() => initialDiscipline),
+        supabaseService.getChatMessages().catch(() => initialChatMessages),
+        supabaseService.getMedia().catch(() => initialMediaGallery),
+        supabaseService.getScouting().catch(() => initialScouting),
+      ]);
+
+      rawSetPlayers(dbPlayers);
+      rawSetTrainings(dbTrainings);
+      rawSetMatches(dbMatches);
+      rawSetAttendance(dbAttendance);
+      rawSetPayments(dbPayments);
+      rawSetMonthlyPayments(dbMonthlyPayments);
+      rawSetEvents(dbEvents);
+      rawSetTransactions(dbTransactions);
+      rawSetDocuments(dbDocuments);
+      rawSetPlayerObservations(dbObservations);
+      rawSetEquipment(dbEquipment);
+      rawSetEvaluations(dbEvaluations);
+      rawSetDevelopmentPlans(dbDevelopmentPlans);
+      rawSetDiscipline(dbDiscipline);
+      rawSetChatMessages(dbChatMessages);
+      rawSetMediaGallery(dbMediaGallery);
+      rawSetScouting(dbScouting);
+    } catch (err) {
+      console.warn("Eroare la încărcarea datelor din Supabase:", err);
+    }
+  };
+
+  const setPlayers = (updater) => {
+    rawSetPlayers((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(p => !current.some(op => op.id === p.id));
+              for (let p of added) {
+                const dbP = await supabaseService.insertPlayer(p);
+                rawSetPlayers(curr => curr.map(x => x.id === p.id ? dbP : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(p => !next.some(op => op.id === p.id));
+              for (let p of deleted) {
+                await supabaseService.deletePlayer(p.id);
+              }
+            } else {
+              const modified = next.filter(p => {
+                const op = current.find(x => x.id === p.id);
+                return op && JSON.stringify(op) !== JSON.stringify(p);
+              });
+              for (let p of modified) {
+                await supabaseService.updatePlayer(p);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing players to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setTrainings = (updater) => {
+    rawSetTrainings((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(t => !current.some(ot => ot.id === t.id));
+              for (let t of added) {
+                const dbT = await supabaseService.insertTraining(t);
+                rawSetTrainings(curr => curr.map(x => x.id === t.id ? dbT : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(t => !next.some(ot => ot.id === t.id));
+              for (let t of deleted) {
+                await supabaseService.deleteTraining(t.id);
+              }
+            } else {
+              const modified = next.filter(t => {
+                const op = current.find(x => x.id === t.id);
+                return op && JSON.stringify(op) !== JSON.stringify(t);
+              });
+              for (let t of modified) {
+                await supabaseService.updateTraining(t);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing trainings to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setMatches = (updater) => {
+    rawSetMatches((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(m => !current.some(om => om.id === m.id));
+              for (let m of added) {
+                const dbM = await supabaseService.insertMatch(m);
+                rawSetMatches(curr => curr.map(x => x.id === m.id ? dbM : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(m => !next.some(om => om.id === m.id));
+              for (let m of deleted) {
+                await supabaseService.deleteMatch(m.id);
+              }
+            } else {
+              const modified = next.filter(m => {
+                const op = current.find(x => x.id === m.id);
+                return op && JSON.stringify(op) !== JSON.stringify(m);
+              });
+              for (let m of modified) {
+                await supabaseService.updateMatch(m);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing matches to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setAttendance = (updater) => {
+    rawSetAttendance((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let tId of Object.keys(next)) {
+              const prevT = current[tId] || {};
+              const currT = next[tId] || {};
+              for (let pId of Object.keys(currT)) {
+                if (currT[pId] !== prevT[pId]) {
+                  await supabaseService.saveAttendance(Number(tId), Number(pId), currT[pId]);
+                }
+              }
+              for (let pId of Object.keys(prevT)) {
+                if (!(pId in currT)) {
+                  await supabaseService.saveAttendance(Number(tId), Number(pId), null);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing attendance to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setPayments = (updater) => {
+    rawSetPayments((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let tId of Object.keys(next)) {
+              const prevT = current[tId] || {};
+              const currT = next[tId] || {};
+              for (let pId of Object.keys(currT)) {
+                const prevP = prevT[pId] || {};
+                const currP = currT[pId] || {};
+                if (JSON.stringify(prevP) !== JSON.stringify(currP)) {
+                  await supabaseService.saveTrainingPayment(Number(tId), Number(pId), currP);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing payments to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setMonthlyPayments = (updater) => {
+    rawSetMonthlyPayments((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let key of Object.keys(next)) {
+              const prevKey = current[key] || {};
+              const currKey = next[key] || {};
+              const dashIndex = key.lastIndexOf("-");
+              if (dashIndex === -1) continue;
+              const monthLabel = key.substring(0, dashIndex);
+              const groupName = key.substring(dashIndex + 1);
+
+              for (let pId of Object.keys(currKey)) {
+                const prevP = prevKey[pId] || {};
+                const currP = currKey[pId] || {};
+                if (JSON.stringify(prevP) !== JSON.stringify(currP)) {
+                  await supabaseService.saveMonthlyPayment(monthLabel, groupName, Number(pId), currP);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing monthly payments to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setTransactions = (updater) => {
+    rawSetTransactions((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(t => !current.some(ot => ot.id === t.id));
+              for (let t of added) {
+                const dbT = await supabaseService.insertTransaction(t);
+                rawSetTransactions(curr => curr.map(x => x.id === t.id ? dbT : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(t => !next.some(ot => ot.id === t.id));
+              for (let t of deleted) {
+                await supabaseService.deleteTransaction(t.id);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing transactions to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setEvents = (updater) => {
+    rawSetEvents((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(e => !current.some(oe => oe.id === e.id));
+              for (let e of added) {
+                const dbE = await supabaseService.insertEvent(e);
+                rawSetEvents(curr => curr.map(x => x.id === e.id ? dbE : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(e => !next.some(oe => oe.id === e.id));
+              for (let e of deleted) {
+                await supabaseService.deleteEvent(e.id);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing events to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setDocuments = (updater) => {
+    rawSetDocuments((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(d => !current.some(od => od.id === d.id));
+              for (let d of added) {
+                const dbD = await supabaseService.insertDocument(d);
+                rawSetDocuments(curr => curr.map(x => x.id === d.id ? dbD : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(d => !next.some(od => od.id === d.id));
+              for (let d of deleted) {
+                await supabaseService.deleteDocument(d.id);
+              }
+            } else {
+              const modified = next.filter(d => {
+                const op = current.find(x => x.id === d.id);
+                return op && JSON.stringify(op) !== JSON.stringify(d);
+              });
+              for (let d of modified) {
+                await supabaseService.updateDocument(d);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing documents to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setEquipment = (updater) => {
+    rawSetEquipment((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(e => !current.some(oe => oe.id === e.id));
+              for (let e of added) {
+                const dbE = await supabaseService.insertEquipment(e);
+                rawSetEquipment(curr => curr.map(x => x.id === e.id ? dbE : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(e => !next.some(oe => oe.id === e.id));
+              for (let e of deleted) {
+                await supabaseService.deleteEquipment(e.id);
+              }
+            } else {
+              const modified = next.filter(e => {
+                const op = current.find(x => x.id === e.id);
+                return op && JSON.stringify(op) !== JSON.stringify(e);
+              });
+              for (let e of modified) {
+                await supabaseService.updateEquipment(e);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing equipment to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setEvaluations = (updater) => {
+    rawSetEvaluations((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let pId of Object.keys(next)) {
+              if (JSON.stringify(current[pId]) !== JSON.stringify(next[pId])) {
+                await supabaseService.saveEvaluation(Number(pId), next[pId]);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing evaluations to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setDevelopmentPlans = (updater) => {
+    rawSetDevelopmentPlans((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let pId of Object.keys(next)) {
+              if (JSON.stringify(current[pId]) !== JSON.stringify(next[pId])) {
+                await supabaseService.saveDevelopmentPlan(Number(pId), next[pId]);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing development plans to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setDiscipline = (updater) => {
+    rawSetDiscipline((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(d => !current.some(od => od.id === d.id));
+              for (let d of added) {
+                const dbD = await supabaseService.insertDiscipline(d);
+                rawSetDiscipline(curr => curr.map(x => x.id === d.id ? dbD : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(d => !next.some(od => od.id === d.id));
+              for (let d of deleted) {
+                await supabaseService.deleteDiscipline(d.id);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing discipline to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setChatMessages = (updater) => {
+    rawSetChatMessages((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(msg => !current.some(omsg => omsg.id === msg.id));
+              for (let msg of added) {
+                const dbMsg = await supabaseService.insertChatMessage(msg);
+                rawSetChatMessages(curr => curr.map(x => x.id === msg.id ? dbMsg : x));
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing chat messages to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setMediaGallery = (updater) => {
+    rawSetMediaGallery((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(m => !current.some(om => om.id === m.id));
+              for (let m of added) {
+                const dbM = await supabaseService.insertMedia(m);
+                rawSetMediaGallery(curr => curr.map(x => x.id === m.id ? dbM : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(m => !next.some(om => om.id === m.id));
+              for (let m of deleted) {
+                await supabaseService.deleteMedia(m.id);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing media gallery to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setScouting = (updater) => {
+    rawSetScouting((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            if (next.length > current.length) {
+              const added = next.filter(s => !current.some(os => os.id === s.id));
+              for (let s of added) {
+                const dbS = await supabaseService.insertScouting(s);
+                rawSetScouting(curr => curr.map(x => x.id === s.id ? dbS : x));
+              }
+            } else if (next.length < current.length) {
+              const deleted = current.filter(s => !next.some(os => os.id === s.id));
+              for (let s of deleted) {
+                await supabaseService.deleteScouting(s.id);
+              }
+            } else {
+              const modified = next.filter(s => {
+                const op = current.find(x => x.id === s.id);
+                return op && JSON.stringify(op) !== JSON.stringify(s);
+              });
+              for (let s of modified) {
+                await supabaseService.updateScouting(s);
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing scouting to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const setPlayerObservations = (updater) => {
+    rawSetPlayerObservations((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      if (isSupabaseConfigured && currentUser && currentUser.id !== "guest") {
+        setTimeout(async () => {
+          try {
+            for (let pId of Object.keys(next)) {
+              const prevList = current[pId] || [];
+              const currList = next[pId] || [];
+              if (currList.length > prevList.length) {
+                const added = currList.filter(obs => !prevList.some(o => o.id === obs.id));
+                for (let obs of added) {
+                  const dbObs = await supabaseService.insertObservation(Number(pId), obs);
+                  rawSetPlayerObservations(curr => ({
+                    ...curr,
+                    [pId]: (curr[pId] || []).map(x => x.id === obs.id ? dbObs : x)
+                  }));
+                }
+              } else if (currList.length < prevList.length) {
+                const deleted = prevList.filter(obs => !currList.some(o => o.id === obs.id));
+                for (let obs of deleted) {
+                  await supabaseService.deleteObservation(obs.id);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Error syncing observations to Supabase:", e);
+          }
+        }, 0);
+      }
+      return next;
+    });
+  };
+
+  const togglePresence = (id) => rawSetPlayers((current) => current.map((player) => player.id === id ? { ...player, present: !player.present } : player));
   const toggleTask = (id) => setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
 
   const fetchSupabaseProfile = async (sessionUser) => {
@@ -3389,6 +3737,9 @@ export default function App() {
     const allowedTabs = roleTabs[profile.role] || roleTabs.guest;
     setTab(allowedTabs[0]);
     await AsyncStorage.setItem("fc-autentic-auth", JSON.stringify(profile));
+    if (isSupabaseConfigured && profile && profile.id !== "guest") {
+      await loadAllFromSupabase();
+    }
   };
 
   const loginWithEmail = async (email, password) => {
@@ -3511,15 +3862,19 @@ export default function App() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
     document.title = "FC Autentic";
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations?.().then((registrations) => {
-        registrations.forEach((registration) => registration.unregister());
-      }).catch(() => {});
+
+    const manifest = document.querySelector('link[rel="manifest"]');
+    if (!manifest) {
+      const link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = "/manifest.webmanifest";
+      document.head.appendChild(link);
     }
-    if ("caches" in window) {
-      window.caches.keys().then((keys) => {
-        keys.filter((key) => key.startsWith("fc-autentic-pwa")).forEach((key) => window.caches.delete(key));
-      }).catch(() => {});
+
+    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+      });
     }
   }, []);
 
@@ -3530,16 +3885,19 @@ export default function App() {
         const savedAuth = await AsyncStorage.getItem("fc-autentic-auth");
         const savedRegisteredUsers = await AsyncStorage.getItem("fc-autentic-registered-users");
         if (savedRegisteredUsers) setRegisteredUsers(JSON.parse(savedRegisteredUsers));
+        
+        let activeProfile = null;
         if (savedAuth) {
-          const parsedAuth = JSON.parse(savedAuth);
-          setCurrentUser(parsedAuth);
+          activeProfile = JSON.parse(savedAuth);
+          setCurrentUser(activeProfile);
           setAuthView("app");
-          setTab((roleTabs[parsedAuth.role] || roleTabs.guest)[0]);
+          setTab((roleTabs[activeProfile.role] || roleTabs.guest)[0]);
         }
         if (isSupabaseConfigured) {
           const { data } = await supabase.auth.getSession();
           if (data.session?.user) {
             const profile = await fetchSupabaseProfile(data.session.user);
+            activeProfile = profile;
             setCurrentUser(profile);
             setAuthView("app");
             setTab((roleTabs[profile.role] || roleTabs.guest)[0]);
@@ -3547,26 +3905,31 @@ export default function App() {
         }
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (parsed.players) setPlayers(parsed.players);
-          if (parsed.trainings) setTrainings(parsed.trainings);
-          if (parsed.matches) setMatches(parsed.matches);
-          if (parsed.attendance) setAttendance(parsed.attendance);
-          if (parsed.payments) setPayments(parsed.payments);
-          if (parsed.monthlyPayments) setMonthlyPayments(parsed.monthlyPayments);
-          if (parsed.events) setEvents(parsed.events);
-          if (parsed.transactions) setTransactions(parsed.transactions);
+          if (parsed.players) rawSetPlayers(parsed.players);
+          if (parsed.trainings) rawSetTrainings(parsed.trainings);
+          if (parsed.matches) rawSetMatches(parsed.matches);
+          if (parsed.attendance) rawSetAttendance(parsed.attendance);
+          if (parsed.payments) rawSetPayments(parsed.payments);
+          if (parsed.monthlyPayments) rawSetMonthlyPayments(parsed.monthlyPayments);
+          if (parsed.events) rawSetEvents(parsed.events);
+          if (parsed.transactions) rawSetTransactions(parsed.transactions);
           if (parsed.clubSettings) setClubSettings(parsed.clubSettings);
-          if (parsed.documents) setDocuments(parsed.documents);
+          if (parsed.documents) rawSetDocuments(parsed.documents);
           if (parsed.announcements) setAnnouncements(parsed.announcements);
-          if (parsed.playerObservations) setPlayerObservations(parsed.playerObservations);
-          if (parsed.equipment) setEquipment(parsed.equipment);
-          if (parsed.evaluations) setEvaluations(parsed.evaluations);
-          if (parsed.developmentPlans) setDevelopmentPlans(parsed.developmentPlans);
-          if (parsed.discipline) setDiscipline(parsed.discipline);
-          if (parsed.chatMessages) setChatMessages(parsed.chatMessages);
-          if (parsed.mediaGallery) setMediaGallery(parsed.mediaGallery);
-          if (parsed.scouting) setScouting(parsed.scouting);
+          if (parsed.playerObservations) rawSetPlayerObservations(parsed.playerObservations);
+          if (parsed.equipment) rawSetEquipment(parsed.equipment);
+          if (parsed.evaluations) rawSetEvaluations(parsed.evaluations);
+          if (parsed.developmentPlans) rawSetDevelopmentPlans(parsed.developmentPlans);
+          if (parsed.discipline) rawSetDiscipline(parsed.discipline);
+          if (parsed.chatMessages) rawSetChatMessages(parsed.chatMessages);
+          if (parsed.mediaGallery) rawSetMediaGallery(parsed.mediaGallery);
+          if (parsed.scouting) rawSetScouting(parsed.scouting);
         }
+        if (isSupabaseConfigured && activeProfile && activeProfile.id !== "guest") {
+          await loadAllFromSupabase();
+        }
+      } catch (err) {
+        console.warn("Eroare la revalidarea datelor din Supabase:", err);
       } finally {
         setHydrated(true);
       }
