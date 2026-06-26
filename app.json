@@ -26,12 +26,7 @@
       "package": "com.fcautentic.app"
     },
     "web": {
-      "favicon": "./assets/favicon.ico",
-      "bundler": "metro",
-      "output": "static"
-    },
-    "plugins": [
-      "expo-asset"
-    ]
+      "favicon": "./assets/icon-square.png"
+    }
   }
 }

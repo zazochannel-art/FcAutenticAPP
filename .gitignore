@@ -1,5 +1,11 @@
 node_modules/
+.expo/
 dist/
+build/
+web-build/
 .env
-.DS_Store
+.env.local
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store

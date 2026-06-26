@@ -1,42 +1,61 @@
-# FC Autentic — Pure PWA
+# FC Autentic App
 
-Această versiune este PWA curat: **React + Vite**, fără Expo și fără React Native.
+Aplicație Expo / React Native pentru administrarea clubului FC Autentic.
 
-## Pornire locală
+## Ce a fost pregătit
+
+- Structură profesională `src/`:
+  - `src/config` – configurare Supabase
+  - `src/services` – servicii pentru Supabase și autentificare
+  - `src/components` – componente reutilizabile
+  - `src/screens` – ecrane viitoare
+  - `src/navigation` – navigare viitoare
+  - `src/hooks` – hook-uri reutilizabile
+  - `src/constants` – culori și constante
+  - `src/utils` – utilitare, inclusiv PDF
+- Protecție Supabase: aplicația nu mai cade cu eroare neclară dacă lipsesc cheile `.env`.
+- `.gitignore` corect pentru Expo, `.env` și `node_modules`.
+- `eas.json` pentru build-uri EAS.
+- `supabase-schema.sql` corectat pentru eroarea `infinite recursion detected in policy for relation profiles`.
+- `authService` pregătit pentru login, register, logout și profil.
+
+## Instalare
 
 ```bash
 npm install
-npm run dev
+npm start
 ```
 
-## Build pentru publicare
+## Configurare Supabase
+
+Creează fișierul `.env` în rădăcina proiectului:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+Apoi repornește Expo cu cache curat:
 
 ```bash
-npm run build
+npm run clear
 ```
 
-Publică folderul `dist` pe Vercel, Netlify, GitHub Pages sau alt hosting HTTPS.
+## Baza de date
 
-## Instalare pe telefon
+Rulează `supabase-schema.sql` în Supabase SQL Editor.
 
-- iPhone: Safari → Share → Add to Home Screen
-- Android: Chrome → ⋮ → Install app / Add to Home screen
+Important: dacă ai deja tabele/politici create, șterge politicile vechi care dădeau recursion sau rulează într-un proiect Supabase curat.
 
-## Conturi demo
+## Build Android / iOS
 
-- Admin: `admin@fcautentic.md` / `admin123`
-- Antrenor: `antrenor@fcautentic.md` / `coach123`
-- Jucător: `jucator@fcautentic.md` / `player123`
-- Părinte: `parinte@fcautentic.md` / `parent123`
+```bash
+npm install -g eas-cli
+eas login
+eas build:configure
+eas build -p android --profile preview
+```
 
-## Ce a fost eliminat
+## Observație
 
-- `expo`
-- `@expo/vector-icons`
-- `react-native`
-- `react-native-web`
-- `babel-preset-expo`
-- `app.json`
-- `babel.config.js`
-
-Datele se păstrează în `localStorage`, iar aplicația are `manifest.webmanifest` și `service-worker.js`.
+`App.js` încă este păstrat ca fișier principal pentru a nu rupe aplicația. Următorul pas recomandat este împărțirea efectivă a lui `App.js` în ecrane separate din `src/screens`.

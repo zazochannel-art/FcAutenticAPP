@@ -3862,19 +3862,15 @@ export default function App() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
     document.title = "FC Autentic";
-
-    const manifest = document.querySelector('link[rel="manifest"]');
-    if (!manifest) {
-      const link = document.createElement("link");
-      link.rel = "manifest";
-      link.href = "/manifest.webmanifest";
-      document.head.appendChild(link);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations?.().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      }).catch(() => {});
     }
-
-    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
-      });
+    if ("caches" in window) {
+      window.caches.keys().then((keys) => {
+        keys.filter((key) => key.startsWith("fc-autentic-pwa")).forEach((key) => window.caches.delete(key));
+      }).catch(() => {});
     }
   }, []);
 
