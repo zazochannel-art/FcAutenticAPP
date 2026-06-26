@@ -2,11 +2,17 @@
 -- Rulează acest fișier în Supabase SQL Editor după ce creezi proiectul.
 -- IMPORTANT: folosește cheia anon/publishable în aplicație, niciodată service_role.
 
-create type public.app_role as enum ('admin', 'coach', 'player', 'parent');
+do $$
+begin
+  create type public.app_role as enum ('admin', 'coach', 'player', 'parent');
+exception
+  when duplicate_object then null;
+end $$;
 
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
+  email text,
   role public.app_role not null default 'player',
   assigned_groups text[] not null default '{}',
   player_id bigint,
@@ -14,7 +20,7 @@ create table public.profiles (
   created_at timestamptz not null default now()
 );
 
-create table public.players (
+create table if not exists public.players (
   id bigint generated always as identity primary key,
   no integer not null,
   name text not null,
@@ -24,7 +30,7 @@ create table public.players (
   created_at timestamptz not null default now()
 );
 
-create table public.trainings (
+create table if not exists public.trainings (
   id bigint generated always as identity primary key,
   state text not null default 'Viitor',
   date_label text not null,
@@ -41,7 +47,7 @@ create table public.trainings (
   created_at timestamptz not null default now()
 );
 
-create table public.attendance (
+create table if not exists public.attendance (
   training_id bigint references public.trainings(id) on delete cascade,
   player_id bigint references public.players(id) on delete cascade,
   status text not null check (status in ('present', 'absent', 'late', 'injured', 'excused')),
@@ -49,6 +55,13 @@ create table public.attendance (
   updated_at timestamptz not null default now(),
   primary key (training_id, player_id)
 );
+
+
+-- Coloane adăugate idempotent pentru proiecte unde tabela profiles exista deja.
+alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists assigned_groups text[] not null default '{}';
+alter table public.profiles add column if not exists player_id bigint;
+alter table public.profiles add column if not exists child_player_id bigint;
 
 alter table public.profiles enable row level security;
 alter table public.players enable row level security;
@@ -112,6 +125,7 @@ as $$
   select * from public.profiles where id = auth.uid()
 $$;
 
+drop policy if exists "profiles_select_own_or_admin" on public.profiles;
 create policy "profiles_select_own_or_admin"
 on public.profiles for select
 to authenticated
@@ -120,6 +134,7 @@ using (
   or public.current_user_role() = 'admin'
 );
 
+drop policy if exists "profiles_admin_manage" on public.profiles;
 create policy "profiles_admin_manage"
 on public.profiles for all
 to authenticated
@@ -151,10 +166,11 @@ begin
   )
   returning id into new_player_id;
 
-  insert into public.profiles (id, full_name, role, assigned_groups, player_id)
+  insert into public.profiles (id, full_name, email, role, assigned_groups, player_id)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    new.email,
     'player',
     array[player_group],
     new_player_id
@@ -171,6 +187,7 @@ create trigger on_auth_user_created_fc_autentic
 after insert on auth.users
 for each row execute function public.handle_new_player_signup();
 
+drop policy if exists "players_role_select" on public.players;
 create policy "players_role_select"
 on public.players for select
 to authenticated
@@ -184,9 +201,17 @@ using (
   or id = public.current_user_child_player_id()
 );
 
+drop policy if exists "players_admin_coach_write" on public.players;
 create policy "players_admin_coach_write"
-on public.players for insert
+on public.players for all
 to authenticated
+using (
+  public.current_user_role() = 'admin'
+  or (
+    public.current_user_role() = 'coach'
+    and group_name = any(public.current_user_groups())
+  )
+)
 with check (
   public.current_user_role() = 'admin'
   or (
@@ -195,6 +220,7 @@ with check (
   )
 );
 
+drop policy if exists "trainings_role_select" on public.trainings;
 create policy "trainings_role_select"
 on public.trainings for select
 to authenticated
@@ -212,6 +238,7 @@ using (
   )
 );
 
+drop policy if exists "trainings_admin_coach_write" on public.trainings;
 create policy "trainings_admin_coach_write"
 on public.trainings for all
 to authenticated
@@ -230,6 +257,7 @@ with check (
   )
 );
 
+drop policy if exists "attendance_role_select" on public.attendance;
 create policy "attendance_role_select"
 on public.attendance for select
 to authenticated
@@ -250,6 +278,7 @@ using (
   )
 );
 
+drop policy if exists "attendance_admin_coach_write" on public.attendance;
 create policy "attendance_admin_coach_write"
 on public.attendance for all
 to authenticated
@@ -460,10 +489,12 @@ alter table public.chat_messages enable row level security;
 alter table public.media_gallery enable row level security;
 alter table public.scouting_players enable row level security;
 
+drop policy if exists "club_admin_coach_manage_matches" on public.matches;
 create policy "club_admin_coach_manage_matches" on public.matches for all to authenticated
 using (public.current_user_role() = 'admin' or group_name = any(public.current_user_groups()))
 with check (public.current_user_role() = 'admin' or group_name = any(public.current_user_groups()));
 
+drop policy if exists "club_role_read_matches" on public.matches;
 create policy "club_role_read_matches" on public.matches for select to authenticated
 using (
   public.current_user_role() = 'admin'
@@ -474,10 +505,12 @@ using (
 
 -- Pentru modulele administrative: admin vede tot, antrenorii gestionează datele clubului.
 -- Jucătorii/părinții primesc date filtrate în aplicație; pentru producție putem rafina politici per tabel.
+drop policy if exists "admin_coach_full_player_modules" on public.player_observations;
 create policy "admin_coach_full_player_modules" on public.player_observations for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "own_player_observations_read" on public.player_observations;
 create policy "own_player_observations_read" on public.player_observations for select to authenticated
 using (
   player_id = public.current_user_player_id()
@@ -485,34 +518,42 @@ using (
   or public.current_user_role() in ('admin','coach')
 );
 
+drop policy if exists "admin_full_finance" on public.training_payments;
 create policy "admin_full_finance" on public.training_payments for all to authenticated
 using (public.current_user_role() = 'admin')
 with check (public.current_user_role() = 'admin');
 
+drop policy if exists "admin_full_monthly_finance" on public.monthly_payments;
 create policy "admin_full_monthly_finance" on public.monthly_payments for all to authenticated
 using (public.current_user_role() = 'admin')
 with check (public.current_user_role() = 'admin');
 
+drop policy if exists "admin_full_transactions" on public.transactions;
 create policy "admin_full_transactions" on public.transactions for all to authenticated
 using (public.current_user_role() = 'admin')
 with check (public.current_user_role() = 'admin');
 
+drop policy if exists "admin_coach_manage_events" on public.club_events;
 create policy "admin_coach_manage_events" on public.club_events for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "admin_coach_manage_admin_modules" on public.documents;
 create policy "admin_coach_manage_admin_modules" on public.documents for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "admin_coach_manage_equipment" on public.equipment;
 create policy "admin_coach_manage_equipment" on public.equipment for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "admin_coach_manage_evaluations" on public.player_evaluations;
 create policy "admin_coach_manage_evaluations" on public.player_evaluations for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "own_evaluations_read" on public.player_evaluations;
 create policy "own_evaluations_read" on public.player_evaluations for select to authenticated
 using (
   player_id = public.current_user_player_id()
@@ -520,22 +561,80 @@ using (
   or public.current_user_role() in ('admin','coach')
 );
 
+drop policy if exists "admin_coach_manage_plans" on public.development_plans;
 create policy "admin_coach_manage_plans" on public.development_plans for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "admin_coach_manage_discipline" on public.discipline_records;
 create policy "admin_coach_manage_discipline" on public.discipline_records for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "club_chat_read_write" on public.chat_messages;
 create policy "club_chat_read_write" on public.chat_messages for all to authenticated
 using (true)
 with check ((select auth.uid()) is not null);
 
+drop policy if exists "admin_coach_manage_media" on public.media_gallery;
 create policy "admin_coach_manage_media" on public.media_gallery for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
 
+drop policy if exists "admin_coach_manage_scouting" on public.scouting_players;
 create policy "admin_coach_manage_scouting" on public.scouting_players for all to authenticated
 using (public.current_user_role() in ('admin','coach'))
 with check (public.current_user_role() in ('admin','coach'));
+
+-- Grants necesare pentru funcțiile folosite în RLS policies
+-- Fără aceste GRANT-uri, Supabase poate returna: permission denied for function current_user_role.
+grant execute on function public.current_user_role() to authenticated;
+grant execute on function public.current_user_groups() to authenticated;
+grant execute on function public.current_user_player_id() to authenticated;
+grant execute on function public.current_user_child_player_id() to authenticated;
+grant execute on function public.current_profile() to authenticated;
+
+-- Supabase Storage pentru poze/documente club
+insert into storage.buckets (id, name, public)
+values ('club-documents', 'club-documents', false)
+on conflict (id) do nothing;
+
+drop policy if exists "club_documents_read" on storage.objects;
+create policy "club_documents_read"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'club-documents'
+  and public.current_user_role() in ('admin','coach','player','parent')
+);
+
+drop policy if exists "club_documents_admin_coach_insert" on storage.objects;
+create policy "club_documents_admin_coach_insert"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'club-documents'
+  and public.current_user_role() in ('admin','coach')
+);
+
+drop policy if exists "club_documents_admin_coach_update" on storage.objects;
+create policy "club_documents_admin_coach_update"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'club-documents'
+  and public.current_user_role() in ('admin','coach')
+)
+with check (
+  bucket_id = 'club-documents'
+  and public.current_user_role() in ('admin','coach')
+);
+
+drop policy if exists "club_documents_admin_delete" on storage.objects;
+create policy "club_documents_admin_delete"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'club-documents'
+  and public.current_user_role() = 'admin'
+);
