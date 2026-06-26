@@ -1,27 +1,42 @@
-# FC Autentic PWA
+# FC Autentic — Pure PWA
 
-Această variantă este pregătită pentru PWA.
+Această versiune este PWA curat: **React + Vite**, fără Expo și fără React Native.
 
 ## Pornire locală
 
 ```bash
 npm install
-npm run web
+npm run dev
 ```
 
-## Build PWA
+## Build pentru publicare
 
 ```bash
-npm run build:web
+npm run build
 ```
 
-După build, publică folderul `dist` pe un hosting HTTPS: Vercel, Netlify, GitHub Pages etc.
+Publică folderul `dist` pe Vercel, Netlify, GitHub Pages sau alt hosting HTTPS.
 
-Important: nu deschide `index.html` direct din fișiere (`file://`). PWA funcționează doar prin server/hosting HTTPS.
+## Instalare pe telefon
 
-## Pe telefon
+- iPhone: Safari → Share → Add to Home Screen
+- Android: Chrome → ⋮ → Install app / Add to Home screen
 
-Deschide linkul aplicației în Safari/Chrome și alege:
+## Conturi demo
 
-- iPhone: Share → Add to Home Screen
-- Android: menu ⋮ → Add to Home screen / Install app
+- Admin: `admin@fcautentic.md` / `admin123`
+- Antrenor: `antrenor@fcautentic.md` / `coach123`
+- Jucător: `jucator@fcautentic.md` / `player123`
+- Părinte: `parinte@fcautentic.md` / `parent123`
+
+## Ce a fost eliminat
+
+- `expo`
+- `@expo/vector-icons`
+- `react-native`
+- `react-native-web`
+- `babel-preset-expo`
+- `app.json`
+- `babel.config.js`
+
+Datele se păstrează în `localStorage`, iar aplicația are `manifest.webmanifest` și `service-worker.js`.
