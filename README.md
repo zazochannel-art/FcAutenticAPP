@@ -1,72 +1,27 @@
-# FC Autentic
+# FC Autentic PWA
 
-Aplicație mobilă pentru iPhone, Android și Web, realizată cu Expo + React Native.
+Această variantă este pregătită pentru PWA.
 
 ## Pornire locală
 
 ```bash
 npm install
-npm start
-```
-
-Pentru web:
-
-```bash
 npm run web
 ```
 
-Pentru Android/iOS cu Expo Go:
+## Build PWA
 
 ```bash
-npm start
+npm run build:web
 ```
 
-Apoi scanează codul QR cu Expo Go.
+După build, publică folderul `dist` pe un hosting HTTPS: Vercel, Netlify, GitHub Pages etc.
 
-## Conturi demo
+Important: nu deschide `index.html` direct din fișiere (`file://`). PWA funcționează doar prin server/hosting HTTPS.
 
-- Admin: `admin@fcautentic.md` / `admin123`
-- Antrenor: `antrenor@fcautentic.md` / `coach123`
-- Jucător: `jucator@fcautentic.md` / `player123`
-- Părinte: `parinte@fcautentic.md` / `parent123`
+## Pe telefon
 
-## Supabase
+Deschide linkul aplicației în Safari/Chrome și alege:
 
-1. Creează proiect Supabase.
-2. Copiază conținutul din `supabase-schema.sql` în Supabase SQL Editor și rulează scriptul.
-3. Copiază `.env.example` în `.env` și completează:
-
-```bash
-EXPO_PUBLIC_SUPABASE_URL=...
-EXPO_PUBLIC_SUPABASE_ANON_KEY=...
-```
-
-Scriptul SQL este idempotent și include policy-uri RLS fără recursie pe tabela `profiles`.
-
-## Notă
-
-Aplicația funcționează și în mod demo fără Supabase. Datele demo se păstrează local în AsyncStorage.
-
-
-## PWA / instalare pe telefon
-
-Aplicația este pregătită pentru PWA. Pentru web/PWA rulează:
-
-```bash
-npm install
-npm run pwa
-```
-
-Apoi publică folderul `dist` pe Vercel/Netlify/GitHub Pages sau orice hosting HTTPS.
-Pe telefon deschide linkul în browser și alege:
-
-- iPhone Safari: Share → Add to Home Screen
-- Android Chrome: ⋮ → Install app / Add to Home screen
-
-Fișiere PWA adăugate:
-- `public/manifest.webmanifest`
-- `public/service-worker.js`
-- `public/offline.html`
-- icon-uri pentru instalare
-
-Important: PWA funcționează complet doar pe HTTPS sau localhost, nu direct din fișier ZIP deschis ca `file://`.
+- iPhone: Share → Add to Home Screen
+- Android: menu ⋮ → Add to Home screen / Install app
