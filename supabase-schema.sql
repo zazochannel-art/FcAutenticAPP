@@ -110,10 +110,14 @@ as $$
   select child_player_id from public.profiles where id = auth.uid()
 $$;
 
-revoke all on function public.current_user_role() from public, anon, authenticated;
-revoke all on function public.current_user_groups() from public, anon, authenticated;
-revoke all on function public.current_user_player_id() from public, anon, authenticated;
-revoke all on function public.current_user_child_player_id() from public, anon, authenticated;
+revoke all on function public.current_user_role() from public, anon;
+revoke all on function public.current_user_groups() from public, anon;
+revoke all on function public.current_user_player_id() from public, anon;
+revoke all on function public.current_user_child_player_id() from public, anon;
+grant execute on function public.current_user_role() to authenticated;
+grant execute on function public.current_user_groups() to authenticated;
+grant execute on function public.current_user_player_id() to authenticated;
+grant execute on function public.current_user_child_player_id() to authenticated;
 
 create or replace function public.current_profile()
 returns public.profiles

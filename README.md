@@ -63,3 +63,31 @@ Proiectul încă acceptă JavaScript (`allowJs: true`). Poți migra treptat fiș
 Fișierul vechi mare `App.js` a fost păstrat ca backup în:
 
 `src/screens/LegacyApp.js`
+
+
+## Fix pentru `npm install` / ETIMEDOUT
+
+Dacă primești eroare de tip `packages.applied-caas-gateway1.internal.api.openai.org` sau `ETIMEDOUT`, cauza era un `package-lock.json` generat cu registry intern. În această versiune fișierul a fost scos și a fost adăugat `.npmrc` cu registry-ul oficial.
+
+Rulează:
+
+```bash
+npm config set registry https://registry.npmjs.org/
+rm -rf node_modules package-lock.json
+npm install
+npm run clear
+```
+
+Avertizările `npm warn deprecated` nu opresc instalarea; sunt avertizări venite de la dependențele Expo/React Native.
+
+## Primul admin
+
+După ce creezi primul cont în aplicație, mergi în Supabase SQL Editor și rulează:
+
+```sql
+update public.profiles
+set role = 'admin', assigned_groups = array['U13','U16','U19']
+where email = 'EMAILUL_TAU';
+```
+
+Apoi închide și deschide aplicația din nou.
