@@ -1,5 +1,13 @@
 import { supabase } from "./supabaseClient";
 
+const DEFAULT_CLUB_ID = "club-fc-autentic";
+const getClubId = (item) => item?.clubId || item?.club_id || DEFAULT_CLUB_ID;
+const toIsoDateOrNull = (value) => {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : new Date(parsed).toISOString();
+};
+
 export const supabaseService = {
   // --- PLAYERS ---
   async getPlayers() {
@@ -11,6 +19,7 @@ export const supabaseService = {
       name: p.name,
       role: p.role,
       group: p.group_name,
+      clubId: getClubId(p),
       status: p.status,
       birthdate: p.birthdate || "",
       foot: p.foot || "",
@@ -27,6 +36,7 @@ export const supabaseService = {
         name: player.name,
         role: player.role,
         group_name: player.group,
+        club_id: getClubId(player),
         status: player.status || "Activ",
         birthdate: player.birthdate || null,
         foot: player.foot || null,
@@ -42,6 +52,7 @@ export const supabaseService = {
       name: data.name,
       role: data.role,
       group: data.group_name,
+      clubId: getClubId(data),
       status: data.status,
       birthdate: data.birthdate || "",
       foot: data.foot || "",
@@ -58,6 +69,7 @@ export const supabaseService = {
         name: player.name,
         role: player.role,
         group_name: player.group,
+        club_id: getClubId(player),
         status: player.status,
         birthdate: player.birthdate || null,
         foot: player.foot || null,
@@ -74,6 +86,7 @@ export const supabaseService = {
       name: data.name,
       role: data.role,
       group: data.group_name,
+      clubId: getClubId(data),
       status: data.status,
       birthdate: data.birthdate || "",
       foot: data.foot || "",
@@ -99,6 +112,7 @@ export const supabaseService = {
       time: t.time_label,
       location: t.location,
       group: t.group_name,
+      clubId: getClubId(t),
       coach: t.coach,
       theme: t.theme || "",
       objectives: t.objectives || "",
@@ -116,6 +130,7 @@ export const supabaseService = {
         time_label: t.time,
         location: t.location,
         group_name: t.group,
+        club_id: getClubId(t),
         coach: t.coach,
         theme: t.theme || null,
         objectives: t.objectives || null,
@@ -133,6 +148,7 @@ export const supabaseService = {
       time: data.time_label,
       location: data.location,
       group: data.group_name,
+      clubId: getClubId(data),
       coach: data.coach,
       theme: data.theme || "",
       objectives: data.objectives || "",
@@ -150,6 +166,7 @@ export const supabaseService = {
         time_label: t.time,
         location: t.location,
         group_name: t.group,
+        club_id: getClubId(t),
         coach: t.coach,
         theme: t.theme || null,
         objectives: t.objectives || null,
@@ -168,6 +185,7 @@ export const supabaseService = {
       time: data.time_label,
       location: data.location,
       group: data.group_name,
+      clubId: getClubId(data),
       coach: data.coach,
       theme: data.theme || "",
       objectives: data.objectives || "",
@@ -220,6 +238,7 @@ export const supabaseService = {
       type: m.type,
       opponent: m.opponent,
       group: m.group_name,
+      clubId: getClubId(m),
       date: m.date_label,
       time: m.time_label,
       location: m.location,
@@ -238,6 +257,7 @@ export const supabaseService = {
         type: m.type,
         opponent: m.opponent,
         group_name: m.group,
+        club_id: getClubId(m),
         date_label: m.date,
         time_label: m.time,
         location: m.location,
@@ -256,6 +276,7 @@ export const supabaseService = {
       type: data.type,
       opponent: data.opponent,
       group: data.group_name,
+      clubId: getClubId(data),
       date: data.date_label,
       time: data.time_label,
       location: data.location,
@@ -274,6 +295,7 @@ export const supabaseService = {
         type: m.type,
         opponent: m.opponent,
         group_name: m.group,
+        club_id: getClubId(m),
         date_label: m.date,
         time_label: m.time,
         location: m.location,
@@ -293,6 +315,7 @@ export const supabaseService = {
       type: data.type,
       opponent: data.opponent,
       group: data.group_name,
+      clubId: getClubId(data),
       date: data.date_label,
       time: data.time_label,
       location: data.location,
@@ -439,6 +462,7 @@ export const supabaseService = {
       value: Number(t.value),
       positive: t.positive,
       date: t.date_label || "",
+      clubId: getClubId(t),
     }));
   },
   async insertTransaction(tx) {
@@ -449,6 +473,7 @@ export const supabaseService = {
         value: Number(tx.value) || 0,
         positive: tx.positive,
         date_label: tx.date || null,
+        club_id: getClubId(tx),
       })
       .select()
       .single();
@@ -459,6 +484,7 @@ export const supabaseService = {
       value: Number(data.value),
       positive: data.positive,
       date: data.date_label || "",
+      clubId: getClubId(data),
     };
   },
   async deleteTransaction(id) {
@@ -478,6 +504,7 @@ export const supabaseService = {
       time: e.time_label || "",
       notes: e.detail || "",
       group: e.group_name || "",
+      clubId: getClubId(e),
     }));
   },
   async insertEvent(event) {
@@ -489,6 +516,7 @@ export const supabaseService = {
         time_label: event.time || null,
         detail: event.notes || null,
         group_name: event.group || null,
+        club_id: getClubId(event),
       })
       .select()
       .single();
@@ -516,10 +544,14 @@ export const supabaseService = {
       id: Number(d.id),
       title: d.title,
       owner: d.owner || "",
+      audience: d.audience || "staff",
+      group: d.group_name || "",
+      playerId: d.player_id ? Number(d.player_id) : null,
       type: d.type || "",
       status: d.status || "",
       expires: d.expires || "",
       fileUrl: d.file_url || "",
+      clubId: getClubId(d),
     }));
   },
   async insertDocument(doc) {
@@ -528,10 +560,14 @@ export const supabaseService = {
       .insert({
         title: doc.title,
         owner: doc.owner || null,
+        audience: doc.audience || "staff",
+        group_name: doc.group || null,
+        player_id: doc.playerId || null,
         type: doc.type || null,
         status: doc.status || null,
         expires: doc.expires || null,
         file_url: doc.fileUrl || null,
+        club_id: getClubId(doc),
       })
       .select()
       .single();
@@ -540,10 +576,15 @@ export const supabaseService = {
       id: Number(data.id),
       title: data.title,
       owner: data.owner || "",
+      audience: data.audience || "staff",
+      group: data.group_name || "",
+      clubId: getClubId(data),
+      playerId: data.player_id ? Number(data.player_id) : null,
       type: data.type || "",
       status: data.status || "",
       expires: data.expires || "",
       fileUrl: data.file_url || "",
+      clubId: getClubId(data),
     };
   },
   async updateDocument(doc) {
@@ -552,10 +593,14 @@ export const supabaseService = {
       .update({
         title: doc.title,
         owner: doc.owner || null,
+        audience: doc.audience || "staff",
+        group_name: doc.group || null,
+        player_id: doc.playerId || null,
         type: doc.type || null,
         status: doc.status || null,
         expires: doc.expires || null,
         file_url: doc.fileUrl || null,
+        club_id: getClubId(doc),
       })
       .eq("id", doc.id)
       .select()
@@ -565,10 +610,14 @@ export const supabaseService = {
       id: Number(data.id),
       title: data.title,
       owner: data.owner || "",
+      audience: data.audience || "staff",
+      group: data.group_name || "",
+      playerId: data.player_id ? Number(data.player_id) : null,
       type: data.type || "",
       status: data.status || "",
       expires: data.expires || "",
       fileUrl: data.file_url || "",
+      clubId: getClubId(data),
     };
   },
   async deleteDocument(id) {
@@ -588,6 +637,7 @@ export const supabaseService = {
       total: e.total,
       assigned: e.assigned || "",
       missing: e.missing,
+      clubId: getClubId(e),
     }));
   },
   async insertEquipment(eq) {
@@ -599,6 +649,7 @@ export const supabaseService = {
         total: Number(eq.total) || 0,
         assigned: eq.assigned || null,
         missing: Number(eq.missing) || 0,
+        club_id: getClubId(eq),
       })
       .select()
       .single();
@@ -610,6 +661,7 @@ export const supabaseService = {
       total: data.total,
       assigned: data.assigned || "",
       missing: data.missing,
+      clubId: getClubId(data),
     };
   },
   async updateEquipment(eq) {
@@ -621,6 +673,7 @@ export const supabaseService = {
         total: Number(eq.total) || 0,
         assigned: eq.assigned || null,
         missing: Number(eq.missing) || 0,
+        club_id: getClubId(eq),
       })
       .eq("id", eq.id)
       .select()
@@ -633,6 +686,7 @@ export const supabaseService = {
       total: data.total,
       assigned: data.assigned || "",
       missing: data.missing,
+      clubId: getClubId(data),
     };
   },
   async deleteEquipment(id) {
@@ -725,6 +779,7 @@ export const supabaseService = {
       type: d.type,
       note: d.note || "",
       date: d.date_label || "",
+      clubId: getClubId(d),
     }));
   },
   async insertDiscipline(d) {
@@ -735,6 +790,7 @@ export const supabaseService = {
         type: d.type,
         note: d.note || null,
         date_label: d.date || null,
+        club_id: getClubId(d),
       })
       .select()
       .single();
@@ -745,6 +801,7 @@ export const supabaseService = {
       type: data.type,
       note: data.note || "",
       date: data.date_label || "",
+      clubId: getClubId(data),
     };
   },
   async deleteDiscipline(id) {
@@ -763,6 +820,7 @@ export const supabaseService = {
       author: msg.author_name || "Membru",
       text: msg.text,
       date: new Date(msg.created_at).toLocaleDateString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+      clubId: getClubId(msg),
     }));
   },
   async insertChatMessage(msg) {
@@ -772,6 +830,7 @@ export const supabaseService = {
         audience: msg.audience,
         author_name: msg.author,
         text: msg.text,
+        club_id: getClubId(msg),
       })
       .select()
       .single();
@@ -782,6 +841,7 @@ export const supabaseService = {
       author: data.author_name || "Membru",
       text: data.text,
       date: new Date(data.created_at).toLocaleDateString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
+      clubId: getClubId(data),
     };
   },
 
@@ -794,7 +854,10 @@ export const supabaseService = {
       type: m.type || "Meci",
       title: m.title,
       url: m.url || "",
+      audience: m.audience || "all",
+      group: m.group_name || "",
       date: m.date_label || "",
+      clubId: getClubId(m),
     }));
   },
   async insertMedia(m) {
@@ -804,7 +867,10 @@ export const supabaseService = {
         type: m.type || "Meci",
         title: m.title,
         url: m.url || null,
+        audience: m.audience || "all",
+        group_name: m.group || null,
         date_label: m.date || null,
+        club_id: getClubId(m),
       })
       .select()
       .single();
@@ -814,7 +880,10 @@ export const supabaseService = {
       type: data.type || "Meci",
       title: data.title,
       url: data.url || "",
+      audience: data.audience || "all",
+      group: data.group_name || "",
       date: data.date_label || "",
+      clubId: getClubId(data),
     };
   },
   async deleteMedia(id) {
@@ -834,6 +903,7 @@ export const supabaseService = {
       role: s.role || "",
       notes: s.notes || "",
       decision: s.decision || "",
+      clubId: getClubId(s),
     }));
   },
   async insertScouting(s) {
@@ -845,6 +915,7 @@ export const supabaseService = {
         role: s.role || null,
         notes: s.notes || null,
         decision: s.decision || null,
+        club_id: getClubId(s),
       })
       .select()
       .single();
@@ -856,6 +927,7 @@ export const supabaseService = {
       role: data.role || "",
       notes: data.notes || "",
       decision: data.decision || "",
+      clubId: getClubId(data),
     };
   },
   async updateScouting(s) {
@@ -867,6 +939,7 @@ export const supabaseService = {
         role: s.role || null,
         notes: s.notes || null,
         decision: s.decision || null,
+        club_id: getClubId(s),
       })
       .eq("id", s.id)
       .select()
@@ -879,10 +952,232 @@ export const supabaseService = {
       role: data.role || "",
       notes: data.notes || "",
       decision: data.decision || "",
+      clubId: getClubId(data),
     };
   },
   async deleteScouting(id) {
     const { error } = await supabase.from("scouting_players").delete().eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
+  // --- SAAS MULTI-CLUB ---
+  async getClubs() {
+    const { data, error } = await supabase.from("clubs").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((club) => ({
+      id: club.id,
+      name: club.name,
+      logo: club.logo_url || "",
+      city: club.city || "",
+      country: club.country || "",
+      email: club.email_contact || "",
+      phone: club.phone || "",
+      description: club.description || "",
+      groups: club.groups || [],
+      status: club.status || "active",
+      blocked: Boolean(club.blocked),
+      plan: club.plan_name || "Free",
+      createdAt: club.created_at || "",
+    }));
+  },
+  async insertClub(club) {
+    const { data, error } = await supabase
+      .from("clubs")
+      .insert({
+        id: club.id,
+        name: club.name,
+        logo_url: club.logo || null,
+        city: club.city || null,
+        country: club.country || null,
+        email_contact: club.email || null,
+        phone: club.phone || null,
+        description: club.description || null,
+        groups: club.groups || [],
+        status: club.status || "active",
+        blocked: Boolean(club.blocked),
+        plan_name: club.plan || "Free",
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      name: data.name,
+      logo: data.logo_url || "",
+      city: data.city || "",
+      country: data.country || "",
+      email: data.email_contact || "",
+      phone: data.phone || "",
+      description: data.description || "",
+      groups: data.groups || [],
+      status: data.status || "active",
+      blocked: Boolean(data.blocked),
+      plan: data.plan_name || "Free",
+      createdAt: data.created_at || "",
+    };
+  },
+  async updateClub(club) {
+    const { data, error } = await supabase
+      .from("clubs")
+      .update({
+        name: club.name,
+        logo_url: club.logo || null,
+        city: club.city || null,
+        country: club.country || null,
+        email_contact: club.email || null,
+        phone: club.phone || null,
+        description: club.description || null,
+        groups: club.groups || [],
+        status: club.status || "active",
+        blocked: Boolean(club.blocked),
+        plan_name: club.plan || "Free",
+      })
+      .eq("id", club.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      name: data.name,
+      logo: data.logo_url || "",
+      city: data.city || "",
+      country: data.country || "",
+      email: data.email_contact || "",
+      phone: data.phone || "",
+      description: data.description || "",
+      groups: data.groups || [],
+      status: data.status || "active",
+      blocked: Boolean(data.blocked),
+      plan: data.plan_name || "Free",
+      createdAt: data.created_at || "",
+    };
+  },
+  async getMemberships() {
+    const { data, error } = await supabase.from("club_memberships").select("*");
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      clubId: row.club_id,
+      role: row.role,
+      assignedGroups: row.assigned_groups || [],
+      playerId: row.player_id ? Number(row.player_id) : null,
+      childPlayerIds: row.child_player_ids || [],
+      createdAt: row.created_at || "",
+    }));
+  },
+  async insertMembership(membership) {
+    const { data, error } = await supabase
+      .from("club_memberships")
+      .insert({
+        id: membership.id,
+        user_id: membership.userId,
+        club_id: membership.clubId,
+        role: membership.role,
+        assigned_groups: membership.assignedGroups || [],
+        player_id: membership.playerId || null,
+        child_player_ids: membership.childPlayerIds || [],
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      userId: data.user_id,
+      clubId: data.club_id,
+      role: data.role,
+      assignedGroups: data.assigned_groups || [],
+      playerId: data.player_id ? Number(data.player_id) : null,
+      childPlayerIds: data.child_player_ids || [],
+      createdAt: data.created_at || "",
+    };
+  },
+  async getSubscriptions() {
+    const { data, error } = await supabase.from("subscriptions").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: row.id,
+      clubId: row.club_id,
+      planName: row.plan_name,
+      status: row.status,
+      maxPlayers: row.max_players,
+      startedAt: row.started_at || "",
+      expiresAt: row.expires_at || "",
+      createdAt: row.created_at || "",
+    }));
+  },
+  async insertSubscription(subscription) {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .upsert({
+        id: subscription.id,
+        club_id: subscription.clubId,
+        plan_name: subscription.planName,
+        status: subscription.status || "active",
+        max_players: subscription.maxPlayers,
+        started_at: toIsoDateOrNull(subscription.startedAt),
+        expires_at: toIsoDateOrNull(subscription.expiresAt),
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      clubId: data.club_id,
+      planName: data.plan_name,
+      status: data.status,
+      maxPlayers: data.max_players,
+      startedAt: data.started_at || "",
+      expiresAt: data.expires_at || "",
+      createdAt: data.created_at || "",
+    };
+  },
+  async getInvitations() {
+    const { data, error } = await supabase.from("club_invitations").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: row.role,
+      clubId: row.club_id,
+      status: row.status,
+      token: row.token,
+      createdAt: row.created_at || "",
+      acceptedAt: row.accepted_at || "",
+    }));
+  },
+  async insertInvitation(invite) {
+    const { data, error } = await supabase
+      .from("club_invitations")
+      .insert({
+        id: invite.id,
+        email: invite.email,
+        role: invite.role,
+        club_id: invite.clubId,
+        status: invite.status || "pending",
+        token: invite.token,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      email: data.email,
+      role: data.role,
+      clubId: data.club_id,
+      status: data.status,
+      token: data.token,
+      createdAt: data.created_at || "",
+      acceptedAt: data.accepted_at || "",
+    };
+  },
+  async acceptInvitation(token, membership) {
+    await this.insertMembership(membership);
+    const { error } = await supabase
+      .from("club_invitations")
+      .update({ status: "accepted", accepted_at: new Date().toISOString() })
+      .eq("token", token);
     if (error) throw error;
     return true;
   },

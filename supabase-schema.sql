@@ -145,6 +145,9 @@ CREATE TABLE IF NOT EXISTS public.documents (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   title text NOT NULL,
   owner text,
+  audience text NOT NULL DEFAULT 'staff',
+  group_name text,
+  player_id bigint REFERENCES public.players(id) ON DELETE CASCADE,
   type text,
   status text,
   expires text,
@@ -212,6 +215,8 @@ CREATE TABLE IF NOT EXISTS public.media_gallery (
   type text,
   title text NOT NULL,
   url text,
+  audience text NOT NULL DEFAULT 'staff',
+  group_name text,
   date_label text,
   created_by uuid REFERENCES auth.users(id),
   created_at timestamptz NOT NULL DEFAULT now()
@@ -237,6 +242,15 @@ ALTER TABLE public.players
   ADD COLUMN IF NOT EXISTS allergies text,
   ADD COLUMN IF NOT EXISTS emergency_contact text,
   ADD COLUMN IF NOT EXISTS medical_expires text;
+
+ALTER TABLE public.documents
+  ADD COLUMN IF NOT EXISTS audience text NOT NULL DEFAULT 'staff',
+  ADD COLUMN IF NOT EXISTS group_name text,
+  ADD COLUMN IF NOT EXISTS player_id bigint REFERENCES public.players(id) ON DELETE CASCADE;
+
+ALTER TABLE public.media_gallery
+  ADD COLUMN IF NOT EXISTS audience text NOT NULL DEFAULT 'staff',
+  ADD COLUMN IF NOT EXISTS group_name text;
 
 -- 4) Funcții helper fără recursie RLS.
 -- Aceste funcții SECURITY DEFINER citesc profilul utilizatorului fără să declanșeze policy-uri recursive pe profiles.
@@ -550,7 +564,20 @@ WITH CHECK (public.current_user_role() IN ('admin','coach'));
 CREATE POLICY "authenticated_read_documents"
 ON public.documents FOR SELECT
 TO authenticated
-USING (true);
+USING (
+  public.current_user_role() IN ('admin','coach')
+  OR player_id = public.current_user_player_id()
+  OR player_id = public.current_user_child_player_id()
+  OR (
+    lower(COALESCE(audience, '')) IN ('all', 'toti', 'toți', 'jucatori', 'jucători', 'parinti', 'părinți')
+    AND (
+      group_name IS NULL
+      OR group_name = ANY(public.current_user_groups())
+      OR group_name = (SELECT group_name FROM public.players WHERE id = public.current_user_player_id())
+      OR group_name = (SELECT group_name FROM public.players WHERE id = public.current_user_child_player_id())
+    )
+  )
+);
 
 CREATE POLICY "admin_coach_manage_equipment"
 ON public.equipment FOR ALL
@@ -588,8 +615,19 @@ WITH CHECK (public.current_user_role() IN ('admin','coach'));
 CREATE POLICY "club_chat_read_write"
 ON public.chat_messages FOR ALL
 TO authenticated
-USING (true)
-WITH CHECK (auth.uid() IS NOT NULL);
+USING (
+  public.current_user_role() IN ('admin','coach')
+  OR lower(audience) IN ('toti', 'toți', 'all')
+  OR (public.current_user_role() = 'player' AND lower(audience) IN ('jucatori', 'jucători'))
+  OR (public.current_user_role() = 'parent' AND lower(audience) IN ('parinti', 'părinți'))
+)
+WITH CHECK (
+  public.current_user_role() IN ('admin','coach')
+  OR (
+    auth.uid() IS NOT NULL
+    AND lower(audience) IN ('toti', 'toți', 'all')
+  )
+);
 
 CREATE POLICY "admin_coach_manage_media"
 ON public.media_gallery FOR ALL
@@ -600,7 +638,18 @@ WITH CHECK (public.current_user_role() IN ('admin','coach'));
 CREATE POLICY "authenticated_read_media"
 ON public.media_gallery FOR SELECT
 TO authenticated
-USING (true);
+USING (
+  public.current_user_role() IN ('admin','coach')
+  OR lower(COALESCE(audience, '')) IN ('all', 'toti', 'toți')
+  OR (
+    group_name IS NOT NULL
+    AND (
+      group_name = ANY(public.current_user_groups())
+      OR group_name = (SELECT group_name FROM public.players WHERE id = public.current_user_player_id())
+      OR group_name = (SELECT group_name FROM public.players WHERE id = public.current_user_child_player_id())
+    )
+  )
+);
 
 CREATE POLICY "admin_coach_manage_scouting"
 ON public.scouting_players FOR ALL
@@ -608,5 +657,51 @@ TO authenticated
 USING (public.current_user_role() IN ('admin','coach'))
 WITH CHECK (public.current_user_role() IN ('admin','coach'));
 
--- 8) Util după ce creezi primul user în Auth:
+-- 8) Storage privat pentru documentele clubului
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('club-documents', 'club-documents', false)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "club_documents_storage_select" ON storage.objects;
+DROP POLICY IF EXISTS "club_documents_storage_insert" ON storage.objects;
+DROP POLICY IF EXISTS "club_documents_storage_update" ON storage.objects;
+DROP POLICY IF EXISTS "club_documents_storage_delete" ON storage.objects;
+
+CREATE POLICY "club_documents_storage_select"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'club-documents'
+  AND public.current_user_role() IN ('admin','coach')
+);
+
+CREATE POLICY "club_documents_storage_insert"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'club-documents'
+  AND public.current_user_role() IN ('admin','coach')
+);
+
+CREATE POLICY "club_documents_storage_update"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'club-documents'
+  AND public.current_user_role() IN ('admin','coach')
+)
+WITH CHECK (
+  bucket_id = 'club-documents'
+  AND public.current_user_role() IN ('admin','coach')
+);
+
+CREATE POLICY "club_documents_storage_delete"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'club-documents'
+  AND public.current_user_role() IN ('admin','coach')
+);
+
+-- 9) Util după ce creezi primul user în Auth:
 -- update public.profiles set role = 'admin', assigned_groups = array['U13','U16','U19','Juniori'] where id = '<USER_UUID>';

@@ -10,12 +10,16 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  Platform,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
 import { supabaseService } from "./supabaseService";
+import { scheduleLocalReminder } from "./src/services/mobileNotifications";
+import { buildSimplePdf, safeReportFileName } from "./src/utils/pdf";
+import { compareClubSchedule, currentMonthLabel, getDateParts, getMonthOptions, nowLabel, todayLabel } from "./src/utils/dates";
 
 const C = {
   navy: "#061726",
@@ -30,6 +34,16 @@ const C = {
   muted: "#94AFC2",
 };
 
+const ENABLE_DEMO_MODE = String(process.env.EXPO_PUBLIC_ENABLE_DEMO || "").toLowerCase() === "true";
+const LOCAL_MODE_LABEL = isSupabaseConfigured ? "Supabase" : "Local";
+const DEFAULT_CLUB_ID = "club-fc-autentic";
+const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
+const STORAGE_KEYS = {
+  auth: "fc-autentic-auth",
+  registeredUsers: "fc-autentic-registered-users",
+  appData: "fc-autentic-training-data",
+};
+
 const toastListeners = new Set();
 
 function showAppMessage(title, message) {
@@ -40,43 +54,9 @@ function showAppMessage(title, message) {
   }
 }
 
-function currentMonthLabel() {
-  return new Date().toLocaleDateString("ro-RO", { month: "long", year: "numeric" }).replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function escapePdfText(text) {
-  return String(text || "").replace(/[\\()]/g, "\\$&").replace(/[^\x20-\x7E]/g, "?");
-}
-
-function buildSimplePdf(title, body) {
-  const lines = [`FC Autentic - ${title}`, "", ...String(body || "").split("\n")].slice(0, 45);
-  const content = [
-    "BT",
-    "/F1 16 Tf",
-    "50 790 Td",
-    ...lines.map((line, index) => `${index ? "0 -16 Td " : ""}(${escapePdfText(line).slice(0, 92)}) Tj`),
-    "ET",
-  ].join("\n");
-  const objects = [
-    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-    "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-    "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-    `5 0 obj << /Length ${content.length} >> stream\n${content}\nendstream endobj`,
-  ];
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  objects.forEach((object) => {
-    offsets.push(pdf.length);
-    pdf += `${object}\n`;
-  });
-  const xref = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  offsets.slice(1).forEach((offset) => {
-    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
-  });
-  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return pdf;
+function reportSyncError(area, error) {
+  console.error(`Error syncing ${area} to Supabase:`, error);
+  showAppMessage("Sincronizare eșuată", `${area}: datele au rămas local. Verifică conexiunea Supabase.`);
 }
 
 function downloadPdf(title, body) {
@@ -85,7 +65,7 @@ function downloadPdf(title, body) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/gi, "-") || "raport"}.pdf`;
+  link.download = `${safeReportFileName(title)}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -129,10 +109,47 @@ const initialPlayers = [
   { id: 9, no: 3, name: "Matei Sandu", role: "Fundaș", group: "Juniori", status: "Activ", present: false },
 ];
 
-const clubGroups = ["U13", "U16", "U19", "Juniori"];
+const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
 const NavigationContext = React.createContext({ openNotifications: () => {} });
 
+const subscriptionPlans = {
+  Free: { name: "Free", maxPlayers: 20, monthlyPrice: 0, features: ["1 club", "20 jucatori", "Functii de baza"] },
+  Basic: { name: "Basic", maxPlayers: 50, monthlyPrice: 19, features: ["50 jucatori", "Antrenamente", "Prezenta"] },
+  Pro: { name: "Pro", maxPlayers: null, monthlyPrice: 49, features: ["Jucatori nelimitati", "Statistici", "Rapoarte", "Meciuri"] },
+  Academy: { name: "Academy", maxPlayers: null, monthlyPrice: 99, features: ["Mai multe grupe", "Mai multi antrenori", "Rapoarte avansate"] },
+};
+
+const defaultClub = {
+  id: DEFAULT_CLUB_ID,
+  name: "FC Autentic",
+  logo: "",
+  city: "Chisinau",
+  country: "Moldova",
+  email: "contact@fcautentic.md",
+  phone: "+373 600 00 000",
+  description: "Club de fotbal organizat profesionist.",
+  groups: clubGroups,
+  status: "active",
+  blocked: false,
+  plan: "Free",
+  createdAt: "29 iunie 2026",
+};
+
+const defaultSubscription = {
+  id: DEFAULT_SUBSCRIPTION_ID,
+  clubId: DEFAULT_CLUB_ID,
+  planName: "Free",
+  status: "active",
+  maxPlayers: subscriptionPlans.Free.maxPlayers,
+  startedAt: "29 iunie 2026",
+  expiresAt: "",
+  createdAt: "29 iunie 2026",
+};
+
 const roleLabels = {
+  super_admin: "Super Admin",
+  club_owner: "Owner club",
+  viewer: "Viewer",
   admin: "Admin",
   coach: "Antrenor",
   player: "Jucător",
@@ -141,22 +158,38 @@ const roleLabels = {
 };
 
 const demoUsers = [
+  { id: "demo-super", email: "super@fcautentic.md", password: "super123", name: "Super Admin", role: "super_admin", assignedGroups: clubGroups },
   { id: "demo-admin", email: "admin@fcautentic.md", password: "admin123", name: "Igor", role: "admin", assignedGroups: clubGroups },
   { id: "demo-coach", email: "antrenor@fcautentic.md", password: "coach123", name: "Mihai Rusu", role: "coach", assignedGroups: ["U19", "U16"] },
   { id: "demo-player", email: "jucator@fcautentic.md", password: "player123", name: "Victor Rusu", role: "player", playerId: 1, assignedGroups: ["U19"] },
   { id: "demo-parent", email: "parinte@fcautentic.md", password: "parent123", name: "Ana Rusu", role: "parent", childPlayerId: 1, assignedGroups: ["U19"] },
 ];
 
-const roleTabs = {
+const roleRoutes = {
+  super_admin: ["Panou", "Admin", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
+  club_owner: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
   admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
   coach: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Mai mult"],
   player: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
   parent: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  viewer: ["Panou", "Calendar", "Mai mult"],
+  guest: ["Panou", "Calendar", "Mai mult"],
+};
+
+const roleTabs = {
+  super_admin: ["Panou", "Admin", "Mai mult"],
+  club_owner: ["Panou", "Echipă", "Antren.", "Meciuri", "Mai mult"],
+  admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Mai mult"],
+  coach: ["Panou", "Echipă", "Antren.", "Meciuri", "Mai mult"],
+  player: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  parent: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  viewer: ["Panou", "Calendar", "Mai mult"],
   guest: ["Panou", "Calendar", "Mai mult"],
 };
 
 const tabIcons = {
   Panou: "grid",
+  Admin: "shield-checkmark",
   Echipă: "people",
   "Antren.": "barbell",
   Meciuri: "football",
@@ -166,36 +199,91 @@ const tabIcons = {
   "Mai mult": "menu",
 };
 
+function normalizeRole(role) {
+  if (role === "admin") return "club_owner";
+  return role || "viewer";
+}
+
+function isSuperAdmin(user) {
+  return user?.role === "super_admin";
+}
+
+function isClubOwner(user) {
+  return ["club_owner", "admin"].includes(user?.role);
+}
+
 function canManageClub(user) {
-  return user?.role === "admin" || user?.role === "coach";
+  return ["super_admin", "club_owner", "admin", "coach"].includes(user?.role);
 }
 
 function canManageFinance(user) {
-  return user?.role === "admin";
+  return ["super_admin", "club_owner", "admin"].includes(user?.role);
 }
 
-function filterPlayersByUser(players, user) {
-  if (!user || user.role === "admin") return players;
-  if (user.role === "coach") return players.filter((player) => user.assignedGroups?.includes(player.group));
-  if (user.role === "player") return players.filter((player) => player.id === user.playerId);
-  if (user.role === "parent") return players.filter((player) => player.id === user.childPlayerId);
+function getClubId(item) {
+  return item?.clubId || item?.club_id || DEFAULT_CLUB_ID;
+}
+
+function attachClubId(item, clubId = DEFAULT_CLUB_ID) {
+  if (!item || typeof item !== "object") return item;
+  return { ...item, clubId: getClubId(item) || clubId };
+}
+
+function attachClubIdList(list, clubId = DEFAULT_CLUB_ID) {
+  return (list || []).map((item) => attachClubId(item, clubId));
+}
+
+function filterByClub(list, clubId) {
+  if (!clubId) return list || [];
+  return (list || []).filter((item) => getClubId(item) === clubId);
+}
+
+function getClubSubscription(subscriptions, clubId) {
+  return (subscriptions || []).find((item) => item.clubId === clubId) || { ...defaultSubscription, clubId, id: `sub-${clubId}`, planName: "Free" };
+}
+
+function getPlanLimit(subscription) {
+  const plan = subscriptionPlans[subscription?.planName] || subscriptionPlans.Free;
+  return subscription?.maxPlayers ?? plan.maxPlayers;
+}
+
+function isSubscriptionActive(subscription, club) {
+  if (club?.blocked || club?.status === "blocked" || club?.status === "inactive") return false;
+  if (!subscription) return true;
+  if (subscription.status && subscription.status !== "active" && subscription.status !== "trialing") return false;
+  if (!subscription.expiresAt) return true;
+  const parsed = Date.parse(subscription.expiresAt);
+  return Number.isNaN(parsed) ? true : parsed >= Date.now();
+}
+
+function filterPlayersByUser(players, user, clubId) {
+  const scopedPlayers = filterByClub(players, clubId);
+  if (!user || ["super_admin", "club_owner", "admin"].includes(user.role)) return scopedPlayers;
+  if (user.role === "coach") return scopedPlayers.filter((player) => user.assignedGroups?.includes(player.group));
+  if (user.role === "player") return scopedPlayers.filter((player) => player.id === user.playerId);
+  if (user.role === "parent") {
+    const children = [user.childPlayerId, ...(user.childPlayerIds || [])].filter(Boolean);
+    return scopedPlayers.filter((player) => children.includes(player.id));
+  }
   return [];
 }
 
-function filterTrainingsByUser(trainings, user, players) {
-  if (!user || user.role === "admin") return trainings;
-  if (user.role === "coach") return trainings.filter((training) => user.assignedGroups?.includes(training.group));
-  const allowedPlayers = filterPlayersByUser(players, user);
+function filterTrainingsByUser(trainings, user, players, clubId) {
+  const scopedTrainings = filterByClub(trainings, clubId);
+  if (!user || ["super_admin", "club_owner", "admin"].includes(user.role)) return scopedTrainings;
+  if (user.role === "coach") return scopedTrainings.filter((training) => user.assignedGroups?.includes(training.group));
+  const allowedPlayers = filterPlayersByUser(players, user, clubId);
   const groups = [...new Set(allowedPlayers.map((player) => player.group))];
-  return trainings.filter((training) => groups.includes(training.group));
+  return scopedTrainings.filter((training) => groups.includes(training.group));
 }
 
-function filterMatchesByUser(matches, user, players) {
-  if (!user || user.role === "admin") return matches;
-  if (user.role === "coach") return matches.filter((match) => user.assignedGroups?.includes(match.group));
-  const allowedPlayers = filterPlayersByUser(players, user);
+function filterMatchesByUser(matches, user, players, clubId) {
+  const scopedMatches = filterByClub(matches, clubId);
+  if (!user || ["super_admin", "club_owner", "admin"].includes(user.role)) return scopedMatches;
+  if (user.role === "coach") return scopedMatches.filter((match) => user.assignedGroups?.includes(match.group));
+  const allowedPlayers = filterPlayersByUser(players, user, clubId);
   const groups = [...new Set(allowedPlayers.map((player) => player.group))];
-  return matches.filter((match) => groups.includes(match.group));
+  return scopedMatches.filter((match) => groups.includes(match.group));
 }
 
 function getPlayerJournal(playerObservations, playerId) {
@@ -389,6 +477,25 @@ const initialScouting = [
   { id: 1, name: "Nicu Vieru", age: "12", role: "Atacant", notes: "Viteză bună, finalizare de urmărit.", decision: "Revăzut" },
 ];
 
+const seedData = {
+  players: ENABLE_DEMO_MODE ? attachClubIdList(initialPlayers) : [],
+  trainings: ENABLE_DEMO_MODE ? attachClubIdList(initialTrainings) : [],
+  matches: ENABLE_DEMO_MODE ? attachClubIdList(initialMatches) : [],
+  attendance: ENABLE_DEMO_MODE ? { 103: { 5: "present", 6: "late" } } : {},
+  payments: ENABLE_DEMO_MODE ? { 101: { 1: { paid: true, amount: "150", paidAt: "Achitat azi" } } } : {},
+  transactions: ENABLE_DEMO_MODE ? attachClubIdList(initialFinanceRows) : [],
+  documents: ENABLE_DEMO_MODE ? attachClubIdList(initialDocuments) : [],
+  announcements: ENABLE_DEMO_MODE ? initialAnnouncements : [],
+  playerObservations: ENABLE_DEMO_MODE ? initialPlayerObservations : {},
+  equipment: ENABLE_DEMO_MODE ? attachClubIdList(initialEquipment) : [],
+  evaluations: ENABLE_DEMO_MODE ? initialEvaluations : {},
+  developmentPlans: ENABLE_DEMO_MODE ? initialDevelopmentPlans : {},
+  discipline: ENABLE_DEMO_MODE ? attachClubIdList(initialDiscipline) : [],
+  chatMessages: ENABLE_DEMO_MODE ? attachClubIdList(initialChatMessages) : [],
+  mediaGallery: ENABLE_DEMO_MODE ? attachClubIdList(initialMediaGallery) : [],
+  scouting: ENABLE_DEMO_MODE ? attachClubIdList(initialScouting) : [],
+};
+
 function Badge({ size = 48 }) {
   return <Image source={require("./assets/icon.png")} style={{ width: size, height: size, resizeMode: "contain" }} />;
 }
@@ -471,7 +578,7 @@ function WelcomeScreen({ onLogin, onGuest }) {
           <Pressable style={styles.welcomeSecondary} onPress={onGuest}>
             <Text style={styles.welcomeSecondaryText}>Continuă ca Vizitator</Text>
           </Pressable>
-          <Text style={styles.supabaseHint}>{isSupabaseConfigured ? "Supabase Auth activ" : "Mod demo activ până conectezi Supabase"}</Text>
+          <Text style={styles.supabaseHint}>{isSupabaseConfigured ? "Supabase Auth activ" : "Mod local activ până conectezi Supabase"}</Text>
         </Animated.View>
       </View>
     </SafeAreaView>
@@ -479,8 +586,8 @@ function WelcomeScreen({ onLogin, onGuest }) {
 }
 
 function LoginScreen({ onBack, onLogin, onGoogle, onForgot, onRegister, loading, error }) {
-  const [email, setEmail] = useState("admin@fcautentic.md");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
 
@@ -543,13 +650,15 @@ function LoginScreen({ onBack, onLogin, onGoogle, onForgot, onRegister, loading,
             <Text style={styles.createAccountText}>Creează cont jucător</Text>
           </Pressable>
         </View>
-        <View style={styles.demoBox}>
-          <Text style={styles.demoTitle}>Conturi demo</Text>
-          <Text style={styles.demoText}>Admin: admin@fcautentic.md / admin123</Text>
-          <Text style={styles.demoText}>Antrenor: antrenor@fcautentic.md / coach123</Text>
-          <Text style={styles.demoText}>Jucător: jucator@fcautentic.md / player123</Text>
-          <Text style={styles.demoText}>Părinte: parinte@fcautentic.md / parent123</Text>
-        </View>
+        {ENABLE_DEMO_MODE && (
+          <View style={styles.demoBox}>
+            <Text style={styles.demoTitle}>Conturi demo</Text>
+            <Text style={styles.demoText}>Admin: admin@fcautentic.md / admin123</Text>
+            <Text style={styles.demoText}>Antrenor: antrenor@fcautentic.md / coach123</Text>
+            <Text style={styles.demoText}>Jucător: jucator@fcautentic.md / player123</Text>
+            <Text style={styles.demoText}>Părinte: parinte@fcautentic.md / parent123</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -653,31 +762,180 @@ function RegisterPlayerScreen({ onBack, onRegister, loading, error }) {
   );
 }
 
-function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance, transactions, payments, monthlyPayments, clubSettings, currentUser, setTab }) {
+function OnboardingScreen({ currentUser, invitations, onCreateClub, onAcceptInvitation, onLogout, error }) {
+  const [token, setToken] = useState("");
+  const pendingForUser = (invitations || []).filter((item) =>
+    item.status === "pending" && item.email?.toLowerCase() === currentUser?.email?.toLowerCase()
+  );
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <TopBar title="Alege clubul" eyebrow="SAAS MULTI-CLUB" />
+        <View style={styles.controlCard}>
+          <View style={styles.controlTop}>
+            <View>
+              <Text style={styles.controlKicker}>BUN VENIT</Text>
+              <Text style={styles.controlTitle}>{currentUser?.name || currentUser?.email || "Utilizator"}</Text>
+            </View>
+            <View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.liveText}>CONT NOU</Text></View>
+          </View>
+          <Text style={styles.personalText}>
+            Ca sa intri in platforma, creezi un club nou sau accepti o invitatie primita de la un club existent.
+          </Text>
+        </View>
+
+        <Pressable style={styles.primaryButton} onPress={onCreateClub}>
+          <Ionicons name="add-circle-outline" size={20} color={C.white} />
+          <Text style={styles.primaryButtonText}>Creeaza club nou</Text>
+        </Pressable>
+
+        <View style={styles.formCard}>
+          <Text style={styles.paymentSectionLabel}>ACCEPTA INVITATIE</Text>
+          <TrainingField label="Token invitatie sau email" value={token} onChange={setToken} placeholder="ex: invite-abc123" />
+          {!!error && <Text style={styles.authError}>{error}</Text>}
+          <Pressable style={styles.secondaryButton} onPress={() => onAcceptInvitation(token)}>
+            <Ionicons name="mail-open-outline" size={18} color={C.blue} />
+            <Text style={styles.secondaryButtonText}>Accepta invitatia</Text>
+          </Pressable>
+        </View>
+
+        {pendingForUser.length ? (
+          <>
+            <SectionTitle title="Invitatii gasite pentru emailul tau" />
+            {pendingForUser.map((invite) => (
+              <Pressable style={styles.historyRow} key={invite.id} onPress={() => onAcceptInvitation(invite.token)}>
+                <View>
+                  <Text style={styles.historyTitle}>{roleLabels[invite.role] || invite.role}</Text>
+                  <Text style={styles.historyMeta}>Token: {invite.token}</Text>
+                </View>
+                <Text style={[styles.historyStatus, { color: C.amber }]}>Accepta</Text>
+              </Pressable>
+            ))}
+          </>
+        ) : null}
+
+        <Pressable style={styles.logoutButton} onPress={onLogout}>
+          <Ionicons name="log-out-outline" size={18} color={C.red} />
+          <Text style={styles.logoutText}>Iesire din cont</Text>
+        </Pressable>
+      </ScrollView>
+      <ToastHost />
+    </SafeAreaView>
+  );
+}
+
+function CreateClubScreen({ onBack, onCreate, loading, error }) {
+  const [form, setForm] = useState({
+    name: "",
+    logo: "",
+    city: "",
+    country: "Moldova",
+    email: "",
+    phone: "",
+    description: "",
+    groups: ["U13", "U16", "U19", "Seniori"],
+  });
+
+  const toggleGroup = (group) => {
+    setForm((current) => ({
+      ...current,
+      groups: current.groups.includes(group)
+        ? current.groups.filter((item) => item !== group)
+        : [...current.groups, group],
+    }));
+  };
+
+  const submit = () => {
+    if (!form.name.trim()) {
+      showAppMessage("Nume lipsa", "Completeaza numele clubului.");
+      return;
+    }
+    if (!form.email.trim().includes("@")) {
+      showAppMessage("Email invalid", "Completeaza emailul de contact al clubului.");
+      return;
+    }
+    if (!form.groups.length) {
+      showAppMessage("Grupe lipsa", "Alege cel putin o categorie de varsta.");
+      return;
+    }
+    onCreate(form);
+  };
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Pressable style={styles.backLink} onPress={onBack}>
+          <Ionicons name="chevron-back" size={20} color={C.blue} />
+          <Text style={styles.backText}>Inapoi</Text>
+        </Pressable>
+        <TopBar title="Create Club" eyebrow="ONBOARDING SAAS" />
+        <View style={styles.formCard}>
+          <TrainingField label="Nume club" value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="FC Autentic Academy" />
+          <TrainingField label="Logo club (URL optional)" value={form.logo} onChange={(logo) => setForm({ ...form, logo })} placeholder="https://..." />
+          <View style={styles.formRow}>
+            <View style={styles.formHalf}><TrainingField label="Oras" value={form.city} onChange={(city) => setForm({ ...form, city })} placeholder="Chisinau" /></View>
+            <View style={styles.formHalf}><TrainingField label="Tara" value={form.country} onChange={(country) => setForm({ ...form, country })} placeholder="Moldova" /></View>
+          </View>
+          <TrainingField label="Email contact" value={form.email} onChange={(email) => setForm({ ...form, email })} placeholder="club@email.com" />
+          <TrainingField label="Telefon" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} placeholder="+373..." />
+          <TrainingField label="Descriere" value={form.description} onChange={(description) => setForm({ ...form, description })} multiline />
+          <Text style={styles.trainingFieldLabel}>Categorii / grupe</Text>
+          <View style={styles.groupRow}>
+            {["U13", "U16", "U19", "Juniori", "Seniori"].map((group) => (
+              <Pressable key={group} style={[styles.groupChip, form.groups.includes(group) && styles.groupChipActive]} onPress={() => toggleGroup(group)}>
+                <Text style={[styles.groupChipText, form.groups.includes(group) && styles.groupChipTextActive]}>{group}</Text>
+              </Pressable>
+            ))}
+          </View>
+          {!!error && <Text style={styles.authError}>{error}</Text>}
+        </View>
+        <Pressable style={styles.primaryButton} onPress={submit}>
+          <Ionicons name="shield-checkmark-outline" size={20} color={C.white} />
+          <Text style={styles.primaryButtonText}>{loading ? "Se creeaza..." : "Creeaza club si devino owner"}</Text>
+        </Pressable>
+      </ScrollView>
+      <ToastHost />
+    </SafeAreaView>
+  );
+}
+
+function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance, transactions, payments, monthlyPayments, clubSettings, currentUser, setTab, selectedClub, subscription, invitations = [], memberships = [] }) {
   const budgetRows = makeAutomaticFinanceRows({ players, trainings, payments, monthlyPayments, transactions, clubSettings });
   const incomeTotal = budgetRows.filter((row) => row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
   const expenseTotal = budgetRows.filter((row) => !row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
   const balance = incomeTotal - expenseTotal;
-  const nextTraining = trainings.find((item) => item.state === "Viitor") || trainings[0];
-  const nextMatch = matches?.find((item) => item.status !== "Finalizat") || matches?.[0];
+  const nextTraining = trainings
+    .filter((item) => item.state !== "Finalizat")
+    .slice()
+    .sort(compareClubSchedule)[0] || trainings.slice().sort(compareClubSchedule)[0];
+  const nextMatch = matches
+    ?.filter((item) => item.status !== "Finalizat")
+    .slice()
+    .sort(compareClubSchedule)[0] || matches?.slice().sort(compareClubSchedule)[0];
   const nextEvent = nextTraining
     ? { type: `ANTRENAMENT ${nextTraining.group}`, title: nextTraining.theme || "Antrenament programat", date: nextTraining.date, time: nextTraining.time, location: nextTraining.location, tab: "Antren." }
     : nextMatch
       ? { type: nextMatch.type || "MECI", title: `FC Autentic vs ${nextMatch.opponent}`, date: nextMatch.date, time: nextMatch.time, location: nextMatch.location, tab: "Meciuri" }
       : { type: "PROGRAM", title: "Nu există evenimente programate", date: "—", time: "—", location: "Adaugă un antrenament sau meci", tab: "Calendar" };
-  const canSeeClubState = currentUser?.role === "admin" || currentUser?.role === "coach";
+  const canSeeClubState = canManageClub(currentUser);
+  const nextEventDate = getDateParts(nextEvent.date);
   const personalPlayer = players.find((player) => player.id === currentUser?.playerId || player.id === currentUser?.childPlayerId);
   const personalStatuses = personalPlayer ? trainings.filter((training) => training.group === personalPlayer.group).map((training) => attendance?.[training.id]?.[personalPlayer.id]).filter(Boolean) : [];
   const personalPresent = personalStatuses.filter((status) => status === "present").length;
   const personalLate = personalStatuses.filter((status) => status === "late").length;
   const personalPercent = personalStatuses.length ? Math.round(((personalPresent + personalLate * 0.5) / personalStatuses.length) * 100) : 0;
   const personalDebtKey = personalPlayer ? Object.keys(monthlyPayments || {}).find((key) => key.endsWith(`-${personalPlayer.group}`) && monthlyPayments[key]?.[personalPlayer.id] && !monthlyPayments[key][personalPlayer.id]?.paid) : null;
+  const ownerInviteCount = invitations.filter((item) => item.clubId === selectedClub?.id && item.status === "pending").length;
+  const coachCount = memberships.filter((item) => item.clubId === selectedClub?.id && item.role === "coach").length;
+  const attendanceMarked = Object.values(attendance || {}).reduce((sum, row) => sum + Object.keys(row || {}).length, 0);
+  const subscriptionLabel = subscription?.planName || selectedClub?.plan || "Free";
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title={`Bun venit, ${currentUser?.name || "Manager"}!`} eyebrow={`${roleLabels[currentUser?.role] || "FC AUTENTIC"} • DASHBOARD`} />
 
       {canSeeClubState ? (
+        <>
         <View style={styles.controlCard}>
           <View style={styles.controlTop}>
             <View>
@@ -694,6 +952,22 @@ function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance,
               : <Metric icon="notifications-outline" value="3" label="Notificări" color={C.green} />}
           </View>
         </View>
+        <View style={styles.profilePanel}>
+          <Text style={styles.paymentSectionLabel}>SAAS CLUB</Text>
+          <View style={styles.profileDetailsGrid}>
+            <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Club activ</Text><Text style={styles.profileDetailValue}>{selectedClub?.name || clubSettings.clubName}</Text></View>
+            <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Antrenori</Text><Text style={styles.profileDetailValue}>{coachCount}</Text></View>
+            <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Prezente marcate</Text><Text style={styles.profileDetailValue}>{attendanceMarked}</Text></View>
+            <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Abonament</Text><Text style={[styles.profileDetailValue, { color: C.amber }]}>{subscriptionLabel}</Text></View>
+          </View>
+          {isClubOwner(currentUser) && (
+            <Pressable style={styles.secondaryButton} onPress={() => setTab?.("Mai mult")}>
+              <Ionicons name="mail-outline" size={18} color={C.blue} />
+              <Text style={styles.secondaryButtonText}>{ownerInviteCount} invitatii pending</Text>
+            </Pressable>
+          )}
+        </View>
+        </>
       ) : (
         <View style={styles.personalCard}>
           <View style={styles.personalIcon}>
@@ -721,7 +995,7 @@ function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance,
 
       <SectionTitle title="Următorul eveniment" action={nextEvent.tab} onAction={() => setTab?.(nextEvent.tab)} />
       <Pressable style={styles.nextEvent} onPress={() => setTab?.(nextEvent.tab)}>
-        <View style={styles.dateBlock}><Text style={styles.dateDay}>{String(nextEvent.date).split(" ")[0] || "—"}</Text><Text style={styles.dateMonth}>{String(nextEvent.date).split(" ")[1]?.slice(0, 3).toUpperCase() || ""}</Text></View>
+        <View style={styles.dateBlock}><Text style={styles.dateDay}>{nextEventDate.day}</Text><Text style={styles.dateMonth}>{nextEventDate.month}</Text></View>
         <View style={styles.eventInfo}>
           <Text style={styles.eventTag}>{nextEvent.type} • {nextEvent.time}</Text>
           <Text style={styles.eventTitle}>{nextEvent.title}</Text>
@@ -732,7 +1006,7 @@ function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance,
 
       <SectionTitle title="Sarcini de azi" action={`${tasks.filter((task) => task.done).length}/${tasks.length}`} />
       <View style={styles.taskList}>
-        {tasks.map((task) => (
+        {tasks.length ? tasks.map((task) => (
           <Pressable key={task.id} style={styles.taskRow} onPress={() => toggleTask(task.id)}>
             <View style={[styles.check, task.done && styles.checkDone]}>
               {task.done && <Ionicons name="checkmark" size={15} color={C.white} />}
@@ -745,13 +1019,18 @@ function Dashboard({ tasks, toggleTask, players, trainings, matches, attendance,
               <Text style={[styles.priorityText, { color: task.color }]}>{task.priority}</Text>
             </View>
           </Pressable>
-        ))}
+        )) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="checkmark-done-outline" size={22} color={C.green} />
+            <Text style={styles.emptyStateText}>Nu există sarcini pentru azi.</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
 }
 
-function Team({ players, setPlayers, currentUser, trainings = [], attendance = {}, payments = {}, monthlyPayments = {}, matches = [], clubSettings = initialClubSettings, playerObservations = {}, setPlayerObservations = () => {} }) {
+function Team({ players, setPlayers, currentUser, trainings = [], attendance = {}, payments = {}, monthlyPayments = {}, matches = [], clubSettings = initialClubSettings, playerObservations = {}, setPlayerObservations = () => {}, selectedClub, subscription }) {
   const [selectedGroup, setSelectedGroup] = useState("U19");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [editingPlayer, setEditingPlayer] = useState(false);
@@ -764,8 +1043,8 @@ function Team({ players, setPlayers, currentUser, trainings = [], attendance = {
     role: "Mijlocaș",
     group: "U19",
   });
-  const allowedPlayers = filterPlayersByUser(players, currentUser);
-  const allowedGroups = currentUser?.role === "admin" ? clubGroups : [...new Set(allowedPlayers.map((player) => player.group))];
+  const allowedPlayers = filterPlayersByUser(players, currentUser, selectedClub?.id);
+  const allowedGroups = ["super_admin", "club_owner", "admin"].includes(currentUser?.role) ? (selectedClub?.groups || clubGroups) : [...new Set(allowedPlayers.map((player) => player.group))];
   const activeGroups = allowedGroups.length ? allowedGroups : clubGroups;
   const safeSelectedGroup = activeGroups.includes(selectedGroup) ? selectedGroup : activeGroups[0];
   const visiblePlayers = allowedPlayers.filter((player) => player.group === safeSelectedGroup);
@@ -849,7 +1128,7 @@ function Team({ players, setPlayers, currentUser, trainings = [], attendance = {
       id: Date.now(),
       type: "Profil",
       source: "Profil jucător",
-      date: "Azi",
+      date: nowLabel(),
       author: currentUser?.name || "Antrenor",
       text: profileNote.trim(),
     };
@@ -866,12 +1145,19 @@ function Team({ players, setPlayers, currentUser, trainings = [], attendance = {
       showAppMessage("Lipseste numele", "Completeaza numele jucatorului inainte de salvare.");
       return;
     }
+    const limit = getPlanLimit(subscription);
+    const clubPlayerCount = filterByClub(players, selectedClub?.id).length;
+    if (limit && clubPlayerCount >= limit) {
+      showAppMessage("Limita abonament", `Planul ${subscription?.planName || "Free"} permite maxim ${limit} jucatori. Actualizeaza abonamentul pentru a continua.`);
+      return;
+    }
     const player = {
       id: Date.now(),
       no: Number(newPlayer.no) || players.length + 1,
       name: newPlayer.name.trim(),
       role: newPlayer.role.trim() || "Jucător",
       group: newPlayer.group,
+      clubId: selectedClub?.id || DEFAULT_CLUB_ID,
       status: "Activ",
       present: true,
     };
@@ -1141,7 +1427,7 @@ function TrainingField({ label, value, onChange, placeholder, multiline = false 
   );
 }
 
-function Trainings({ players, trainings, setTrainings, attendance, setAttendance, currentUser, playerObservations = {}, setPlayerObservations = () => {} }) {
+function Trainings({ players, trainings, setTrainings, attendance, setAttendance, currentUser, playerObservations = {}, setPlayerObservations = () => {}, selectedClub, subscription }) {
   const [view, setView] = useState("list");
   const [filter, setFilter] = useState("Toate");
   const [statusFilter, setStatusFilter] = useState("Viitoare");
@@ -1162,9 +1448,9 @@ function Trainings({ players, trainings, setTrainings, attendance, setAttendance
     exercises: "",
   });
 
-  const permittedTrainings = filterTrainingsByUser(trainings, currentUser, players);
-  const permittedPlayers = filterPlayersByUser(players, currentUser);
-  const permittedGroups = currentUser?.role === "admin" ? clubGroups : [...new Set(permittedTrainings.map((training) => training.group))];
+  const permittedTrainings = filterTrainingsByUser(trainings, currentUser, players, selectedClub?.id);
+  const permittedPlayers = filterPlayersByUser(players, currentUser, selectedClub?.id);
+  const permittedGroups = ["super_admin", "club_owner", "admin"].includes(currentUser?.role) ? (selectedClub?.groups || clubGroups) : [...new Set(permittedTrainings.map((training) => training.group))];
   const safeGroups = permittedGroups.length ? permittedGroups : clubGroups;
   const canManage = canManageClub(currentUser);
   const visibleTrainings = permittedTrainings.filter((training) => {
@@ -1178,9 +1464,14 @@ function Trainings({ players, trainings, setTrainings, attendance, setAttendance
       showAppMessage("Date incomplete", "Completeaza data, ora si locatia antrenamentului.");
       return;
     }
+    if (!isSubscriptionActive(subscription, selectedClub)) {
+      showAppMessage("Abonament blocat", "Clubul are abonamentul expirat sau este blocat. Nu se pot crea antrenamente noi.");
+      return;
+    }
     const training = {
       ...form,
       id: editingTrainingId || Date.now(),
+      clubId: selectedClub?.id || DEFAULT_CLUB_ID,
       state: trainings.find((item) => item.id === editingTrainingId)?.state || "Viitor",
       steps: trainings.find((item) => item.id === editingTrainingId)?.steps || trainingSteps,
     };
@@ -1238,7 +1529,7 @@ function Trainings({ players, trainings, setTrainings, attendance, setAttendance
       id: Date.now(),
       type: "Antrenament",
       source: training.theme || "Antrenament",
-      date: training.date || "Azi",
+      date: training.date || todayLabel(),
       author: currentUser?.name || "Antrenor",
       text,
     };
@@ -1522,16 +1813,17 @@ const romanianMonths = {
 };
 
 function makeTrainingEvent(training) {
-  const [day = "", month = ""] = training.date.toLowerCase().split(" ");
-  const dayNumber = day.replace(/[^0-9]/g, "") || "—";
+  const dateParts = getDateParts(training.date);
   return {
     type: `Antrenament ${training.group}`,
     day: training.state === "Finalizat" ? "GATA" : "PLAN",
-    date: `${dayNumber} ${romanianMonths[month] || month.slice(0, 3).toUpperCase()}`,
+    date: `${dateParts.day} ${dateParts.month}`,
     time: training.time,
     detail: `${training.theme || "Fără temă"} • ${training.location}`,
     icon: "barbell-outline",
     color: training.state === "Finalizat" ? C.green : C.blue,
+    group: training.group,
+    rawDate: training.date,
   };
 }
 
@@ -1543,9 +1835,9 @@ const callUpOptions = [
 ];
 const matchSquadStatuses = ["convocat", "confirmat", "rezervă"];
 
-function MatchesPage({ players, matches, setMatches, currentUser, playerObservations = {}, setPlayerObservations = () => {} }) {
-  const roleMatches = filterMatchesByUser(matches, currentUser, players);
-  const roleGroups = currentUser?.role === "admin" ? clubGroups : [...new Set(roleMatches.map((match) => match.group))];
+function MatchesPage({ players, matches, setMatches, currentUser, playerObservations = {}, setPlayerObservations = () => {}, selectedClub }) {
+  const roleMatches = filterMatchesByUser(matches, currentUser, players, selectedClub?.id);
+  const roleGroups = ["super_admin", "club_owner", "admin"].includes(currentUser?.role) ? (selectedClub?.groups || clubGroups) : [...new Set(roleMatches.map((match) => match.group))];
   const activeGroups = roleGroups.length ? roleGroups : clubGroups;
   const [selectedGroup, setSelectedGroup] = useState(activeGroups[0] || "U19");
   const safeGroup = activeGroups.includes(selectedGroup) ? selectedGroup : activeGroups[0];
@@ -1567,7 +1859,7 @@ function MatchesPage({ players, matches, setMatches, currentUser, playerObservat
   });
   const canEditMatches = canManageClub(currentUser);
   const selectedPlayers = selectedMatch ? players.filter((player) => player.group === selectedMatch.group) : [];
-  const visibleCallUpPlayers = canEditMatches ? selectedPlayers : filterPlayersByUser(selectedPlayers, currentUser);
+  const visibleCallUpPlayers = canEditMatches ? selectedPlayers : filterPlayersByUser(selectedPlayers, currentUser, selectedClub?.id);
   const callUps = selectedMatch?.callUps || {};
   const matchAnalysisPlayers = selectedPlayers.filter((player) => matchSquadStatuses.includes(callUps[player.id]) || Number(selectedMatch?.scorers?.[player.id] || 0) > 0);
   const activeStatsPlayer = matchAnalysisPlayers.find((player) => player.id === activeStatsPlayerId);
@@ -1601,6 +1893,7 @@ function MatchesPage({ players, matches, setMatches, currentUser, playerObservat
       status: matches.find((match) => match.id === editingMatchId)?.status || "Programat",
       score: matches.find((match) => match.id === editingMatchId)?.score || "",
       callUps: matches.find((match) => match.id === editingMatchId)?.callUps || {},
+      clubId: selectedClub?.id || DEFAULT_CLUB_ID,
       ...matchForm,
       opponent: matchForm.opponent.trim(),
       notes: matchForm.notes.trim() || "Fara observatii.",
@@ -1688,7 +1981,7 @@ function MatchesPage({ players, matches, setMatches, currentUser, playerObservat
       id: Date.now(),
       type: "Meci",
       source: `vs ${match.opponent}`,
-      date: match.date || "Azi",
+      date: match.date || todayLabel(),
       author: currentUser?.name || "Antrenor",
       text,
     };
@@ -2017,17 +2310,17 @@ function MatchesPage({ players, matches, setMatches, currentUser, playerObservat
   );
 }
 
-function Calendar({ trainings, matches = [], events, setEvents, currentUser, players }) {
+function Calendar({ trainings, matches = [], events, setEvents, currentUser, players, selectedClub }) {
   const [showEventForm, setShowEventForm] = useState(false);
   const [calendarGroup, setCalendarGroup] = useState("Toate");
   const [eventForm, setEventForm] = useState({
     type: "Meci amical",
-    date: "30 IUN",
+    date: todayLabel(),
     time: "18:00",
     detail: "Stadionul Municipal",
   });
-  const trainingEvents = filterTrainingsByUser(trainings, currentUser, players).map(makeTrainingEvent);
-  const matchEvents = filterMatchesByUser(matches, currentUser, players).map((match) => ({
+  const trainingEvents = filterTrainingsByUser(trainings, currentUser, players, selectedClub?.id).map(makeTrainingEvent);
+  const matchEvents = filterMatchesByUser(matches, currentUser, players, selectedClub?.id).map((match) => ({
     id: `match-${match.id}`,
     type: `${match.type} • ${match.group}`,
     day: "MECI",
@@ -2037,8 +2330,11 @@ function Calendar({ trainings, matches = [], events, setEvents, currentUser, pla
     icon: "football-outline",
     color: C.red,
     group: match.group,
+    rawDate: match.date,
   }));
-  const calendarItems = [...trainingEvents, ...matchEvents, ...events].filter((item) => calendarGroup === "Toate" || item.group === calendarGroup || !item.group);
+  const calendarItems = [...trainingEvents, ...matchEvents, ...events]
+    .filter((item) => calendarGroup === "Toate" || item.group === calendarGroup || !item.group)
+    .sort((a, b) => compareClubSchedule({ date: a.rawDate || a.date, time: a.time }, { date: b.rawDate || b.date, time: b.time }));
 
   const saveEvent = () => {
     if (!eventForm.type.trim()) {
@@ -2051,11 +2347,12 @@ function Calendar({ trainings, matches = [], events, setEvents, currentUser, pla
         day: "NOU",
         icon: "calendar-outline",
         color: C.red,
+        clubId: selectedClub?.id || DEFAULT_CLUB_ID,
         ...eventForm,
       },
       ...current,
     ]);
-    setEventForm({ type: "Meci amical", date: "30 IUN", time: "18:00", detail: "Stadionul Municipal" });
+    setEventForm({ type: "Meci amical", date: todayLabel(), time: "18:00", detail: "Stadionul Municipal" });
     setShowEventForm(false);
     showAppMessage("Salvat", "Evenimentul a fost adaugat in calendar.");
   };
@@ -2077,7 +2374,7 @@ function Calendar({ trainings, matches = [], events, setEvents, currentUser, pla
       </ScrollView>
       {calendarItems.map((item, index) => (
         <View style={styles.scheduleCard} key={`${item.type}-${item.date}-${index}`}>
-          <View style={styles.scheduleDate}><Text style={styles.scheduleDay}>{item.day}</Text><Text style={styles.scheduleNumber}>{item.date.split(" ")[0]}</Text></View>
+          <View style={styles.scheduleDate}><Text style={styles.scheduleDay}>{item.day}</Text><Text style={styles.scheduleNumber}>{getDateParts(item.rawDate || item.date).day}</Text></View>
           <View style={[styles.scheduleIcon, { backgroundColor: `${item.color}20` }]}><Ionicons name={item.icon} size={23} color={item.color} /></View>
           <View style={styles.scheduleInfo}>
             <Text style={styles.scheduleType}>{item.type}</Text>
@@ -2090,7 +2387,7 @@ function Calendar({ trainings, matches = [], events, setEvents, currentUser, pla
         <View style={styles.formCard}>
           <TrainingField label="Eveniment" value={eventForm.type} onChange={(type) => setEventForm({ ...eventForm, type })} />
           <View style={styles.formRow}>
-            <View style={styles.formHalf}><TrainingField label="Data scurtă" value={eventForm.date} onChange={(date) => setEventForm({ ...eventForm, date })} placeholder="30 IUN" /></View>
+            <View style={styles.formHalf}><TrainingField label="Data" value={eventForm.date} onChange={(date) => setEventForm({ ...eventForm, date })} placeholder={todayLabel()} /></View>
             <View style={styles.formHalf}><TrainingField label="Ora" value={eventForm.time} onChange={(time) => setEventForm({ ...eventForm, time })} placeholder="18:00" /></View>
           </View>
           <TrainingField label="Detalii" value={eventForm.detail} onChange={(detail) => setEventForm({ ...eventForm, detail })} placeholder="Locație sau adversar" />
@@ -2159,7 +2456,7 @@ function makeAutomaticFinanceRows({ players, trainings, payments, monthlyPayment
   return [...monthlyRows, ...trainingRows, ...cleanManualRows];
 }
 
-function Finances({ players, trainings, payments, setPayments, monthlyPayments, setMonthlyPayments, transactions, setTransactions, clubSettings }) {
+function Finances({ players, trainings, payments, setPayments, monthlyPayments, setMonthlyPayments, transactions, setTransactions, clubSettings, selectedClub }) {
   const [financeView, setFinanceView] = useState("Plăți antrenamente");
   const [selectedPaymentGroup, setSelectedPaymentGroup] = useState(trainings[0]?.group || clubGroups[0]);
   const [selectedTrainingId, setSelectedTrainingId] = useState(trainings[0]?.id);
@@ -2169,7 +2466,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
   const [transactionForm, setTransactionForm] = useState({
     label: "",
     value: "",
-    date: "Azi",
+    date: todayLabel(),
   });
   const groupTrainings = trainings.filter((training) => training.group === selectedPaymentGroup);
   const selectedTraining = groupTrainings.find((training) => training.id === selectedTrainingId) || groupTrainings[0];
@@ -2199,7 +2496,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
     setTransactionForm({
       label: type === "income" ? "Cotizație jucător" : "Cheltuială club",
       value: "",
-      date: "Azi",
+      date: todayLabel(),
     });
   };
 
@@ -2210,7 +2507,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
     setTransactionForm({
       label: row.label,
       value: String(row.value || ""),
-      date: row.date || "Azi",
+      date: row.date || todayLabel(),
     });
   };
 
@@ -2229,7 +2526,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
     if (editingTransactionId) {
       setTransactions((current) => current.map((row) => (
         row.id === editingTransactionId
-          ? { ...row, label: transactionForm.label.trim(), value, date: transactionForm.date.trim() || "Azi" }
+          ? { ...row, label: transactionForm.label.trim(), value, date: transactionForm.date.trim() || todayLabel() }
           : row
       )));
     } else {
@@ -2239,14 +2536,15 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
           label: transactionForm.label.trim(),
           value,
           positive: transactionType === "income",
-          date: transactionForm.date.trim() || "Azi",
+          date: transactionForm.date.trim() || todayLabel(),
+          clubId: selectedClub?.id || DEFAULT_CLUB_ID,
         },
         ...current,
       ]);
     }
     setTransactionType(null);
     setEditingTransactionId(null);
-    setTransactionForm({ label: "", value: "", date: "Azi" });
+    setTransactionForm({ label: "", value: "", date: todayLabel() });
     showAppMessage("Salvat", editingTransactionId ? "Cheltuiala a fost actualizata." : "Tranzactia a fost adaugata in buget.");
   };
 
@@ -2274,7 +2572,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
           [playerId]: {
             amount: currentPayment.amount || "150",
             paid: !currentPayment.paid,
-            paidAt: !currentPayment.paid ? "Achitat azi" : null,
+            paidAt: !currentPayment.paid ? nowLabel() : null,
           },
         },
       };
@@ -2305,7 +2603,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
           [playerId]: {
             amount: currentPayment.amount || clubSettings.monthlyFee || "600",
             paid: !currentPayment.paid,
-            paidAt: !currentPayment.paid ? "Achitat luna curentă" : null,
+            paidAt: !currentPayment.paid ? nowLabel() : null,
           },
         },
       };
@@ -2359,7 +2657,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
                   <TrainingField label="Suma MDL" value={transactionForm.value} onChange={(value) => setTransactionForm({ ...transactionForm, value: value.replace(/[^0-9]/g, "") })} placeholder="1500" />
                 </View>
                 <View style={styles.formHalf}>
-                  <TrainingField label="Data" value={transactionForm.date} onChange={(date) => setTransactionForm({ ...transactionForm, date })} placeholder="Azi" />
+                  <TrainingField label="Data" value={transactionForm.date} onChange={(date) => setTransactionForm({ ...transactionForm, date })} placeholder={todayLabel()} />
                 </View>
               </View>
               <View style={styles.formActions}>
@@ -2381,7 +2679,7 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
         <>
           <Text style={styles.paymentSectionLabel}>LUNA</Text>
           <View style={styles.paymentTrainingList}>
-            {[currentMonthLabel(), "Iulie 2026", "August 2026"].map((month) => (
+            {getMonthOptions(6).map((month) => (
               <Pressable key={month} style={[styles.paymentTrainingChip, selectedMonth === month && styles.paymentTrainingChipActive]} onPress={() => setSelectedMonth(month)}>
                 <Text style={[styles.paymentTrainingGroup, selectedMonth === month && { color: C.white }]}>{month}</Text>
                 <Text style={[styles.paymentTrainingDate, selectedMonth === month && { color: C.white }]}>cotizație</Text>
@@ -2553,10 +2851,11 @@ function Finances({ players, trainings, payments, setPayments, monthlyPayments, 
   );
 }
 
-function buildNotifications(currentUser, players, trainings, attendance, matches = [], monthlyPayments = {}, documents = []) {
+function buildNotifications(currentUser, players, trainings, attendance, matches = [], monthlyPayments = {}, documents = [], clubSettings = initialClubSettings) {
+  const [invitationForm, setInvitationForm] = useState({ email: "", role: "coach" });
   const personalPlayer = players.find((player) => player.id === currentUser?.playerId || player.id === currentUser?.childPlayerId);
-  const personalTrainings = filterTrainingsByUser(trainings, currentUser, players);
-  const personalMatches = filterMatchesByUser(matches, currentUser, players);
+  const personalTrainings = filterTrainingsByUser(trainings, currentUser, players).slice().sort(compareClubSchedule);
+  const personalMatches = filterMatchesByUser(matches, currentUser, players).slice().sort(compareClubSchedule);
   const personalStatuses = personalPlayer
     ? personalTrainings.map((training) => attendance[training.id]?.[personalPlayer.id]).filter(Boolean)
     : [];
@@ -2566,7 +2865,8 @@ function buildNotifications(currentUser, players, trainings, attendance, matches
   const personalPercent = personalStatuses.length ? Math.round(((personalPresent + personalLate * 0.5) / personalStatuses.length) * 100) : 0;
   const monthKey = personalPlayer ? `${currentMonthLabel()}-${personalPlayer.group}` : null;
   const personalPayment = personalPlayer && monthKey ? monthlyPayments[monthKey]?.[personalPlayer.id] : null;
-  const currentMonthDebt = personalPlayer ? Math.max(Number(personalPayment?.paid ? 0 : (600 - Number(personalPayment?.amount || 0))), 0) : 0;
+  const standardFee = Number(clubSettings.monthlyFee || 600);
+  const currentMonthDebt = personalPlayer ? Math.max(Number(personalPayment?.paid ? 0 : (standardFee - Number(personalPayment?.amount || 0))), 0) : 0;
   const expiringDoc = personalPlayer ? documents.find((doc) => doc.owner === personalPlayer.name && doc.status !== "Valid") : documents.find((doc) => doc.status !== "Valid");
   return [
     {
@@ -2616,9 +2916,22 @@ function buildNotifications(currentUser, players, trainings, attendance, matches
   ];
 }
 
-function NotificationsPage({ currentUser, players, trainings, attendance, matches, monthlyPayments, documents }) {
+function NotificationsPage({ currentUser, players, trainings, attendance, matches, monthlyPayments, documents, clubSettings }) {
   const [readNotifications, setReadNotifications] = useState({});
-  const notifications = buildNotifications(currentUser, players, trainings, attendance, matches, monthlyPayments, documents);
+  const notifications = buildNotifications(currentUser, players, trainings, attendance, matches, monthlyPayments, documents, clubSettings);
+
+  const activateMobileAlerts = async () => {
+    try {
+      const first = notifications[0];
+      const result = await scheduleLocalReminder(first?.title || "FC Autentic", first?.text || "Ai o actualizare nouă în aplicație.", 5);
+      showAppMessage(
+        result.scheduled ? "Alerte activate" : "Preview web",
+        result.scheduled ? "Am programat o alertă de test. Pe telefon vom folosi notificări native." : "În browser notificările mobile sunt simulate; pe iOS/Android vor fi native."
+      );
+    } catch (error) {
+      showAppMessage("Notificări inactive", error.message || "Nu am putut activa notificările mobile.");
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -2647,32 +2960,40 @@ function NotificationsPage({ currentUser, players, trainings, attendance, matche
             </Pressable>
           );
         })}
+        <Pressable style={styles.primaryButton} onPress={activateMobileAlerts}>
+          <Ionicons name={Platform.OS === "web" ? "phone-portrait-outline" : "notifications-outline"} size={19} color={C.white} />
+          <Text style={styles.primaryButtonText}>Activează alerte mobile</Text>
+        </Pressable>
         <Text style={styles.notificationHint}>Apasă pe o notificare pentru a o marca citită/necitită.</Text>
       </View>
     </ScrollView>
   );
 }
 
-function More({ currentUser, onLogout, players, setPlayers, trainings, matches, attendance, payments, monthlyPayments, clubSettings, setClubSettings, documents, setDocuments, announcements, setAnnouncements, playerObservations = {}, equipment = [], setEquipment = () => {}, evaluations = {}, setEvaluations = () => {}, developmentPlans = {}, setDevelopmentPlans = () => {}, discipline = [], setDiscipline = () => {}, chatMessages = [], setChatMessages = () => {}, mediaGallery = [], setMediaGallery = () => {}, scouting = [], setScouting = () => {} }) {
+function More({ currentUser, onLogout, setTab, players, setPlayers, trainings, matches, attendance, payments, monthlyPayments, clubSettings, setClubSettings, documents, setDocuments, announcements, setAnnouncements, playerObservations = {}, equipment = [], setEquipment = () => {}, evaluations = {}, setEvaluations = () => {}, developmentPlans = {}, setDevelopmentPlans = () => {}, discipline = [], setDiscipline = () => {}, chatMessages = [], setChatMessages = () => {}, mediaGallery = [], setMediaGallery = () => {}, scouting = [], setScouting = () => {}, selectedClub, clubs = [], setSelectedClubId = () => {}, subscriptions = [], setSubscriptions = () => {}, invitations = [], setInvitations = () => {}, memberships = [], setMemberships = () => {} }) {
   const [selectedMenu, setSelectedMenu] = useState(null);
   const [exportedReport, setExportedReport] = useState("");
   const [medicalForms, setMedicalForms] = useState({});
   const [equipmentForm, setEquipmentForm] = useState({ name: "Echipament nou", category: "Materiale", total: "", assigned: "Club", missing: "0" });
   const [selectedPlayerForTools, setSelectedPlayerForTools] = useState(players[0]?.id);
-  const [evaluationForm, setEvaluationForm] = useState({ month: "Iunie 2026", technique: "8", speed: "8", discipline: "8", attitude: "8", tactics: "8", physical: "8" });
+  const [evaluationForm, setEvaluationForm] = useState({ month: currentMonthLabel(), technique: "8", speed: "8", discipline: "8", attitude: "8", tactics: "8", physical: "8" });
   const [planForm, setPlanForm] = useState({ focus: "", objective: "", exercises: "", status: "În lucru" });
   const [disciplineForm, setDisciplineForm] = useState({ type: "Întârziere", note: "" });
   const [chatForm, setChatForm] = useState({ audience: "Părinți", text: "" });
-  const [mediaForm, setMediaForm] = useState({ type: "Meci", title: "", url: "", date: "Azi" });
+  const [mediaForm, setMediaForm] = useState({ type: "Meci", title: "", url: "", date: todayLabel() });
   const [scoutForm, setScoutForm] = useState({ name: "", age: "", role: "", notes: "", decision: "Revăzut" });
   const personalPlayer = players.find((player) => player.id === currentUser?.playerId || player.id === currentUser?.childPlayerId);
-  const personalTrainings = filterTrainingsByUser(trainings, currentUser, players);
+  const personalTrainings = filterTrainingsByUser(trainings, currentUser, players, selectedClub?.id);
   const personalStatuses = personalPlayer
     ? personalTrainings.map((training) => attendance[training.id]?.[personalPlayer.id]).filter(Boolean)
     : [];
   const personalPresent = personalStatuses.filter((status) => status === "present").length;
   const personalLate = personalStatuses.filter((status) => status === "late").length;
   const personalPercent = personalStatuses.length ? Math.round(((personalPresent + personalLate * 0.5) / personalStatuses.length) * 100) : 0;
+  const navigationShortcuts = [
+    ["calendar-outline", "Calendar", "Program complet", () => setTab?.("Calendar")],
+    ...(canManageFinance(currentUser) ? [["wallet-outline", "Finanțe", "Buget și plăți", () => setTab?.("Finanțe")]] : []),
+  ];
   const fullMenu = [
     ["person-circle-outline", "Profil personal"],
     ["star-outline", "Evaluări lunare"],
@@ -2688,6 +3009,9 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
     ["analytics-outline", "Status aplicație"],
     ["chatbubbles-outline", "Anunțuri club"],
     ["download-outline", "Export rapoarte"],
+    ["business-outline", "Cluburi mele"],
+    ["mail-outline", "Invitatii club"],
+    ["card-outline", "Abonament SaaS"],
     ["people-circle-outline", "Staff și permisiuni"],
     ["settings-outline", "Setări club"],
   ];
@@ -2697,13 +3021,13 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
       showAppMessage("Lipseste titlul", "Completeaza titlul anuntului inainte de trimitere.");
       return;
     }
-    setAnnouncements((current) => [{ id: Date.now(), ...announcementForm, date: "Azi" }, ...current]);
+    setAnnouncements((current) => [{ id: Date.now(), ...announcementForm, date: nowLabel() }, ...current]);
     showAppMessage("Trimis", "Anuntul a fost publicat in club.");
     setAnnouncementForm({ audience: "Toți", title: "", text: "" });
   };
   const addDocument = () => {
     setDocuments((current) => [
-      { id: Date.now(), title: "Document nou", owner: currentUser?.name || "Club", type: "General", status: "Lipsă fișier", expires: "De completat" },
+      { id: Date.now(), title: "Document nou", owner: currentUser?.name || "Club", type: "General", status: "Lipsă fișier", expires: "De completat", clubId: selectedClub?.id || DEFAULT_CLUB_ID },
       ...current,
     ]);
     showAppMessage("Adaugat", "Documentul nou a fost creat in lista.");
@@ -2726,7 +3050,7 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
       showAppMessage("Denumire lipsă", "Completează denumirea echipamentului.");
       return;
     }
-    setEquipment((current) => [{ id: Date.now(), ...equipmentForm, total: Number(equipmentForm.total || 0), missing: Number(equipmentForm.missing || 0) }, ...current]);
+    setEquipment((current) => [{ id: Date.now(), ...equipmentForm, total: Number(equipmentForm.total || 0), missing: Number(equipmentForm.missing || 0), clubId: selectedClub?.id || DEFAULT_CLUB_ID }, ...current]);
     setEquipmentForm({ name: "Echipament nou", category: "Materiale", total: "", assigned: "Club", missing: "0" });
     showAppMessage("Inventar actualizat", "Echipamentul a fost adăugat.");
   };
@@ -2742,27 +3066,70 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
     showAppMessage("Plan salvat", "Planul individual de dezvoltare a fost actualizat.");
   };
   const addDiscipline = () => {
-    setDiscipline((current) => [{ id: Date.now(), playerId: selectedPlayerForTools, type: disciplineForm.type, note: disciplineForm.note || "Fără detalii", date: "Azi" }, ...current]);
+    setDiscipline((current) => [{ id: Date.now(), playerId: selectedPlayerForTools, type: disciplineForm.type, note: disciplineForm.note || "Fără detalii", date: nowLabel(), clubId: selectedClub?.id || DEFAULT_CLUB_ID }, ...current]);
     setDisciplineForm({ type: "Întârziere", note: "" });
     showAppMessage("Disciplină actualizată", "Incidentul a fost adăugat.");
   };
   const sendChatMessage = () => {
     if (!chatForm.text.trim()) return showAppMessage("Mesaj gol", "Scrie mesajul înainte de trimitere.");
-    setChatMessages((current) => [{ id: Date.now(), audience: chatForm.audience, author: currentUser?.name || "Club", text: chatForm.text.trim(), date: "Azi" }, ...current]);
+    setChatMessages((current) => [{ id: Date.now(), audience: chatForm.audience, author: currentUser?.name || "Club", text: chatForm.text.trim(), date: nowLabel(), clubId: selectedClub?.id || DEFAULT_CLUB_ID }, ...current]);
     setChatForm({ audience: chatForm.audience, text: "" });
     showAppMessage("Trimis", "Mesajul a fost adăugat în chat.");
   };
   const addMedia = () => {
     if (!mediaForm.title.trim()) return showAppMessage("Titlu lipsă", "Completează titlul media.");
-    setMediaGallery((current) => [{ id: Date.now(), ...mediaForm }, ...current]);
-    setMediaForm({ type: "Meci", title: "", url: "", date: "Azi" });
+    setMediaGallery((current) => [{ id: Date.now(), ...mediaForm, clubId: selectedClub?.id || DEFAULT_CLUB_ID }, ...current]);
+    setMediaForm({ type: "Meci", title: "", url: "", date: todayLabel() });
     showAppMessage("Galerie actualizată", "Elementul media a fost adăugat.");
   };
   const addScout = () => {
     if (!scoutForm.name.trim()) return showAppMessage("Nume lipsă", "Completează numele jucătorului în probă.");
-    setScouting((current) => [{ id: Date.now(), ...scoutForm }, ...current]);
+    setScouting((current) => [{ id: Date.now(), ...scoutForm, clubId: selectedClub?.id || DEFAULT_CLUB_ID }, ...current]);
     setScoutForm({ name: "", age: "", role: "", notes: "", decision: "Revăzut" });
     showAppMessage("Scouting actualizat", "Jucătorul în probă a fost adăugat.");
+  };
+  const currentSubscription = getClubSubscription(subscriptions, selectedClub?.id);
+  const sendInvitation = () => {
+    const email = invitationForm.email.trim().toLowerCase();
+    if (!email.includes("@")) return showAppMessage("Email invalid", "Completeaza emailul persoanei invitate.");
+    if (!selectedClub?.id) return showAppMessage("Club lipsa", "Alege clubul inainte de a trimite invitatia.");
+    const invite = {
+      id: `invite-${Date.now()}`,
+      email,
+      role: invitationForm.role,
+      clubId: selectedClub.id,
+      status: "pending",
+      token: `fc-${Math.random().toString(36).slice(2, 10)}`,
+      createdAt: nowLabel(),
+    };
+    if (isSupabaseConfigured && supabaseService.insertInvitation) {
+      supabaseService.insertInvitation(invite).catch((error) => reportSyncError("Invitatii", error));
+    }
+    setInvitations((current) => [invite, ...current]);
+    setInvitationForm({ email: "", role: "coach" });
+    showAppMessage("Invitatie trimisa", `Token: ${invite.token}`);
+  };
+  const updateSubscriptionPlan = (planName) => {
+    const plan = subscriptionPlans[planName] || subscriptionPlans.Free;
+    setSubscriptions((current) => {
+      const exists = current.some((item) => item.clubId === selectedClub?.id);
+      const next = {
+        ...(exists ? current.find((item) => item.clubId === selectedClub?.id) : {}),
+        id: currentSubscription.id || `sub-${selectedClub?.id}`,
+        clubId: selectedClub?.id,
+        planName,
+        status: "active",
+        maxPlayers: plan.maxPlayers,
+        startedAt: currentSubscription.startedAt || nowLabel(),
+        expiresAt: currentSubscription.expiresAt || "",
+        createdAt: currentSubscription.createdAt || nowLabel(),
+      };
+      if (isSupabaseConfigured && supabaseService.insertSubscription) {
+        supabaseService.insertSubscription(next).catch((error) => reportSyncError("Abonament", error));
+      }
+      return exists ? current.map((item) => (item.clubId === selectedClub?.id ? next : item)) : [next, ...current];
+    });
+    showAppMessage("Abonament actualizat", `Clubul foloseste planul ${planName}.`);
   };
   const ranking = players.map((player) => {
     const statuses = trainings.filter((training) => training.group === player.group).map((training) => attendance[training.id]?.[player.id]).filter(Boolean);
@@ -2799,17 +3166,30 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
   const personalMenu = [
     ["person-circle-outline", "Profil personal"],
   ];
-  const menu = currentUser?.role === "admin" ? fullMenu : personalMenu;
+  const menu = isSuperAdmin(currentUser) || isClubOwner(currentUser)
+    ? fullMenu
+    : currentUser?.role === "coach"
+      ? fullMenu.filter(([, label]) => !["Cluburi mele", "Invitatii club", "Abonament SaaS", "Staff И™i permisiuni", "SetДѓri club"].includes(label))
+      : personalMenu;
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title="Administrare" />
       <View style={styles.clubCard}>
         <Badge size={82} />
         <View style={styles.clubInfo}>
-          <Text style={styles.clubName}>{currentUser?.name || "FC Autentic"}</Text>
-          <Text style={styles.clubRole}>{roleLabels[currentUser?.role] || "Cont utilizator"}</Text>
-          <View style={styles.planPill}><Text style={styles.planText}>{isSupabaseConfigured ? "SUPABASE" : "DEMO"}</Text></View>
+          <Text style={styles.clubName}>{selectedClub?.name || currentUser?.name || "FC Autentic"}</Text>
+          <Text style={styles.clubRole}>{roleLabels[currentUser?.role] || "Cont utilizator"} • {selectedClub?.city || "club"}</Text>
+          <View style={styles.planPill}><Text style={styles.planText}>{currentSubscription.planName || LOCAL_MODE_LABEL}</Text></View>
         </View>
+      </View>
+      <View style={styles.shortcutGrid}>
+        {navigationShortcuts.map(([icon, label, meta, action]) => (
+          <Pressable style={styles.shortcutCard} key={label} onPress={action}>
+            <View style={styles.shortcutIcon}><Ionicons name={icon} size={21} color={C.blue} /></View>
+            <Text style={styles.shortcutTitle}>{label}</Text>
+            <Text style={styles.shortcutMeta}>{meta}</Text>
+          </Pressable>
+        ))}
       </View>
       {menu.map(([icon, label]) => (
         <Pressable style={[styles.menuRow, selectedMenu === label && styles.menuRowActive]} key={label} onPress={() => setSelectedMenu(label)}>
@@ -2827,7 +3207,7 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
               </View>
               <View style={styles.profilePanelInfo}>
                 <Text style={styles.profilePanelName}>{currentUser?.name || "Utilizator"}</Text>
-                <Text style={styles.profilePanelRole}>{roleLabels[currentUser?.role] || "Cont"} • {isSupabaseConfigured ? "Supabase" : "Demo local"}</Text>
+                <Text style={styles.profilePanelRole}>{roleLabels[currentUser?.role] || "Cont"} • {LOCAL_MODE_LABEL}</Text>
               </View>
             </View>
             <View style={styles.profileDetailsGrid}>
@@ -2858,6 +3238,69 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
                     : currentUser?.role === "parent"
                       ? "Ai acces doar la profilul și programul copilului tău."
                       : "Ai acces doar la profilul, programul și statisticile tale."}
+              </Text>
+            </View>
+          </View>
+        ) : selectedMenu === "Cluburi mele" ? (
+          <View style={styles.profilePanel}>
+            <Text style={styles.paymentSectionLabel}>CLUBURI ACCESIBILE</Text>
+            {clubs.map((club) => {
+              const membership = memberships.find((item) => item.clubId === club.id && item.userId === currentUser?.id);
+              const active = selectedClub?.id === club.id;
+              return (
+                <Pressable key={club.id} style={[styles.historyRow, active && styles.menuRowActive]} onPress={() => setSelectedClubId(club.id)}>
+                  <View>
+                    <Text style={styles.historyTitle}>{club.name}</Text>
+                    <Text style={styles.historyMeta}>{club.city || "Oras"} • {roleLabels[membership?.role] || "Acces platforma"}</Text>
+                  </View>
+                  <Text style={[styles.historyStatus, { color: active ? C.green : C.muted }]}>{active ? "Activ" : "Alege"}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : selectedMenu === "Invitatii club" ? (
+          <View style={styles.profilePanel}>
+            <Text style={styles.paymentSectionLabel}>INVITA UTILIZATORI</Text>
+            <TrainingField label="Email" value={invitationForm.email} onChange={(email) => setInvitationForm({ ...invitationForm, email })} placeholder="persoana@email.com" />
+            <Text style={styles.trainingFieldLabel}>Rol</Text>
+            <View style={styles.groupRow}>
+              {["coach", "player", "parent", "viewer"].map((role) => (
+                <Pressable key={role} style={[styles.groupChip, invitationForm.role === role && styles.groupChipActive]} onPress={() => setInvitationForm({ ...invitationForm, role })}>
+                  <Text style={[styles.groupChipText, invitationForm.role === role && styles.groupChipTextActive]}>{roleLabels[role] || role}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Pressable style={styles.primaryButton} onPress={sendInvitation}>
+              <Ionicons name="send-outline" size={18} color={C.white} />
+              <Text style={styles.primaryButtonText}>Trimite invitatie</Text>
+            </Pressable>
+            <SectionTitle title="Invitatii trimise" />
+            {invitations.filter((item) => item.clubId === selectedClub?.id).map((invite) => (
+              <View style={styles.historyRow} key={invite.id}>
+                <View>
+                  <Text style={styles.historyTitle}>{invite.email}</Text>
+                  <Text style={styles.historyMeta}>{roleLabels[invite.role] || invite.role} • token {invite.token}</Text>
+                </View>
+                <Text style={[styles.historyStatus, { color: invite.status === "accepted" ? C.green : C.amber }]}>{invite.status}</Text>
+              </View>
+            ))}
+          </View>
+        ) : selectedMenu === "Abonament SaaS" ? (
+          <View style={styles.profilePanel}>
+            <Text style={styles.paymentSectionLabel}>PLANURI SAAS</Text>
+            {Object.values(subscriptionPlans).map((plan) => (
+              <Pressable key={plan.name} style={[styles.subscriptionCard, currentSubscription.planName === plan.name && styles.subscriptionCardActive]} onPress={() => updateSubscriptionPlan(plan.name)}>
+                <View>
+                  <Text style={styles.subscriptionTitle}>{plan.name}</Text>
+                  <Text style={styles.subscriptionMeta}>{plan.maxPlayers ? `max ${plan.maxPlayers} jucatori` : "jucatori nelimitati"} • {plan.features.join(", ")}</Text>
+                </View>
+                <Text style={styles.subscriptionPrice}>{plan.monthlyPrice ? `${plan.monthlyPrice}€/lună` : "Free"}</Text>
+              </Pressable>
+            ))}
+            <View style={styles.permissionCard}>
+              <Ionicons name="lock-closed-outline" size={20} color={isSubscriptionActive(currentSubscription, selectedClub) ? C.green : C.red} />
+              <Text style={styles.permissionText}>
+                Status: {currentSubscription.status || "active"} • limita curenta: {getPlanLimit(currentSubscription) || "nelimitat"} jucatori.
               </Text>
             </View>
           </View>
@@ -3037,7 +3480,7 @@ function More({ currentUser, onLogout, players, setPlayers, trainings, matches, 
               <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Meciuri</Text><Text style={styles.profileDetailValue}>{matches.length}</Text></View>
               <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Observații</Text><Text style={styles.profileDetailValue}>{Object.values(playerObservations).reduce((sum, list) => sum + list.length, 0)}</Text></View>
               <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Inventar</Text><Text style={styles.profileDetailValue}>{equipment.length} poziții</Text></View>
-              <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Bază date</Text><Text style={[styles.profileDetailValue, { color: isSupabaseConfigured ? C.green : C.amber }]}>{isSupabaseConfigured ? "Supabase conectat" : "Local demo"}</Text></View>
+              <View style={styles.profileDetailBox}><Text style={styles.profileDetailLabel}>Bază date</Text><Text style={[styles.profileDetailValue, { color: isSupabaseConfigured ? C.green : C.amber }]}>{isSupabaseConfigured ? "Supabase conectat" : "Mod local"}</Text></View>
             </View>
             <View style={styles.permissionCard}>
               <Ionicons name="cloud-done-outline" size={20} color={C.blue} />
@@ -3111,6 +3554,64 @@ const tabs = [
   ["Mai mult", "menu"],
 ];
 
+function SaasAdminPage({ clubs, players, memberships, subscriptions, setClubs }) {
+  const activeClubs = clubs.filter((club) => !club.blocked && club.status !== "blocked").length;
+  const totalUsers = new Set(memberships.map((item) => item.userId)).size;
+  const estimatedMrr = subscriptions.reduce((sum, subscription) => {
+    const plan = subscriptionPlans[subscription.planName] || subscriptionPlans.Free;
+    return sum + (subscription.status === "active" ? plan.monthlyPrice : 0);
+  }, 0);
+  const toggleClubBlock = (clubId) => {
+    setClubs((current) => current.map((club) => (
+      club.id === clubId ? { ...club, blocked: !club.blocked, status: club.blocked ? "active" : "blocked" } : club
+    )));
+    const currentClub = clubs.find((club) => club.id === clubId);
+    if (currentClub && isSupabaseConfigured && supabaseService.updateClub) {
+      const updated = { ...currentClub, blocked: !currentClub.blocked, status: currentClub.blocked ? "active" : "blocked" };
+      supabaseService.updateClub(updated).catch((error) => reportSyncError("Cluburi SaaS", error));
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <TopBar title="Super Admin" eyebrow="PLATFORMA SAAS" />
+      <View style={styles.profileStats}>
+        <Metric icon="business-outline" value={clubs.length} label="Cluburi" color={C.blue} />
+        <Metric icon="people-outline" value={totalUsers} label="Utilizatori" color={C.green} />
+        <Metric icon="football-outline" value={players.length} label="Jucatori" color={C.amber} />
+        <Metric icon="cash-outline" value={`${estimatedMrr}€`} label="MRR estimat" color={C.red} />
+      </View>
+      <View style={styles.controlCard}>
+        <View style={styles.controlTop}>
+          <View>
+            <Text style={styles.controlKicker}>STATUS PLATFORMA</Text>
+            <Text style={styles.controlTitle}>{activeClubs}/{clubs.length} cluburi active</Text>
+          </View>
+          <View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.liveText}>SAAS</Text></View>
+        </View>
+      </View>
+      <SectionTitle title="Toate cluburile" />
+      {clubs.map((club) => {
+        const subscription = getClubSubscription(subscriptions, club.id);
+        const clubPlayers = players.filter((player) => getClubId(player) === club.id).length;
+        const clubCoaches = memberships.filter((item) => item.clubId === club.id && item.role === "coach").length;
+        return (
+          <View style={styles.subscriptionCard} key={club.id}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.subscriptionTitle}>{club.name}</Text>
+              <Text style={styles.subscriptionMeta}>{club.city || "Oras"} • {clubPlayers} jucatori • {clubCoaches} antrenori</Text>
+              <Text style={styles.subscriptionMeta}>Plan {subscription.planName} • status {subscription.status || "active"}</Text>
+            </View>
+            <Pressable style={[styles.smallSaveButton, { backgroundColor: club.blocked ? C.green : C.red }]} onPress={() => toggleClubBlock(club.id)}>
+              <Text style={styles.smallSaveText}>{club.blocked ? "Deblocheaza" : "Blocheaza"}</Text>
+            </Pressable>
+          </View>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
 export default function App() {
   const [authView, setAuthView] = useState("welcome");
   const [currentUser, setCurrentUser] = useState(null);
@@ -3118,35 +3619,36 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [tab, setTab] = useState("Panou");
-  const [players, rawSetPlayers] = useState(initialPlayers);
-  const [trainings, rawSetTrainings] = useState(initialTrainings);
-  const [matches, rawSetMatches] = useState(initialMatches);
-  const [attendance, rawSetAttendance] = useState({
-    103: { 5: "present", 6: "late" },
-  });
-  const [payments, rawSetPayments] = useState({
-    101: { 1: { paid: true, amount: "150", paidAt: "Achitat azi" } },
-  });
+  const [players, rawSetPlayers] = useState(seedData.players);
+  const [trainings, rawSetTrainings] = useState(seedData.trainings);
+  const [matches, rawSetMatches] = useState(seedData.matches);
+  const [attendance, rawSetAttendance] = useState(seedData.attendance);
+  const [payments, rawSetPayments] = useState(seedData.payments);
   const [monthlyPayments, rawSetMonthlyPayments] = useState({});
   const [events, rawSetEvents] = useState([]);
-  const [transactions, rawSetTransactions] = useState(initialFinanceRows);
+  const [transactions, rawSetTransactions] = useState(seedData.transactions);
   const [clubSettings, setClubSettings] = useState(initialClubSettings);
-  const [documents, rawSetDocuments] = useState(initialDocuments);
-  const [announcements, setAnnouncements] = useState(initialAnnouncements);
-  const [playerObservations, rawSetPlayerObservations] = useState(initialPlayerObservations);
-  const [equipment, rawSetEquipment] = useState(initialEquipment);
-  const [evaluations, rawSetEvaluations] = useState(initialEvaluations);
-  const [developmentPlans, rawSetDevelopmentPlans] = useState(initialDevelopmentPlans);
-  const [discipline, rawSetDiscipline] = useState(initialDiscipline);
-  const [chatMessages, rawSetChatMessages] = useState(initialChatMessages);
-  const [mediaGallery, rawSetMediaGallery] = useState(initialMediaGallery);
-  const [scouting, rawSetScouting] = useState(initialScouting);
+  const [documents, rawSetDocuments] = useState(seedData.documents);
+  const [announcements, setAnnouncements] = useState(seedData.announcements);
+  const [playerObservations, rawSetPlayerObservations] = useState(seedData.playerObservations);
+  const [equipment, rawSetEquipment] = useState(seedData.equipment);
+  const [evaluations, rawSetEvaluations] = useState(seedData.evaluations);
+  const [developmentPlans, rawSetDevelopmentPlans] = useState(seedData.developmentPlans);
+  const [discipline, rawSetDiscipline] = useState(seedData.discipline);
+  const [chatMessages, rawSetChatMessages] = useState(seedData.chatMessages);
+  const [mediaGallery, rawSetMediaGallery] = useState(seedData.mediaGallery);
+  const [scouting, rawSetScouting] = useState(seedData.scouting);
+  const [clubs, setClubs] = useState([defaultClub]);
+  const [selectedClubId, setSelectedClubId] = useState(DEFAULT_CLUB_ID);
+  const [memberships, setMemberships] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([defaultSubscription]);
+  const [invitations, setInvitations] = useState([]);
   const [hydrated, setHydrated] = useState(false);
-  const [tasks, setTasks] = useState([
+  const [tasks, setTasks] = useState(ENABLE_DEMO_MODE ? [
     { id: 1, title: "Confirmă lotul pentru meci", meta: "Termen: azi, 16:00", priority: "URGENT", color: C.red, done: false },
     { id: 2, title: "Achită chiria terenului", meta: "Termen: 25 iunie", priority: "MEDIU", color: C.amber, done: false },
     { id: 3, title: "Verifică echipamentul", meta: "Responsabil: Andrei", priority: "NORMAL", color: C.blue, done: true },
-  ]);
+  ] : []);
 
   const loadAllFromSupabase = async () => {
     try {
@@ -3169,23 +3671,23 @@ export default function App() {
         dbMediaGallery,
         dbScouting
       ] = await Promise.all([
-        supabaseService.getPlayers().catch(() => initialPlayers),
-        supabaseService.getTrainings().catch(() => initialTrainings),
-        supabaseService.getMatches().catch(() => initialMatches),
+        supabaseService.getPlayers().catch(() => seedData.players),
+        supabaseService.getTrainings().catch(() => seedData.trainings),
+        supabaseService.getMatches().catch(() => seedData.matches),
         supabaseService.getAttendance().catch(() => ({})),
         supabaseService.getTrainingPayments().catch(() => ({})),
         supabaseService.getMonthlyPayments().catch(() => ({})),
         supabaseService.getEvents().catch(() => []),
-        supabaseService.getTransactions().catch(() => initialFinanceRows),
-        supabaseService.getDocuments().catch(() => initialDocuments),
-        supabaseService.getObservations().catch(() => initialPlayerObservations),
-        supabaseService.getEquipment().catch(() => initialEquipment),
-        supabaseService.getEvaluations().catch(() => initialEvaluations),
-        supabaseService.getDevelopmentPlans().catch(() => initialDevelopmentPlans),
-        supabaseService.getDiscipline().catch(() => initialDiscipline),
-        supabaseService.getChatMessages().catch(() => initialChatMessages),
-        supabaseService.getMedia().catch(() => initialMediaGallery),
-        supabaseService.getScouting().catch(() => initialScouting),
+        supabaseService.getTransactions().catch(() => seedData.transactions),
+        supabaseService.getDocuments().catch(() => seedData.documents),
+        supabaseService.getObservations().catch(() => seedData.playerObservations),
+        supabaseService.getEquipment().catch(() => seedData.equipment),
+        supabaseService.getEvaluations().catch(() => seedData.evaluations),
+        supabaseService.getDevelopmentPlans().catch(() => seedData.developmentPlans),
+        supabaseService.getDiscipline().catch(() => seedData.discipline),
+        supabaseService.getChatMessages().catch(() => seedData.chatMessages),
+        supabaseService.getMedia().catch(() => seedData.mediaGallery),
+        supabaseService.getScouting().catch(() => seedData.scouting),
       ]);
 
       rawSetPlayers(dbPlayers);
@@ -3205,6 +3707,18 @@ export default function App() {
       rawSetChatMessages(dbChatMessages);
       rawSetMediaGallery(dbMediaGallery);
       rawSetScouting(dbScouting);
+      if (supabaseService.getClubs) {
+        const [dbClubs, dbMemberships, dbSubscriptions, dbInvitations] = await Promise.all([
+          supabaseService.getClubs().catch(() => [defaultClub]),
+          supabaseService.getMemberships().catch(() => []),
+          supabaseService.getSubscriptions().catch(() => [defaultSubscription]),
+          supabaseService.getInvitations().catch(() => []),
+        ]);
+        setClubs(dbClubs.length ? dbClubs : [defaultClub]);
+        setMemberships(dbMemberships);
+        setSubscriptions(dbSubscriptions.length ? dbSubscriptions : [defaultSubscription]);
+        setInvitations(dbInvitations);
+      }
     } catch (err) {
       console.warn("Eroare la încărcarea datelor din Supabase:", err);
     }
@@ -3237,7 +3751,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing players to Supabase:", e);
+            reportSyncError("Jucători", e);
           }
         }, 0);
       }
@@ -3272,7 +3786,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing trainings to Supabase:", e);
+            reportSyncError("Antrenamente", e);
           }
         }, 0);
       }
@@ -3307,7 +3821,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing matches to Supabase:", e);
+            reportSyncError("Meciuri", e);
           }
         }, 0);
       }
@@ -3336,7 +3850,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing attendance to Supabase:", e);
+            reportSyncError("Prezență", e);
           }
         }, 0);
       }
@@ -3362,7 +3876,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing payments to Supabase:", e);
+            reportSyncError("Plăți antrenamente", e);
           }
         }, 0);
       }
@@ -3393,7 +3907,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing monthly payments to Supabase:", e);
+            reportSyncError("Cotizații lunare", e);
           }
         }, 0);
       }
@@ -3420,7 +3934,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing transactions to Supabase:", e);
+            reportSyncError("Buget", e);
           }
         }, 0);
       }
@@ -3447,7 +3961,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing events to Supabase:", e);
+            reportSyncError("Calendar", e);
           }
         }, 0);
       }
@@ -3482,7 +3996,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing documents to Supabase:", e);
+            reportSyncError("Documente", e);
           }
         }, 0);
       }
@@ -3517,7 +4031,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing equipment to Supabase:", e);
+            reportSyncError("Inventar", e);
           }
         }, 0);
       }
@@ -3537,7 +4051,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing evaluations to Supabase:", e);
+            reportSyncError("Evaluări", e);
           }
         }, 0);
       }
@@ -3557,7 +4071,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing development plans to Supabase:", e);
+            reportSyncError("Planuri dezvoltare", e);
           }
         }, 0);
       }
@@ -3584,7 +4098,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing discipline to Supabase:", e);
+            reportSyncError("Disciplină", e);
           }
         }, 0);
       }
@@ -3606,7 +4120,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing chat messages to Supabase:", e);
+            reportSyncError("Chat", e);
           }
         }, 0);
       }
@@ -3633,7 +4147,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing media gallery to Supabase:", e);
+            reportSyncError("Galerie media", e);
           }
         }, 0);
       }
@@ -3668,7 +4182,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing scouting to Supabase:", e);
+            reportSyncError("Scouting", e);
           }
         }, 0);
       }
@@ -3702,7 +4216,7 @@ export default function App() {
               }
             }
           } catch (e) {
-            console.error("Error syncing observations to Supabase:", e);
+            reportSyncError("Observații", e);
           }
         }, 0);
       }
@@ -3714,29 +4228,44 @@ export default function App() {
   const toggleTask = (id) => setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
 
   const fetchSupabaseProfile = async (sessionUser) => {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("profiles")
-      .select("full_name, role, assigned_groups, player_id, child_player_id")
+      .select("full_name, role, platform_role, assigned_groups, player_id, child_player_id")
       .eq("id", sessionUser.id)
-      .single();
+      .maybeSingle();
+    if (error && String(error.message || "").includes("platform_role")) {
+      const retry = await supabase
+        .from("profiles")
+        .select("full_name, role, assigned_groups, player_id, child_player_id")
+        .eq("id", sessionUser.id)
+        .maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
     if (error) throw error;
     return {
       id: sessionUser.id,
       email: sessionUser.email,
-      name: data.full_name,
-      role: data.role,
-      assignedGroups: data.assigned_groups || [],
-      playerId: data.player_id,
-      childPlayerId: data.child_player_id,
+      name: data?.full_name || sessionUser.user_metadata?.full_name || sessionUser.email,
+      role: data?.platform_role || data?.role || "viewer",
+      assignedGroups: data?.assigned_groups || [],
+      playerId: data?.player_id,
+      childPlayerId: data?.child_player_id,
     };
   };
 
   const enterApp = async (profile) => {
     setCurrentUser(profile);
-    setAuthView("app");
+    const userMemberships = memberships.filter((item) => item.userId === profile.id);
+    const legacyRole = ["admin", "coach", "player", "parent"].includes(profile.role);
+    if (userMemberships.length && !userMemberships.some((item) => item.clubId === selectedClubId)) {
+      setSelectedClubId(userMemberships[0].clubId);
+    }
+    const needsOnboarding = profile.id !== "guest" && !isSuperAdmin(profile) && !legacyRole && userMemberships.length === 0;
+    setAuthView(needsOnboarding ? "onboarding" : "app");
     const allowedTabs = roleTabs[profile.role] || roleTabs.guest;
     setTab(allowedTabs[0]);
-    await AsyncStorage.setItem("fc-autentic-auth", JSON.stringify(profile));
+    await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(profile));
     if (isSupabaseConfigured && profile && profile.id !== "guest") {
       await loadAllFromSupabase();
     }
@@ -3752,9 +4281,10 @@ export default function App() {
         const profile = await fetchSupabaseProfile(data.user);
         await enterApp(profile);
       } else {
-        const demo = [...demoUsers, ...registeredUsers].find((user) => user.email === email && user.password === password);
-        if (!demo) throw new Error("Email sau parolă greșită. Încearcă un cont demo.");
-        await enterApp(demo);
+        const localUsers = ENABLE_DEMO_MODE ? [...demoUsers, ...registeredUsers] : registeredUsers;
+        const localUser = localUsers.find((user) => user.email === email && user.password === password);
+        if (!localUser) throw new Error("Email sau parolă greșită. Creează un cont sau conectează Supabase.");
+        await enterApp(localUser);
       }
     } catch (error) {
       setAuthError(error.message || "Autentificarea a eșuat.");
@@ -3814,36 +4344,127 @@ export default function App() {
         return;
       }
 
-      const existing = [...demoUsers, ...registeredUsers].some((user) => user.email === form.email);
+      const localUsers = ENABLE_DEMO_MODE ? [...demoUsers, ...registeredUsers] : registeredUsers;
+      const existing = localUsers.some((user) => user.email === form.email);
       if (existing) throw new Error("Există deja un cont cu acest email.");
-      const playerId = Date.now();
-      const player = {
-        id: playerId,
-        no: Number(form.no) || players.length + 1,
-        name: form.name,
-        role: form.role,
-        group: form.group,
-        status: "Activ",
-        present: true,
-      };
+      const accountId = Date.now();
       const profile = {
-        id: `local-${playerId}`,
+        id: `local-${accountId}`,
         email: form.email,
         password: form.password,
         name: form.name,
-        role: "player",
-        playerId,
+        role: "viewer",
         assignedGroups: [form.group],
       };
-      setPlayers((current) => [...current, player]);
       const updatedUsers = [...registeredUsers, profile];
       setRegisteredUsers(updatedUsers);
-      await AsyncStorage.setItem("fc-autentic-registered-users", JSON.stringify(updatedUsers));
+      await AsyncStorage.setItem(STORAGE_KEYS.registeredUsers, JSON.stringify(updatedUsers));
       await enterApp(profile);
     } catch (error) {
       setAuthError(error.message || "Nu am putut crea contul.");
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const createClubForCurrentUser = async (form) => {
+    if (!currentUser || currentUser.id === "guest") {
+      setAuthError("Autentifica-te inainte de a crea un club.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError("");
+    try {
+      const clubId = `club-${Date.now()}`;
+      const club = {
+        id: clubId,
+        name: form.name.trim(),
+        logo: form.logo?.trim() || "",
+        city: form.city?.trim() || "",
+        country: form.country?.trim() || "",
+        email: form.email?.trim().toLowerCase() || "",
+        phone: form.phone?.trim() || "",
+        description: form.description?.trim() || "",
+        groups: form.groups?.length ? form.groups : clubGroups,
+        status: "active",
+        blocked: false,
+        plan: "Free",
+        createdAt: nowLabel(),
+      };
+      const subscription = {
+        id: `sub-${clubId}`,
+        clubId,
+        planName: "Free",
+        status: "active",
+        maxPlayers: subscriptionPlans.Free.maxPlayers,
+        startedAt: nowLabel(),
+        expiresAt: "",
+        createdAt: nowLabel(),
+      };
+      const membership = {
+        id: `member-${clubId}-${currentUser.id}`,
+        userId: currentUser.id,
+        clubId,
+        role: "club_owner",
+        assignedGroups: club.groups,
+        playerId: null,
+        childPlayerIds: [],
+        createdAt: nowLabel(),
+      };
+      if (isSupabaseConfigured && supabaseService.insertClub) {
+        await supabaseService.insertClub(club);
+        await supabaseService.insertMembership(membership);
+        await supabaseService.insertSubscription(subscription);
+      }
+      setClubs((current) => [club, ...current]);
+      setSubscriptions((current) => [subscription, ...current]);
+      setMemberships((current) => [membership, ...current]);
+      setSelectedClubId(clubId);
+      setAuthView("app");
+      setTab("Panou");
+      showAppMessage("Club creat", `${club.name} este gata. Tu esti club_owner.`);
+    } catch (error) {
+      setAuthError(error.message || "Nu am putut crea clubul.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const acceptClubInvitation = async (tokenOrEmail) => {
+    const lookup = tokenOrEmail?.trim().toLowerCase() || currentUser?.email?.toLowerCase();
+    if (!lookup) {
+      setAuthError("Introdu tokenul invitatiei sau emailul tau.");
+      return;
+    }
+    const invite = invitations.find((item) =>
+      item.status === "pending" && (item.token?.toLowerCase() === lookup || item.email?.toLowerCase() === lookup)
+    );
+    if (!invite) {
+      setAuthError("Nu am gasit o invitatie pending pentru acest token/email.");
+      return;
+    }
+    const membership = {
+      id: `member-${invite.clubId}-${currentUser.id}`,
+      userId: currentUser.id,
+      clubId: invite.clubId,
+      role: invite.role,
+      assignedGroups: clubs.find((club) => club.id === invite.clubId)?.groups || clubGroups,
+      playerId: currentUser.playerId || null,
+      childPlayerIds: currentUser.childPlayerId ? [currentUser.childPlayerId] : [],
+      createdAt: nowLabel(),
+    };
+    try {
+      if (isSupabaseConfigured && supabaseService.acceptInvitation) {
+        await supabaseService.acceptInvitation(invite.token, membership);
+      }
+      setMemberships((current) => [membership, ...current.filter((item) => !(item.userId === currentUser.id && item.clubId === invite.clubId))]);
+      setInvitations((current) => current.map((item) => item.id === invite.id ? { ...item, status: "accepted", acceptedAt: nowLabel() } : item));
+      setSelectedClubId(invite.clubId);
+      setAuthView("app");
+      setTab("Panou");
+      showAppMessage("Invitatie acceptata", "Accesul la club a fost activat.");
+    } catch (error) {
+      setAuthError(error.message || "Nu am putut accepta invitatia.");
     }
   };
 
@@ -3853,7 +4474,7 @@ export default function App() {
 
   const logout = async () => {
     if (isSupabaseConfigured) await supabase.auth.signOut();
-    await AsyncStorage.removeItem("fc-autentic-auth");
+    await AsyncStorage.removeItem(STORAGE_KEYS.auth);
     setCurrentUser(null);
     setAuthView("welcome");
     setTab("Panou");
@@ -3862,36 +4483,34 @@ export default function App() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
     document.title = "FC Autentic";
-
     const manifest = document.querySelector('link[rel="manifest"]');
-    if (!manifest) {
-      const link = document.createElement("link");
-      link.rel = "manifest";
-      link.href = "/manifest.webmanifest";
-      document.head.appendChild(link);
-    }
-
-    if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/service-worker.js").catch(() => {});
-      });
+    if (manifest) manifest.remove();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations?.().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      }).catch(() => {});
     }
   }, []);
 
   useEffect(() => {
     const loadTrainingData = async () => {
       try {
-        const saved = await AsyncStorage.getItem("fc-autentic-training-data");
-        const savedAuth = await AsyncStorage.getItem("fc-autentic-auth");
-        const savedRegisteredUsers = await AsyncStorage.getItem("fc-autentic-registered-users");
+        const saved = await AsyncStorage.getItem(STORAGE_KEYS.appData);
+        const savedAuth = await AsyncStorage.getItem(STORAGE_KEYS.auth);
+        const savedRegisteredUsers = await AsyncStorage.getItem(STORAGE_KEYS.registeredUsers);
         if (savedRegisteredUsers) setRegisteredUsers(JSON.parse(savedRegisteredUsers));
         
         let activeProfile = null;
         if (savedAuth) {
-          activeProfile = JSON.parse(savedAuth);
-          setCurrentUser(activeProfile);
-          setAuthView("app");
-          setTab((roleTabs[activeProfile.role] || roleTabs.guest)[0]);
+          const parsedAuth = JSON.parse(savedAuth);
+          if (!ENABLE_DEMO_MODE && String(parsedAuth.id || "").startsWith("demo-")) {
+            await AsyncStorage.removeItem(STORAGE_KEYS.auth);
+          } else {
+            activeProfile = parsedAuth;
+            setCurrentUser(activeProfile);
+            setAuthView("app");
+            setTab((roleTabs[activeProfile.role] || roleTabs.guest)[0]);
+          }
         }
         if (isSupabaseConfigured) {
           const { data } = await supabase.auth.getSession();
@@ -3905,25 +4524,30 @@ export default function App() {
         }
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (parsed.players) rawSetPlayers(parsed.players);
-          if (parsed.trainings) rawSetTrainings(parsed.trainings);
-          if (parsed.matches) rawSetMatches(parsed.matches);
+          if (parsed.players) rawSetPlayers(attachClubIdList(parsed.players));
+          if (parsed.trainings) rawSetTrainings(attachClubIdList(parsed.trainings));
+          if (parsed.matches) rawSetMatches(attachClubIdList(parsed.matches));
           if (parsed.attendance) rawSetAttendance(parsed.attendance);
           if (parsed.payments) rawSetPayments(parsed.payments);
           if (parsed.monthlyPayments) rawSetMonthlyPayments(parsed.monthlyPayments);
-          if (parsed.events) rawSetEvents(parsed.events);
-          if (parsed.transactions) rawSetTransactions(parsed.transactions);
+          if (parsed.events) rawSetEvents(attachClubIdList(parsed.events));
+          if (parsed.transactions) rawSetTransactions(attachClubIdList(parsed.transactions));
           if (parsed.clubSettings) setClubSettings(parsed.clubSettings);
-          if (parsed.documents) rawSetDocuments(parsed.documents);
+          if (parsed.documents) rawSetDocuments(attachClubIdList(parsed.documents));
           if (parsed.announcements) setAnnouncements(parsed.announcements);
           if (parsed.playerObservations) rawSetPlayerObservations(parsed.playerObservations);
-          if (parsed.equipment) rawSetEquipment(parsed.equipment);
+          if (parsed.equipment) rawSetEquipment(attachClubIdList(parsed.equipment));
           if (parsed.evaluations) rawSetEvaluations(parsed.evaluations);
           if (parsed.developmentPlans) rawSetDevelopmentPlans(parsed.developmentPlans);
-          if (parsed.discipline) rawSetDiscipline(parsed.discipline);
-          if (parsed.chatMessages) rawSetChatMessages(parsed.chatMessages);
-          if (parsed.mediaGallery) rawSetMediaGallery(parsed.mediaGallery);
-          if (parsed.scouting) rawSetScouting(parsed.scouting);
+          if (parsed.discipline) rawSetDiscipline(attachClubIdList(parsed.discipline));
+          if (parsed.chatMessages) rawSetChatMessages(attachClubIdList(parsed.chatMessages));
+          if (parsed.mediaGallery) rawSetMediaGallery(attachClubIdList(parsed.mediaGallery));
+          if (parsed.scouting) rawSetScouting(attachClubIdList(parsed.scouting));
+          if (parsed.clubs) setClubs(parsed.clubs.length ? parsed.clubs : [defaultClub]);
+          if (parsed.selectedClubId) setSelectedClubId(parsed.selectedClubId);
+          if (parsed.memberships) setMemberships(parsed.memberships);
+          if (parsed.subscriptions) setSubscriptions(parsed.subscriptions.length ? parsed.subscriptions : [defaultSubscription]);
+          if (parsed.invitations) setInvitations(parsed.invitations);
         }
         if (isSupabaseConfigured && activeProfile && activeProfile.id !== "guest") {
           await loadAllFromSupabase();
@@ -3939,24 +4563,60 @@ export default function App() {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem("fc-autentic-training-data", JSON.stringify({ players, trainings, matches, attendance, payments, monthlyPayments, events, transactions, clubSettings, documents, announcements, playerObservations, equipment, evaluations, developmentPlans, discipline, chatMessages, mediaGallery, scouting }));
-  }, [players, trainings, matches, attendance, payments, monthlyPayments, events, transactions, clubSettings, documents, announcements, playerObservations, equipment, evaluations, developmentPlans, discipline, chatMessages, mediaGallery, scouting, hydrated]);
+    AsyncStorage.setItem(STORAGE_KEYS.appData, JSON.stringify({ players, trainings, matches, attendance, payments, monthlyPayments, events, transactions, clubSettings, documents, announcements, playerObservations, equipment, evaluations, developmentPlans, discipline, chatMessages, mediaGallery, scouting, clubs, selectedClubId, memberships, subscriptions, invitations }));
+  }, [players, trainings, matches, attendance, payments, monthlyPayments, events, transactions, clubSettings, documents, announcements, playerObservations, equipment, evaluations, developmentPlans, discipline, chatMessages, mediaGallery, scouting, clubs, selectedClubId, memberships, subscriptions, invitations, hydrated]);
 
-  const activeTabs = roleTabs[currentUser?.role] || roleTabs.guest;
-  const safeTab = tab === "Notif." ? "Notif." : (activeTabs.includes(tab) ? tab : activeTabs[0]);
-  const rolePlayers = filterPlayersByUser(players, currentUser);
-  const roleTrainings = filterTrainingsByUser(trainings, currentUser, players);
-  const roleMatches = filterMatchesByUser(matches, currentUser, players);
+  useEffect(() => {
+    if (!hydrated || !currentUser || authView !== "app") return;
+    const legacyRole = ["admin", "coach", "player", "parent"].includes(currentUser.role);
+    const hasMembership = memberships.some((item) => item.userId === currentUser.id);
+    if (currentUser.id !== "guest" && !isSuperAdmin(currentUser) && !legacyRole && !hasMembership) {
+      setAuthView("onboarding");
+    }
+  }, [hydrated, currentUser, memberships, authView]);
+
+  const selectedClub = clubs.find((club) => club.id === selectedClubId) || clubs[0] || defaultClub;
+  const selectedSubscription = getClubSubscription(subscriptions, selectedClub?.id);
+  const currentMembership = memberships.find((item) => item.userId === currentUser?.id && item.clubId === selectedClub?.id);
+  const effectiveUser = currentUser ? {
+    ...currentUser,
+    role: isSuperAdmin(currentUser) ? "super_admin" : (currentMembership?.role || normalizeRole(currentUser.role)),
+    assignedGroups: currentMembership?.assignedGroups || currentUser.assignedGroups || [],
+    playerId: currentMembership?.playerId ?? currentUser.playerId,
+    childPlayerId: currentMembership?.childPlayerId ?? currentUser.childPlayerId,
+    childPlayerIds: currentMembership?.childPlayerIds || currentUser.childPlayerIds || [],
+    clubId: selectedClub?.id,
+  } : null;
+  const clubPlayers = filterByClub(players, selectedClub?.id);
+  const clubTrainings = filterByClub(trainings, selectedClub?.id);
+  const clubMatches = filterByClub(matches, selectedClub?.id);
+  const clubEvents = filterByClub(events, selectedClub?.id);
+  const clubTransactions = filterByClub(transactions, selectedClub?.id);
+  const clubDocuments = filterByClub(documents, selectedClub?.id);
+  const clubEquipment = filterByClub(equipment, selectedClub?.id);
+  const clubDiscipline = filterByClub(discipline, selectedClub?.id);
+  const clubChatMessages = filterByClub(chatMessages, selectedClub?.id);
+  const clubMediaGallery = filterByClub(mediaGallery, selectedClub?.id);
+  const clubScouting = filterByClub(scouting, selectedClub?.id);
+  const allowedRoutes = roleRoutes[effectiveUser?.role] || roleRoutes.guest;
+  const activeTabs = roleTabs[effectiveUser?.role] || roleTabs.guest;
+  const safeTab = tab === "Notif." ? "Notif." : (allowedRoutes.includes(tab) ? tab : activeTabs[0]);
+  const rolePlayers = filterPlayersByUser(players, effectiveUser, selectedClub?.id);
+  const roleTrainings = filterTrainingsByUser(trainings, effectiveUser, players, selectedClub?.id);
+  const roleMatches = filterMatchesByUser(matches, effectiveUser, players, selectedClub?.id);
 
   const pages = {
-    Panou: <Dashboard tasks={tasks} toggleTask={toggleTask} players={rolePlayers} trainings={roleTrainings} matches={roleMatches} attendance={attendance} transactions={transactions} payments={payments} monthlyPayments={monthlyPayments} clubSettings={clubSettings} currentUser={currentUser} setTab={setTab} />,
-    Echipă: <Team players={players} setPlayers={setPlayers} currentUser={currentUser} trainings={trainings} attendance={attendance} payments={payments} monthlyPayments={monthlyPayments} matches={matches} clubSettings={clubSettings} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} />,
-    "Antren.": <Trainings players={players} trainings={trainings} setTrainings={setTrainings} attendance={attendance} setAttendance={setAttendance} currentUser={currentUser} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} />,
-    Meciuri: <MatchesPage players={players} matches={matches} setMatches={setMatches} currentUser={currentUser} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} />,
-    Calendar: <Calendar trainings={trainings} matches={matches} events={events} setEvents={setEvents} currentUser={currentUser} players={players} />,
-    "Notif.": <NotificationsPage currentUser={currentUser} players={players} trainings={trainings} attendance={attendance} matches={matches} monthlyPayments={monthlyPayments} documents={documents} />,
-    Finanțe: canManageFinance(currentUser) ? <Finances players={players} trainings={trainings} payments={payments} setPayments={setPayments} monthlyPayments={monthlyPayments} setMonthlyPayments={setMonthlyPayments} transactions={transactions} setTransactions={setTransactions} clubSettings={clubSettings} /> : null,
-    "Mai mult": <More currentUser={currentUser} onLogout={logout} players={players} setPlayers={setPlayers} trainings={trainings} matches={matches} attendance={attendance} payments={payments} monthlyPayments={monthlyPayments} clubSettings={clubSettings} setClubSettings={setClubSettings} documents={documents} setDocuments={setDocuments} announcements={announcements} setAnnouncements={setAnnouncements} playerObservations={playerObservations} equipment={equipment} setEquipment={setEquipment} evaluations={evaluations} setEvaluations={setEvaluations} developmentPlans={developmentPlans} setDevelopmentPlans={setDevelopmentPlans} discipline={discipline} setDiscipline={setDiscipline} chatMessages={chatMessages} setChatMessages={setChatMessages} mediaGallery={mediaGallery} setMediaGallery={setMediaGallery} scouting={scouting} setScouting={setScouting} />,
+    Panou: isSuperAdmin(effectiveUser)
+      ? <SaasAdminPage clubs={clubs} players={players} memberships={memberships} subscriptions={subscriptions} setClubs={setClubs} />
+      : <Dashboard tasks={tasks} toggleTask={toggleTask} players={rolePlayers} trainings={roleTrainings} matches={roleMatches} attendance={attendance} transactions={clubTransactions} payments={payments} monthlyPayments={monthlyPayments} clubSettings={clubSettings} currentUser={effectiveUser} setTab={setTab} selectedClub={selectedClub} subscription={selectedSubscription} invitations={invitations} memberships={memberships} />,
+    Admin: <SaasAdminPage clubs={clubs} players={players} memberships={memberships} subscriptions={subscriptions} setClubs={setClubs} />,
+    Echipă: <Team players={clubPlayers} setPlayers={setPlayers} currentUser={effectiveUser} trainings={clubTrainings} attendance={attendance} payments={payments} monthlyPayments={monthlyPayments} matches={clubMatches} clubSettings={clubSettings} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} selectedClub={selectedClub} subscription={selectedSubscription} />,
+    "Antren.": <Trainings players={clubPlayers} trainings={clubTrainings} setTrainings={setTrainings} attendance={attendance} setAttendance={setAttendance} currentUser={effectiveUser} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} selectedClub={selectedClub} subscription={selectedSubscription} />,
+    Meciuri: <MatchesPage players={clubPlayers} matches={clubMatches} setMatches={setMatches} currentUser={effectiveUser} playerObservations={playerObservations} setPlayerObservations={setPlayerObservations} selectedClub={selectedClub} />,
+    Calendar: <Calendar trainings={clubTrainings} matches={clubMatches} events={clubEvents} setEvents={setEvents} currentUser={effectiveUser} players={clubPlayers} selectedClub={selectedClub} />,
+    "Notif.": <NotificationsPage currentUser={effectiveUser} players={clubPlayers} trainings={clubTrainings} attendance={attendance} matches={clubMatches} monthlyPayments={monthlyPayments} documents={clubDocuments} clubSettings={clubSettings} />,
+    Finanțe: canManageFinance(effectiveUser) ? <Finances players={clubPlayers} trainings={clubTrainings} payments={payments} setPayments={setPayments} monthlyPayments={monthlyPayments} setMonthlyPayments={setMonthlyPayments} transactions={clubTransactions} setTransactions={setTransactions} clubSettings={clubSettings} selectedClub={selectedClub} /> : null,
+    "Mai mult": <More currentUser={effectiveUser} onLogout={logout} setTab={setTab} players={clubPlayers} setPlayers={setPlayers} trainings={clubTrainings} matches={clubMatches} attendance={attendance} payments={payments} monthlyPayments={monthlyPayments} clubSettings={clubSettings} setClubSettings={setClubSettings} documents={clubDocuments} setDocuments={setDocuments} announcements={announcements} setAnnouncements={setAnnouncements} playerObservations={playerObservations} equipment={clubEquipment} setEquipment={setEquipment} evaluations={evaluations} setEvaluations={setEvaluations} developmentPlans={developmentPlans} setDevelopmentPlans={setDevelopmentPlans} discipline={clubDiscipline} setDiscipline={setDiscipline} chatMessages={clubChatMessages} setChatMessages={setChatMessages} mediaGallery={clubMediaGallery} setMediaGallery={setMediaGallery} scouting={clubScouting} setScouting={setScouting} selectedClub={selectedClub} clubs={clubs} setSelectedClubId={setSelectedClubId} subscriptions={subscriptions} setSubscriptions={setSubscriptions} invitations={invitations} setInvitations={setInvitations} memberships={memberships} setMemberships={setMemberships} />,
   };
 
   if (authView === "welcome") {
@@ -3971,16 +4631,24 @@ export default function App() {
     return <RegisterPlayerScreen onBack={() => { setAuthError(""); setAuthView("login"); }} onRegister={registerPlayerAccount} loading={authLoading} error={authError} />;
   }
 
+  if (authView === "onboarding") {
+    return <OnboardingScreen currentUser={currentUser} invitations={invitations} onCreateClub={() => { setAuthError(""); setAuthView("create-club"); }} onAcceptInvitation={acceptClubInvitation} onLogout={logout} error={authError} />;
+  }
+
+  if (authView === "create-club") {
+    return <CreateClubScreen onBack={() => { setAuthError(""); setAuthView("onboarding"); }} onCreate={createClubForCurrentUser} loading={authLoading} error={authError} />;
+  }
+
   return (
     <NavigationContext.Provider value={{ openNotifications: () => setTab("Notif.") }}>
       <SafeAreaView style={styles.safe}>
         <StatusBar barStyle="light-content" backgroundColor={C.navy} />
         <View style={styles.app}>{pages[safeTab]}</View>
         <View style={styles.tabBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBarContent}>
+          <View style={styles.tabBarContent}>
             {activeTabs.map((label) => {
               const icon = tabIcons[label];
-              const active = tab === label;
+              const active = tab === label || (label === "Mai mult" && !activeTabs.includes(tab) && tab !== "Notif.");
               return (
                 <Pressable style={styles.tab} key={label} onPress={() => setTab(label)}>
                   <View style={[styles.tabIconWrap, active && styles.tabIconActive]}>
@@ -3990,7 +4658,7 @@ export default function App() {
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
         <ToastHost />
       </SafeAreaView>
@@ -4075,10 +4743,17 @@ const styles = StyleSheet.create({
   taskMeta: { color: C.muted, fontSize: 9, marginTop: 3 },
   priority: { paddingVertical: 5, paddingHorizontal: 7, borderRadius: 7 },
   priorityText: { fontSize: 7, fontWeight: "900" },
+  emptyState: { alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 18 },
+  emptyStateText: { color: C.muted, fontSize: 11, fontWeight: "700" },
   quickGrid: { flexDirection: "row", gap: 8 },
   quickButton: { flex: 1, alignItems: "center", backgroundColor: C.panel, borderRadius: 15, paddingVertical: 13 },
   quickIcon: { width: 42, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   quickLabel: { color: C.white, fontSize: 9, fontWeight: "700", marginTop: 7 },
+  shortcutGrid: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  shortcutCard: { flex: 1, backgroundColor: C.panel, borderRadius: 17, padding: 13, borderWidth: 1, borderColor: C.line },
+  shortcutIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: `${C.blue}16`, alignItems: "center", justifyContent: "center", marginBottom: 9 },
+  shortcutTitle: { color: C.white, fontSize: 13, fontWeight: "900" },
+  shortcutMeta: { color: C.muted, fontSize: 9, marginTop: 4 },
   summaryStrip: { flexDirection: "row", alignItems: "center", justifyContent: "space-around", backgroundColor: C.panel, borderRadius: 19, padding: 17, marginBottom: 14 },
   summaryValue: { color: C.white, fontSize: 22, fontWeight: "900", textAlign: "center" },
   summaryLabel: { color: C.muted, fontSize: 9, marginTop: 3, textAlign: "center" },
@@ -4123,6 +4798,13 @@ const styles = StyleSheet.create({
   scheduleDetail: { color: C.muted, fontSize: 10, marginTop: 5 },
   primaryButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: C.red, borderRadius: 14, padding: 14, marginTop: 8 },
   primaryButtonText: { color: C.white, fontWeight: "900", fontSize: 12 },
+  secondaryButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel, borderRadius: 14, padding: 13, marginTop: 10 },
+  secondaryButtonText: { color: C.blue, fontWeight: "900", fontSize: 12 },
+  subscriptionCard: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line, borderRadius: 18, padding: 14, marginBottom: 10 },
+  subscriptionCardActive: { borderColor: C.amber, backgroundColor: "#17314A" },
+  subscriptionTitle: { color: C.white, fontWeight: "900", fontSize: 15 },
+  subscriptionMeta: { color: C.muted, fontSize: 11, marginTop: 4 },
+  subscriptionPrice: { color: C.amber, fontWeight: "900", fontSize: 13 },
   balanceCard: { backgroundColor: C.panel, borderRadius: 22, padding: 20, alignItems: "center", borderWidth: 1, borderColor: C.line },
   balanceLabel: { color: C.muted, fontSize: 9, fontWeight: "800", letterSpacing: 1.5 },
   balanceValue: { color: C.white, fontSize: 35, fontWeight: "900", marginVertical: 10 },
@@ -4368,8 +5050,8 @@ const styles = StyleSheet.create({
   historyMeta: { color: C.muted, fontSize: 8, marginTop: 4 },
   historyStatus: { fontSize: 9, fontWeight: "900" },
   tabBar: { height: 76, backgroundColor: "#0A2134", borderTopWidth: 1, borderTopColor: C.line, paddingTop: 7, paddingBottom: 4 },
-  tabBarContent: { paddingHorizontal: 6 },
-  tab: { width: 62, alignItems: "center" },
+  tabBarContent: { flex: 1, flexDirection: "row", justifyContent: "space-around", paddingHorizontal: 4 },
+  tab: { flex: 1, alignItems: "center" },
   tabIconWrap: { width: 34, height: 32, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   tabIconActive: { backgroundColor: C.red },
   tabText: { color: C.muted, fontSize: 8, fontWeight: "700", marginTop: 3 },
