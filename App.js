@@ -158,7 +158,7 @@ const roleLabels = {
 };
 
 const demoUsers = [
-  { id: "demo-super", email: "super@fcautentic.md", password: "super123", name: "Super Admin", role: "super_admin", assignedGroups: clubGroups },
+  { id: "demo-super", email: "igor.gratii.99@mail.ru", password: "super123", name: "Igor Gratii", role: "super_admin", assignedGroups: clubGroups },
   { id: "demo-admin", email: "admin@fcautentic.md", password: "admin123", name: "Igor", role: "admin", assignedGroups: clubGroups },
   { id: "demo-coach", email: "antrenor@fcautentic.md", password: "coach123", name: "Mihai Rusu", role: "coach", assignedGroups: ["U19", "U16"] },
   { id: "demo-player", email: "jucator@fcautentic.md", password: "player123", name: "Victor Rusu", role: "player", playerId: 1, assignedGroups: ["U19"] },
@@ -653,6 +653,7 @@ function LoginScreen({ onBack, onLogin, onGoogle, onForgot, onRegister, loading,
         {ENABLE_DEMO_MODE && (
           <View style={styles.demoBox}>
             <Text style={styles.demoTitle}>Conturi demo</Text>
+            <Text style={styles.demoText}>Super Admin: igor.gratii.99@mail.ru / super123</Text>
             <Text style={styles.demoText}>Admin: admin@fcautentic.md / admin123</Text>
             <Text style={styles.demoText}>Antrenor: antrenor@fcautentic.md / coach123</Text>
             <Text style={styles.demoText}>Jucător: jucator@fcautentic.md / player123</Text>

@@ -36,6 +36,7 @@ jobs:
         run: npm run build:github-pages
         env:
           GITHUB_PAGES_BASE_PATH: /FcAutenticAPP
+          EXPO_PUBLIC_ENABLE_DEMO: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
