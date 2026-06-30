@@ -3,8 +3,6 @@ const http = require("http");
 const path = require("path");
 
 const root = path.join(__dirname, "dist");
-const host = process.env.HOST || "0.0.0.0";
-const port = Number(process.env.PORT || 4173);
 const types = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -36,7 +34,4 @@ http
       response.end(data);
     });
   })
-  .listen(port, host, () => {
-    console.log(`FC Autentic preview: http://${host === "0.0.0.0" ? "localhost" : host}:${port}/`);
-    console.log("Pentru telefon, folosește IP-ul calculatorului în aceeași rețea Wi‑Fi.");
-  });
+  .listen(4173, "127.0.0.1");

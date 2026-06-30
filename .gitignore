@@ -5,13 +5,7 @@ build/
 web-build/
 .env
 .env.local
-.env.production
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
-*.zip
-*.rar
-_publish_*/
-lan-phone-server.py
 .DS_Store
