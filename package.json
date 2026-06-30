@@ -46,11 +46,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
-    "@expo/metro-config": "^56.0.14",
     "@expo/ngrok": "^4.1.0",
-    "@types/react": "~18.2.79",
-    "babel-preset-expo": "~11.0.15",
-    "typescript": "~5.3.3"
+    "@types/react": "~19.1.10",
+    "babel-preset-expo": "~54.0.10",
+    "typescript": "~5.9.2"
   },
   "private": true
 }
