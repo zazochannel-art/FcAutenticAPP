@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+build/
+web-build/
+*.log
+*.zip
+*.rar
+_publish_*/
+.env
+.env.local
+.env.production
