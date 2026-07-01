@@ -5,11 +5,14 @@ import { colors as C } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 
+const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
+
 const attendanceOptions = [
   ["present", "Check", "Prezent", C.green],
   ["absent", "X", "Absent", C.red],
   ["late", "Clock", "Întârziat", C.amber],
   ["injured", "Plus", "Accidentat", "#D47AF0"],
+  ["excused", "Circle", "Scutit", C.blue],
 ];
 
 export default function TrainingsScreen({ players, trainings, setTrainings, attendance = {}, setAttendance, currentUser, selectedClub, openNotifications }) {
@@ -99,8 +102,6 @@ export default function TrainingsScreen({ players, trainings, setTrainings, atte
     </ScrollView>
   );
 }
-
-const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
 
 const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 32 },

@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
-  Pressable,
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -20,15 +18,15 @@ import {
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 
-// Config & Services
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
-import { supabaseService } from "./supabaseService";
+import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
+import { authService } from "./src/services/authService";
 import { colors as C } from "./src/constants/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 60 * 60 * 24, // 24 ore
+      gcTime: 1000 * 60 * 60 * 24,
       staleTime: 2000,
     },
   },
@@ -38,29 +36,36 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });
 
-// Screens
 import WelcomeScreen from "./src/screens/WelcomeScreen";
-import LoginScreen from "./src/screens/LoginScreen";
+import LoginPage from "./src/screens/LoginPage";
 import RegisterPlayerScreen from "./src/screens/RegisterPlayerScreen";
+import CreateClubScreen from "./src/screens/CreateClubSaaS";
+import JoinClubScreen from "./src/screens/JoinClubScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
-import CreateClubScreen from "./src/screens/CreateClubScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
 import TeamScreen from "./src/screens/TeamScreen";
 import TrainingsScreen from "./src/screens/TrainingsScreen";
 import MatchesScreen from "./src/screens/MatchesScreen";
 import CalendarScreen from "./src/screens/CalendarScreen";
+import CalendarSaaS from "./src/screens/CalendarSaaS";
 import FinancesScreen from "./src/screens/FinancesScreen";
+import FinancesSaaS from "./src/screens/FinancesSaaS";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
 import MoreScreen from "./src/screens/MoreScreen";
 import SaasAdminScreen from "./src/screens/SaasAdminScreen";
+import AIAnalysisScreen from "./src/screens/AIAnalysisScreen";
+import AISaaSReport from "./src/screens/AISaaSReport";
+import PricingScreen from "./src/screens/PricingScreen";
+import StaffSaaS from "./src/screens/StaffSaaS";
+import TasksSaaS from "./src/screens/TasksSaaS";
+import { ExpandableTabs } from "./src/components/ui/expandable-tabs";
+import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
+import { SaaSAppShell } from "./src/components/SaaSShell";
 
 const STORAGE_KEYS = {
   auth: "fc-autentic-auth",
-  registeredUsers: "fc-autentic-registered-users",
-  appData: "fc-autentic-training-data",
 };
 
-const DEFAULT_CLUB_ID = "00000000-0000-0000-0000-000000000000";
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 const ENABLE_DEMO_MODE = String(process.env.EXPO_PUBLIC_ENABLE_DEMO || "").toLowerCase() === "true";
 
@@ -77,6 +82,7 @@ const defaultClub = {
   status: "active",
   blocked: false,
   plan: "Free",
+  plan_name: "Free",
   createdAt: "29 iunie 2026",
 };
 
@@ -91,7 +97,31 @@ const defaultSubscription = {
   createdAt: "29 iunie 2026",
 };
 
-import { ExpandableTabs } from "./src/components/ui/expandable-tabs";
+
+function normalizeMembershipRole(role) {
+  if (role === "owner") return "club_owner";
+  return role;
+}
+
+function resolveEffectiveRole(profile, membership) {
+  if (profile?.platform_role === "super_admin") return "super_admin";
+  if (profile?.role === "super_admin") return "super_admin";
+  if (membership?.role) return normalizeMembershipRole(membership.role);
+  if (profile?.role === "admin") return "admin";
+  if (profile?.platform_role) return profile.platform_role;
+  return "viewer";
+}
+
+const roleTabs = {
+  super_admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Admin SaaS", "Mai mult"],
+  club_owner: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
+  admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
+  coach: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
+  player: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  parent: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  viewer: ["Panou", "Calendar", "Mai mult"],
+  guest: ["Panou", "Calendar", "Mai mult"],
+};
 
 export default function App() {
   return (
@@ -99,7 +129,10 @@ export default function App() {
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister }}
     >
-      <MainApp />
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#020617" }}>
+        <StatusBar barStyle="light-content" />
+        <MainApp />
+      </SafeAreaView>
     </PersistQueryClientProvider>
   );
 }
@@ -109,163 +142,246 @@ function MainApp() {
   const { width } = useWindowDimensions();
   const isDesktopLayout = width >= 768;
 
-  // --- State ---
-  const [authView, setAuthView] = useState("welcome");
+  const [authView, setAuthView] = useState("login");
   const [currentUser, setCurrentUser] = useState(null);
   const [tab, setTab] = useState("Panou");
-  const [clubSettings, setClubSettings] = useState({ clubName: "FC Autentic" });
+  const [clubSettings] = useState({ clubName: "FC Autentic" });
   const [selectedClubId, setSelectedClubId] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [registerError, setRegisterError] = useState("");
+  const [tasks, setTasks] = useState(
+    ENABLE_DEMO_MODE
+      ? [
+          { id: 1, title: "Confirmă lotul pentru meci", meta: "Termen: azi, 16:00", priority: "URGENT", color: C.red, done: false },
+          { id: 2, title: "Achită chiria terenului", meta: "Termen: 25 iunie", priority: "MEDIU", color: C.amber, done: false },
+          { id: 3, title: "Verifică echipamentul", meta: "Responsabil: Andrei", priority: "NORMAL", color: C.blue, done: true },
+        ]
+      : []
+  );
 
-  // --- Queries ---
   const { data: players = [] } = useQuery({
     queryKey: ["players", selectedClubId],
     queryFn: () => supabaseService.getPlayers(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: trainings = [] } = useQuery({
     queryKey: ["trainings", selectedClubId],
     queryFn: () => supabaseService.getTrainings(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: matches = [] } = useQuery({
     queryKey: ["matches", selectedClubId],
     queryFn: () => supabaseService.getMatches(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: attendance = {} } = useQuery({
     queryKey: ["attendance", selectedClubId],
     queryFn: () => supabaseService.getAttendance(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: transactions = [] } = useQuery({
     queryKey: ["transactions", selectedClubId],
     queryFn: () => supabaseService.getTransactions(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: clubs = [] } = useQuery({
     queryKey: ["clubs"],
     queryFn: () => supabaseService.getClubs(),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!currentUser,
   });
   const { data: memberships = [] } = useQuery({
     queryKey: ["memberships", currentUser?.id],
     queryFn: () => supabaseService.getMemberships(currentUser?.id),
-    enabled: isSupabaseConfigured && !!currentUser
+    enabled: isSupabaseConfigured && !!currentUser,
   });
   const { data: invitations = [] } = useQuery({
     queryKey: ["invitations", selectedClubId],
     queryFn: () => supabaseService.getInvitations(selectedClubId),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: subscriptions = [] } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: () => supabaseService.getSubscriptions(),
-    enabled: isSupabaseConfigured
+    enabled: isSupabaseConfigured && !!currentUser,
   });
 
-  // Încărcăm automat primul club la care are acces user-ul la login
   useEffect(() => {
-    if (memberships.length > 0 && !selectedClubId) {
-      const firstClub = memberships[0].clubId || memberships[0].club_id;
-      setSelectedClubId(firstClub);
+    if (selectedClubId) return;
+    if (memberships.length > 0) {
+      setSelectedClubId(memberships[0].clubId || memberships[0].club_id);
+    } else if (clubs.length > 0) {
+      setSelectedClubId(clubs[0].id);
+    } else if (currentUser) {
+      setSelectedClubId(DEFAULT_CLUB_ID);
     }
-  }, [memberships]);
+  }, [memberships, clubs, selectedClubId, currentUser]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
+
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single()
+        .then(({ data: profile, error }) => {
+          if (error || !profile) return;
+          const role = resolveEffectiveRole(profile, null);
+          setCurrentUser({
+            ...profile,
+            email: session.user.email,
+            name: profile.full_name || profile.name || session.user.email,
+            role,
+          });
+          setAuthView("app");
+          setTab(roleTabs[role]?.[0] || "Panou");
+        });
+    });
+  }, []);
 
   const switchClub = (newClubId) => {
     setSelectedClubId(newClubId);
-    queryClient.invalidateQueries(); // Reîncărcăm tot cache-ul pentru noul context
+    queryClient.invalidateQueries();
   };
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const [tasks, setTasks] = useState(ENABLE_DEMO_MODE ? [
-    { id: 1, title: "Confirmă lotul pentru meci", meta: "Termen: azi, 16:00", priority: "URGENT", color: C.red, done: false },
-    { id: 2, title: "Achită chiria terenului", meta: "Termen: 25 iunie", priority: "MEDIU", color: C.amber, done: false },
-    { id: 3, title: "Verifică echipamentul", meta: "Responsabil: Andrei", priority: "NORMAL", color: C.blue, done: true },
-  ] : []);
 
-  const selectedClub = (clubs && clubs.length > 0)
+  const selectedClub = clubs.length > 0
     ? (clubs.find((c) => c.id === selectedClubId) || clubs[0])
     : defaultClub;
-  const subscription = subscriptions.find(s => (s.clubId || s.club_id) === selectedClubId) || defaultSubscription;
+  const subscription = subscriptions.find((s) => (s.clubId || s.club_id) === selectedClubId) || defaultSubscription;
   const currentMembership = memberships.find((m) => {
     const membershipUserId = m.userId || m.user_id;
     const membershipClubId = m.clubId || m.club_id;
     return membershipUserId === currentUser?.id && membershipClubId === selectedClubId;
   });
 
-  const effectiveUser = currentUser ? {
-    ...currentUser,
-    // REGULĂ DE FORȚĂ: Dacă e emailul tău, ești Super Admin indiferent de restul setărilor
-    role: (currentUser.email === 'igor.gratii.99@mail.ru' || currentUser.role === "super_admin")
-      ? "super_admin"
-      : (currentMembership?.role || "viewer"),
-    clubId: selectedClubId
-  } : null;
+  const effectiveUser = currentUser
+    ? {
+        ...currentUser,
+        name: currentUser.name || currentUser.full_name,
+        role: resolveEffectiveRole(currentUser, currentMembership),
+        clubId: selectedClubId,
+      }
+    : null;
 
-  const roleTabs = {
-    super_admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
-    club_owner: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
-    admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Finanțe", "Mai mult"],
-    coach: ["Panou", "Echipă", "Antren.", "Meciuri", "Mai mult"],
-    player: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-    parent: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-    viewer: ["Panou", "Calendar", "Mai mult"],
-    guest: ["Panou", "Calendar", "Mai mult"],
-  };
-
-  const activeTabs = roleTabs[effectiveUser?.role] || roleTabs.guest;
+  const baseTabs = roleTabs[effectiveUser?.role] || roleTabs.guest;
+  const activeTabs = baseTabs;
 
   const playerMutation = useMutation({
     mutationFn: async ({ type, payload }) => {
       if (type === "insert") return supabaseService.insertPlayer(payload);
       if (type === "update") return supabaseService.updatePlayer(payload);
+      throw new Error("Tip mutation necunoscut pentru jucător.");
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["players"] })
-  });
-
-  const trainingMutation = useMutation({
-    mutationFn: async (payload) => supabaseService.insertTraining(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["trainings"] })
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+    },
+    onError: (err, variables) => {
+      Alert.alert("Eroare", err.message);
+    },
   });
 
   const attendanceMutation = useMutation({
     mutationFn: async ({ tId, pId, status }) => supabaseService.saveAttendance(tId, pId, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["attendance"] })
-  });
-
-  const clubMutation = useMutation({
-    mutationFn: async ({ name }) => supabaseService.createClub(currentUser.id, name),
-    onSuccess: (newClub) => {
-      queryClient.invalidateQueries({ queryKey: ["clubs"] });
-      queryClient.invalidateQueries({ queryKey: ["memberships"] });
-      setSelectedClubId(newClub.id);
-      setAuthView("app");
-      Alert.alert("Succes", `Clubul ${newClub.name} a fost creat!`);
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
     },
-    onError: (err) => Alert.alert("Eroare", err.message)
+    onError: (err) => Alert.alert("Eroare prezență", err.message),
   });
 
-  const enterApp = async (profile) => {
-    setCurrentUser(profile);
-    setAuthView("app");
-    setTab(roleTabs[profile.role]?.[0] || "Panou");
-    await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(profile));
+  const handlePlayersChange = (updater) => {
+    const next = typeof updater === "function" ? updater(players) : updater;
+    if (!Array.isArray(next)) return;
+
+    if (next.length > players.length) {
+      const newPlayer = next.find((p) => !players.some((existing) => existing.id === p.id));
+      if (newPlayer) {
+        playerMutation.mutate({
+          type: "insert",
+          payload: { ...newPlayer, clubId: selectedClubId || DEFAULT_CLUB_ID },
+        });
+      }
+      return;
+    }
+
+    const changed = next.find((p) => {
+      const existing = players.find((ep) => ep.id === p.id);
+      return existing && JSON.stringify(existing) !== JSON.stringify(p);
+    });
+    if (changed) {
+      playerMutation.mutate({ type: "update", payload: changed });
+    }
+  };
+
+  const handleAttendanceChange = (nextAttendance) => {
+    queryClient.setQueryData(["attendance", selectedClubId], nextAttendance);
+
+    Object.keys(nextAttendance || {}).forEach((tId) => {
+      Object.keys(nextAttendance[tId] || {}).forEach((pId) => {
+        const oldStatus = attendance[tId]?.[pId];
+        const newStatus = nextAttendance[tId][pId];
+        if (oldStatus !== newStatus) {
+          attendanceMutation.mutate({
+            tId: Number(tId) || tId,
+            pId: Number(pId) || pId,
+            status: newStatus,
+          });
+        }
+      });
+    });
+  };
+
+  const enterApp = async (profile, email) => {
+    const role = resolveEffectiveRole(profile, null);
+    const user = {
+      ...profile,
+      email: email || profile.email,
+      name: profile.full_name || profile.name || email,
+      role,
+    };
+    setCurrentUser(user);
+    setAuthView("onboarding-choice");
+    setTab(roleTabs[role]?.[0] || "Panou");
+    await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(user));
   };
 
   const loginWithEmail = async (email, password) => {
     setAuthLoading(true);
+    setAuthError("");
     try {
-      // REGULĂ DE URGENȚĂ: Bypass pentru emailul de Super Admin
-      if (email === 'igor.gratii.99@mail.ru' && password === 'admin123') {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("email", email).single();
-        await enterApp({ ...profile, email, role: 'super_admin' });
-        return;
-      }
-
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single();
-      await enterApp({ ...profile, email });
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
+      // If profile doesn't exist, create a default one
+      if (profileError) {
+        console.log("Profile not found, creating default profile");
+        const defaultProfile = {
+          id: data.user.id,
+          email: data.user.email,
+          full_name: data.user.email?.split("@")[0] || "User",
+          role: "viewer",
+          created_at: new Date().toISOString(),
+        };
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert(defaultProfile);
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          // Continue with default profile anyway
+        }
+        await enterApp(defaultProfile, data.user.email);
+      } else {
+        await enterApp(profile, data.user.email);
+      }
     } catch (e) {
       setAuthError(e.message);
     } finally {
@@ -273,14 +389,51 @@ function MainApp() {
     }
   };
 
+  const registerPlayer = async (form) => {
+    setAuthLoading(true);
+    setRegisterError("");
+    try {
+      await authService.signUp({
+        email: form.email,
+        password: form.password,
+        fullName: form.name,
+        groupName: form.group,
+        playerNo: form.no,
+        playerPosition: form.role,
+      });
+      Alert.alert("Cont creat", "Autentifică-te cu email-ul și parola setate.");
+      setAuthView("login");
+    } catch (e) {
+      setRegisterError(e.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const resetPassword = async (email) => {
+    if (!email?.includes("@")) {
+      Alert.alert("Email invalid", "Introdu un email valid pentru resetare.");
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) throw error;
+      Alert.alert("Resetare parolă", "Verifică email-ul pentru link-ul de resetare.");
+    } catch (e) {
+      Alert.alert("Eroare", e.message);
+    }
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     await AsyncStorage.removeItem(STORAGE_KEYS.auth);
     setCurrentUser(null);
+    setSelectedClubId(null);
     setAuthView("welcome");
   };
 
-  const toggleTask = (id) => setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
+  const toggleTask = (id) =>
+    setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -308,36 +461,30 @@ function MainApp() {
     const channel = supabase.channel("realtime-public-tables");
 
     Object.keys(tableToKey).forEach((table) => {
-      channel.on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: table },
-        (payload) => {
-          const key = tableToKey[payload.table];
-          if (key) {
-            // Invalidează inteligent: dacă avem club_id în datele noi, invalidăm doar acel club
-            const clubId = payload.new?.club_id || payload.old?.club_id;
-            if (clubId) {
-              queryClient.invalidateQueries({ queryKey: [key, clubId] });
-            } else {
-              // Fallback: invalidăm toate datele de acest tip (ex: dacă coloana lipsește în DB)
-              queryClient.invalidateQueries({ queryKey: [key] });
-            }
-          }
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => {
+        const key = tableToKey[payload.table];
+        if (!key) return;
+        const clubId = payload.new?.club_id || payload.old?.club_id;
+        if (clubId) {
+          queryClient.invalidateQueries({ queryKey: [key, clubId] });
+        } else {
+          queryClient.invalidateQueries({ queryKey: [key] });
         }
-      );
+      });
     });
 
     channel.subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
 
   const pages = {
-    Panou: effectiveUser?.role === "super_admin"
-      ? <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} openNotifications={() => setTab("Notif.")} />
-      : <DashboardScreen
+    Panou:
+      effectiveUser?.role === "super_admin" ? (
+        <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} openNotifications={() => setTab("Mai mult")} />
+      ) : (
+        <DashboardScreen
           tasks={tasks}
           toggleTask={toggleTask}
           players={players}
@@ -351,91 +498,206 @@ function MainApp() {
           selectedClub={selectedClub}
           subscription={subscription}
           memberships={memberships}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    Echipă: <TeamScreen
-          players={players}
-          setPlayers={(updater) => playerMutation.mutate({ type: "update", payload: updater(players) })}
-          currentUser={effectiveUser}
-          trainings={trainings}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    "Antren.": <TrainingsScreen
-          players={players}
-          trainings={trainings}
-          currentUser={effectiveUser}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    Meciuri: <MatchesScreen
-          players={players}
-          matches={matches}
-          currentUser={effectiveUser}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    Calendar: <CalendarScreen
-          trainings={trainings}
-          matches={matches}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    Finanțe: <FinancesScreen
-          players={players}
-          trainings={trainings}
-          transactions={transactions}
-          clubSettings={clubSettings}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    "Notif.": <NotificationsScreen
-          currentUser={effectiveUser}
-          openNotifications={() => setTab("Notif.")}
-        />,
-    "Mai mult": <MoreScreen
-          currentUser={effectiveUser}
-          onLogout={logout}
-          selectedClub={selectedClub}
-          clubs={clubs}
-          switchClub={switchClub}
-          onCreateClub={() => setAuthView("create-club")}
-          openNotifications={() => setTab("Notif.")}
-        />,
+          invitations={invitations}
+          openNotifications={() => setTab("Mai mult")}
+        />
+      ),
+    Echipă: (
+      <TeamScreen
+        players={players}
+        setPlayers={handlePlayersChange}
+        currentUser={effectiveUser}
+        trainings={trainings}
+        attendance={attendance}
+        selectedClub={selectedClub}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
+    "Antren.": (
+      <TrainingsScreen
+        players={players}
+        trainings={trainings}
+        attendance={attendance}
+        setAttendance={handleAttendanceChange}
+        currentUser={effectiveUser}
+        selectedClub={selectedClub}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
+    Meciuri: (
+      <MatchesScreen
+        players={players}
+        matches={matches}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
+    Calendar: (
+      <CalendarSaaS trainings={trainings} matches={matches} openNotifications={() => setTab("Mai mult")} />
+    ),
+    Sarcini: <TasksSaaS />,
+    Staff: <StaffSaaS openNotifications={() => setTab("Mai mult")} />,
+    Finanțe: (
+      <FinancesSaaS
+        players={players}
+        trainings={trainings}
+        transactions={transactions}
+        clubSettings={clubSettings}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
+    AI: (
+      <AISaaSReport
+        currentUser={effectiveUser}
+        selectedClub={selectedClub}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
+    Abonamente: <PricingScreen />,
+    "Admin SaaS": (
+      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} openNotifications={() => setTab("Mai mult")} />
+    ),
+    "Notif.": (
+      <NotificationsScreen currentUser={effectiveUser} openNotifications={() => setTab("Notif.")} />
+    ),
+    "Mai mult": (
+      <MoreScreen
+        currentUser={effectiveUser}
+        onLogout={logout}
+        selectedClub={selectedClub}
+        clubs={clubs}
+        switchClub={switchClub}
+        onCreateClub={() => setAuthView("create-club")}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
   };
 
-  if (authView === "welcome") return <WelcomeScreen onLogin={() => setAuthView("login")} onGuest={() => enterApp({ role: "guest", name: "Vizitator" })} />;
-  if (authView === "login") return <LoginScreen onBack={() => setAuthView("welcome")} onLogin={loginWithEmail} loading={authLoading} error={authError} onRegister={() => setAuthView("register")} />;
-  if (authView === "register") return <RegisterPlayerScreen onBack={() => setAuthView("login")} onRegister={() => {}} />;
-  if (authView === "create-club") return <CreateClubScreen onBack={() => setAuthView("app")} onCreate={(form) => clubMutation.mutate(form)} loading={clubMutation.isLoading} error={clubMutation.error?.message} />;
+  if (authView === "welcome") {
+    return (
+      <WelcomeScreen
+        onLogin={() => setAuthView("login")}
+        onGuest={() => setAuthView("login")}
+      />
+    );
+  }
+
+  if (authView === "login") {
+    return (
+      <LoginPage
+        onBack={() => setAuthView("welcome")}
+        onLogin={loginWithEmail}
+        loading={authLoading}
+        error={authError}
+        onRegister={() => {
+          setAuthError("");
+          setRegisterError("");
+          setAuthView("register");
+        }}
+        onGoogle={() => Alert.alert("Google Login", "Autentificarea Google va fi disponibilă într-o versiune viitoare.")}
+        onForgot={resetPassword}
+      />
+    );
+  }
+
+  if (authView === "register") {
+    return (
+      <RegisterPlayerScreen
+        onBack={() => setAuthView("login")}
+        onRegister={registerPlayer}
+        loading={authLoading}
+        error={registerError}
+      />
+    );
+  }
+
+  if (authView === "onboarding-choice") {
+    return (
+      <OnboardingScreen
+        currentUser={effectiveUser || currentUser}
+        invitations={invitations}
+        onCreateClub={() => setAuthView("create-club")}
+        onJoinClub={() => setAuthView("join-club")}
+        onAcceptInvitation={() => setAuthView("app")}
+        onLogout={logout}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    );
+  }
+
+  if (authView === "create-club") {
+    return (
+      <CreateClubScreen
+        userId={currentUser?.id}
+        onBack={() => setAuthView("onboarding-choice")}
+        onSuccess={(newClub) => {
+          queryClient.invalidateQueries({ queryKey: ["clubs"] });
+          queryClient.invalidateQueries({ queryKey: ["memberships"] });
+          if (newClub?.id) setSelectedClubId(newClub.id);
+          setAuthView("app");
+        }}
+      />
+    );
+  }
+
+  if (authView === "join-club") {
+    return (
+      <JoinClubScreen
+        onBack={() => setAuthView("onboarding-choice")}
+        onSuccess={() => setAuthView("app")}
+      />
+    );
+  }
 
   const tabIconsMapping = {
     Panou: "LayoutGrid",
-    Admin: "ShieldCheck",
     Echipă: "Users",
     "Antren.": "Dumbbell",
     Meciuri: "Trophy",
     Calendar: "CalendarDays",
-    "Notif.": "Bell",
+    Sarcini: "ListChecks",
+    Staff: "UserCog",
     Finanțe: "Wallet",
+    AI: "Sparkles",
+    Abonamente: "CreditCard",
+    "Admin SaaS": "ShieldCheck",
     "Mai mult": "Menu",
   };
 
-  const navTabs = activeTabs.map(label => ({
+  const navTabs = activeTabs.map((label) => ({
     title: label,
-    icon: tabIconsMapping[label] || "Circle"
+    icon: tabIconsMapping[label] || "Circle",
   }));
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" />
-      <View style={[styles.app, isDesktopLayout && styles.appDesktop]}>{pages[tab] || pages.Panou}</View>
-      <ExpandableTabs
-        tabs={navTabs}
-        activeTab={tab}
-        onChange={(label) => setTab(label)}
-      />
+      {isDesktopLayout ? (
+        <SaaSAppShell
+          tabs={activeTabs}
+          activeTab={tab}
+          setTab={setTab}
+          user={effectiveUser}
+          selectedClub={selectedClub}
+        >
+          {pages[tab] || pages.Panou}
+        </SaaSAppShell>
+      ) : (
+        <>
+          <View style={styles.app}>{pages[tab] || pages.Panou}</View>
+          <MobileBottomNav
+            tabs={activeTabs}
+            activeTab={tab}
+            onTabPress={(label) => setTab(label)}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 90 : 75 },
+  safe: { flex: 1, backgroundColor: "#020617" },
+  app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 100 : 80 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
 });

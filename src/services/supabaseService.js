@@ -1,55 +1,203 @@
 import { requireSupabase } from "../config/supabaseClient";
 
+export const DEFAULT_CLUB_ID = "00000000-0000-0000-0000-000000000000";
+
+const DEFAULT_GROUPS = ["U13", "U16", "U19", "Juniori", "Seniori"];
+
+function activeClubId(clubId) {
+  return clubId || DEFAULT_CLUB_ID;
+}
+
+function normalizeRole(role) {
+  if (role === "owner") return "club_owner";
+  return role || "viewer";
+}
+
+function mapClub(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    logo: row.logo_url || "",
+    city: row.city || "",
+    country: row.country || "",
+    email: row.contact_email || "",
+    phone: row.phone || "",
+    description: row.description || "",
+    groups: row.groups || DEFAULT_GROUPS,
+    status: row.status || "active",
+    blocked: Boolean(row.blocked),
+    plan: row.plan || "Free",
+    plan_name: row.plan || "Free",
+    createdAt: row.created_at || "",
+    primaryColor: row.primary_color || "",
+    secondaryColor: row.secondary_color || "",
+  };
+}
+
+function mapMembership(row) {
+  return {
+    id: row.id,
+    clubId: row.club_id,
+    club_id: row.club_id,
+    userId: row.user_id,
+    user_id: row.user_id,
+    role: normalizeRole(row.role),
+    assignedGroups: row.assigned_groups || [],
+    assigned_groups: row.assigned_groups || [],
+    status: row.status || "active",
+  };
+}
+
+function mapSubscription(row) {
+  return {
+    id: row.id,
+    clubId: row.club_id,
+    club_id: row.club_id,
+    planName: row.plan_name || "Free",
+    plan_name: row.plan_name || "Free",
+    status: row.status || "active",
+    maxPlayers: row.max_players,
+    max_players: row.max_players,
+    startedAt: row.started_at || "",
+    expiresAt: row.expires_at || "",
+    createdAt: row.created_at || "",
+  };
+}
+
+function mapPlayer(p) {
+  return {
+    id: Number(p.id),
+    no: p.no,
+    name: p.name,
+    role: p.role,
+    group: p.group_name,
+    status: p.status,
+    birthdate: p.birthdate || "",
+    foot: p.foot || "",
+    parentPhone: p.parent_phone || "",
+    medicalStatus: p.medical_status || "",
+    allergies: p.allergies || "",
+    emergencyContact: p.emergency_contact || "",
+    medicalExpires: p.medical_expires || "",
+    clubId: p.club_id,
+    present: true,
+  };
+}
+
+function mapTraining(t) {
+  return {
+    id: Number(t.id),
+    state: t.state,
+    date: t.date_label,
+    time: t.time_label,
+    location: t.location,
+    group: t.group_name,
+    coach: t.coach,
+    theme: t.theme || "",
+    objectives: t.objectives || "",
+    equipment: t.equipment || "",
+    exercises: t.exercises || "",
+    steps: t.steps || [],
+    clubId: t.club_id,
+  };
+}
+
+function mapMatch(m) {
+  return {
+    id: Number(m.id),
+    type: m.type,
+    opponent: m.opponent,
+    group: m.group_name,
+    date: m.date_label,
+    time: m.time_label,
+    location: m.location,
+    status: m.status,
+    score: m.score || "",
+    notes: m.notes || "",
+    postNotes: m.post_notes || "",
+    stats: m.stats || "",
+    callUps: m.call_ups || {},
+    scorers: m.scorers || {},
+    playerStats: m.player_stats || {},
+    clubId: m.club_id,
+  };
+}
+
 export const supabaseService = {
-  // --- PLAYERS ---
-  async getPlayers() {
-    const { data, error } = await requireSupabase().from("players").select("*").order("name", { ascending: true });
+  async getClubs() {
+    const { data, error } = await requireSupabase()
+      .from("clubs")
+      .select("*")
+      .order("created_at", { ascending: true });
     if (error) throw error;
-    return (data || []).map((p) => ({
-      id: Number(p.id),
-      no: p.no,
-      name: p.name,
-      role: p.role,
-      group: p.group_name,
-      status: p.status,
-      birthdate: p.birthdate || "",
-      foot: p.foot || "",
-      parentPhone: p.parent_phone || "",
-      medicalStatus: p.medical_status || "",
-      present: true,
-    }));
+    return (data || []).map(mapClub);
   },
+
+  async getMemberships(userId) {
+    if (!userId) return [];
+    const { data, error } = await requireSupabase()
+      .from("club_memberships")
+      .select("*")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapMembership);
+  },
+
+  async getInvitations(clubId) {
+    if (!clubId) return [];
+    const { data, error } = await requireSupabase()
+      .from("club_invitations")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getSubscriptions() {
+    const { data, error } = await requireSupabase()
+      .from("subscriptions")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapSubscription);
+  },
+
+  async getPlayers(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("players")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapPlayer);
+  },
+
   async insertPlayer(player) {
     const { data, error } = await requireSupabase()
       .from("players")
       .insert({
         no: Number(player.no) || 0,
         name: player.name,
-        role: player.role,
-        group_name: player.group,
+        role: player.role || "Jucător",
+        group_name: player.group || player.group_name || "U13",
         status: player.status || "Activ",
         birthdate: player.birthdate || null,
         foot: player.foot || null,
         parent_phone: player.parentPhone || null,
         medical_status: player.medicalStatus || null,
+        allergies: player.allergies || null,
+        emergency_contact: player.emergencyContact || null,
+        medical_expires: player.medicalExpires || null,
+        club_id: activeClubId(player.clubId || player.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      no: data.no,
-      name: data.name,
-      role: data.role,
-      group: data.group_name,
-      status: data.status,
-      birthdate: data.birthdate || "",
-      foot: data.foot || "",
-      parentPhone: data.parent_phone || "",
-      medicalStatus: data.medical_status || "",
-      present: true,
-    };
+    return mapPlayer(data);
   },
+
   async updatePlayer(player) {
     const { data, error } = await requireSupabase()
       .from("players")
@@ -57,56 +205,39 @@ export const supabaseService = {
         no: Number(player.no) || 0,
         name: player.name,
         role: player.role,
-        group_name: player.group,
+        group_name: player.group || player.group_name,
         status: player.status,
         birthdate: player.birthdate || null,
         foot: player.foot || null,
         parent_phone: player.parentPhone || null,
         medical_status: player.medicalStatus || null,
+        allergies: player.allergies || null,
+        emergency_contact: player.emergencyContact || null,
+        medical_expires: player.medicalExpires || null,
       })
       .eq("id", player.id)
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      no: data.no,
-      name: data.name,
-      role: data.role,
-      group: data.group_name,
-      status: data.status,
-      birthdate: data.birthdate || "",
-      foot: data.foot || "",
-      parentPhone: data.parent_phone || "",
-      medicalStatus: data.medical_status || "",
-      present: true,
-    };
+    return mapPlayer(data);
   },
+
   async deletePlayer(id) {
     const { error } = await requireSupabase().from("players").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- TRAININGS ---
-  async getTrainings() {
-    const { data, error } = await requireSupabase().from("trainings").select("*").order("id", { ascending: false });
+  async getTrainings(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("trainings")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
-    return (data || []).map((t) => ({
-      id: Number(t.id),
-      state: t.state,
-      date: t.date_label,
-      time: t.time_label,
-      location: t.location,
-      group: t.group_name,
-      coach: t.coach,
-      theme: t.theme || "",
-      objectives: t.objectives || "",
-      equipment: t.equipment || "",
-      exercises: t.exercises || "",
-      steps: t.steps || [],
-    }));
+    return (data || []).map(mapTraining);
   },
+
   async insertTraining(t) {
     const { data, error } = await requireSupabase()
       .from("trainings")
@@ -122,25 +253,14 @@ export const supabaseService = {
         equipment: t.equipment || null,
         exercises: t.exercises || null,
         steps: t.steps || [],
+        club_id: activeClubId(t.clubId || t.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      state: data.state,
-      date: data.date_label,
-      time: data.time_label,
-      location: data.location,
-      group: data.group_name,
-      coach: data.coach,
-      theme: data.theme || "",
-      objectives: data.objectives || "",
-      equipment: data.equipment || "",
-      exercises: data.exercises || "",
-      steps: data.steps || [],
-    };
+    return mapTraining(data);
   },
+
   async updateTraining(t) {
     const { data, error } = await requireSupabase()
       .from("trainings")
@@ -161,30 +281,23 @@ export const supabaseService = {
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      state: data.state,
-      date: data.date_label,
-      time: data.time_label,
-      location: data.location,
-      group: data.group_name,
-      coach: data.coach,
-      theme: data.theme || "",
-      objectives: data.objectives || "",
-      equipment: data.equipment || "",
-      exercises: data.exercises || "",
-      steps: data.steps || [],
-    };
+    return mapTraining(data);
   },
+
   async deleteTraining(id) {
     const { error } = await requireSupabase().from("trainings").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- ATTENDANCE ---
-  async getAttendance() {
-    const { data, error } = await requireSupabase().from("attendance").select("*");
+  async getAttendance(clubId) {
+    const trainingQuery = requireSupabase().from("trainings").select("id").eq("club_id", activeClubId(clubId));
+    const { data: trainings, error: trainingError } = await trainingQuery;
+    if (trainingError) throw trainingError;
+    const trainingIds = (trainings || []).map((t) => t.id);
+    if (!trainingIds.length) return {};
+
+    const { data, error } = await requireSupabase().from("attendance").select("*").in("training_id", trainingIds);
     if (error) throw error;
     const formatted = {};
     (data || []).forEach((row) => {
@@ -195,42 +308,38 @@ export const supabaseService = {
     });
     return formatted;
   },
+
   async saveAttendance(trainingId, playerId, status) {
     if (!status) {
-      const { error } = await requireSupabase().from("attendance").delete().eq("training_id", trainingId).eq("player_id", playerId);
+      const { error } = await requireSupabase()
+        .from("attendance")
+        .delete()
+        .eq("training_id", trainingId)
+        .eq("player_id", playerId);
       if (error) throw error;
-    } else {
-      const { error } = await requireSupabase().from("attendance").upsert({
-        training_id: trainingId,
-        player_id: playerId,
-        status: status,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      return true;
     }
+
+    const { error } = await requireSupabase().from("attendance").upsert({
+      training_id: trainingId,
+      player_id: playerId,
+      status,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
     return true;
   },
 
-  // --- MATCHES ---
-  async getMatches() {
-    const { data, error } = await requireSupabase().from("matches").select("*").order("id", { ascending: false });
+  async getMatches(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("matches")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
-    return (data || []).map((m) => ({
-      id: Number(m.id),
-      type: m.type,
-      opponent: m.opponent,
-      group: m.group_name,
-      date: m.date_label,
-      time: m.time_label,
-      location: m.location,
-      status: m.status,
-      score: m.score || "",
-      notes: m.notes || "",
-      callUps: m.call_ups || {},
-      scorers: m.scorers || {},
-      playerStats: m.player_stats || {},
-    }));
+    return (data || []).map(mapMatch);
   },
+
   async insertMatch(m) {
     const { data, error } = await requireSupabase()
       .from("matches")
@@ -244,29 +353,19 @@ export const supabaseService = {
         status: m.status || "Programat",
         score: m.score || null,
         notes: m.notes || null,
+        post_notes: m.postNotes || null,
+        stats: m.stats || null,
         call_ups: m.callUps || {},
         scorers: m.scorers || {},
         player_stats: m.playerStats || {},
+        club_id: activeClubId(m.clubId || m.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      type: data.type,
-      opponent: data.opponent,
-      group: data.group_name,
-      date: data.date_label,
-      time: data.time_label,
-      location: data.location,
-      status: data.status,
-      score: data.score || "",
-      notes: data.notes || "",
-      callUps: data.call_ups || {},
-      scorers: data.scorers || {},
-      playerStats: data.player_stats || {},
-    };
+    return mapMatch(data);
   },
+
   async updateMatch(m) {
     const { data, error } = await requireSupabase()
       .from("matches")
@@ -280,6 +379,8 @@ export const supabaseService = {
         status: m.status,
         score: m.score || null,
         notes: m.notes || null,
+        post_notes: m.postNotes || null,
+        stats: m.stats || null,
         call_ups: m.callUps || {},
         scorers: m.scorers || {},
         player_stats: m.playerStats || {},
@@ -288,31 +389,21 @@ export const supabaseService = {
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      type: data.type,
-      opponent: data.opponent,
-      group: data.group_name,
-      date: data.date_label,
-      time: data.time_label,
-      location: data.location,
-      status: data.status,
-      score: data.score || "",
-      notes: data.notes || "",
-      callUps: data.call_ups || {},
-      scorers: data.scorers || {},
-      playerStats: data.player_stats || {},
-    };
+    return mapMatch(data);
   },
+
   async deleteMatch(id) {
     const { error } = await requireSupabase().from("matches").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- PLAYER OBSERVATIONS ---
-  async getObservations() {
-    const { data, error } = await requireSupabase().from("player_observations").select("*").order("id", { ascending: false });
+  async getObservations(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("player_observations")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
     const formatted = {};
     (data || []).forEach((row) => {
@@ -329,6 +420,7 @@ export const supabaseService = {
     });
     return formatted;
   },
+
   async insertObservation(playerId, obs) {
     const { data, error } = await requireSupabase()
       .from("player_observations")
@@ -339,99 +431,122 @@ export const supabaseService = {
         date_label: obs.date || null,
         author_name: obs.author || null,
         note: obs.text,
+        club_id: activeClubId(obs.clubId || obs.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      type: data.type,
-      source: data.source || "",
-      date: data.date_label || "",
-      author: data.author_name || "",
-      text: data.note,
-    };
+    return data;
   },
+
   async deleteObservation(id) {
     const { error } = await requireSupabase().from("player_observations").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- TRAINING PAYMENTS (payments) ---
-  async getTrainingPayments() {
-    const { data, error } = await requireSupabase().from("training_payments").select("*");
+  async getTrainingPayments(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("training_payments")
+      .select("*")
+      .eq("club_id", activeClubId(clubId));
     if (error) throw error;
     const formatted = {};
     (data || []).forEach((row) => {
       const tId = Number(row.training_id);
       const pId = Number(row.player_id);
       if (!formatted[tId]) formatted[tId] = {};
-      formatted[tId][pId] = {
-        paid: row.paid,
-        amount: String(row.amount),
-        paidAt: row.paid_at || "",
-      };
+      formatted[tId][pId] = { paid: row.paid, amount: String(row.amount), paidAt: row.paid_at || "" };
     });
     return formatted;
   },
+
   async saveTrainingPayment(trainingId, playerId, paymentInfo) {
     if (!paymentInfo) {
-      const { error } = await requireSupabase().from("training_payments").delete().eq("training_id", trainingId).eq("player_id", playerId);
+      const { error } = await requireSupabase()
+        .from("training_payments")
+        .delete()
+        .eq("training_id", trainingId)
+        .eq("player_id", playerId);
       if (error) throw error;
-    } else {
-      const { error } = await requireSupabase().from("training_payments").upsert({
-        training_id: trainingId,
-        player_id: playerId,
-        amount: Number(paymentInfo.amount) || 0,
-        paid: Boolean(paymentInfo.paid),
-        paid_at: paymentInfo.paidAt || null,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      return true;
     }
+
+    const { data: training, error: trainingError } = await requireSupabase()
+      .from("trainings")
+      .select("club_id")
+      .eq("id", trainingId)
+      .single();
+    if (trainingError) throw trainingError;
+
+    const { error } = await requireSupabase().from("training_payments").upsert({
+      training_id: trainingId,
+      player_id: playerId,
+      amount: Number(paymentInfo.amount) || 0,
+      paid: Boolean(paymentInfo.paid),
+      paid_at: paymentInfo.paidAt || null,
+      updated_at: new Date().toISOString(),
+      club_id: training.club_id,
+    });
+    if (error) throw error;
     return true;
   },
 
-  // --- MONTHLY PAYMENTS ---
-  async getMonthlyPayments() {
-    const { data, error } = await requireSupabase().from("monthly_payments").select("*");
+  async getMonthlyPayments(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("monthly_payments")
+      .select("*")
+      .eq("club_id", activeClubId(clubId));
     if (error) throw error;
     const formatted = {};
     (data || []).forEach((row) => {
       const key = `${row.month_label}-${row.group_name}`;
       const pId = Number(row.player_id);
       if (!formatted[key]) formatted[key] = {};
-      formatted[key][pId] = {
-        paid: row.paid,
-        amount: String(row.amount),
-        paidAt: row.paid_at || "",
-      };
+      formatted[key][pId] = { paid: row.paid, amount: String(row.amount), paidAt: row.paid_at || "" };
     });
     return formatted;
   },
+
   async saveMonthlyPayment(monthLabel, groupName, playerId, paymentInfo) {
     if (!paymentInfo) {
-      const { error } = await requireSupabase().from("monthly_payments").delete().eq("month_label", monthLabel).eq("group_name", groupName).eq("player_id", playerId);
+      const { error } = await requireSupabase()
+        .from("monthly_payments")
+        .delete()
+        .eq("month_label", monthLabel)
+        .eq("group_name", groupName)
+        .eq("player_id", playerId);
       if (error) throw error;
-    } else {
-      const { error } = await requireSupabase().from("monthly_payments").upsert({
-        month_label: monthLabel,
-        group_name: groupName,
-        player_id: playerId,
-        amount: Number(paymentInfo.amount) || 0,
-        paid: Boolean(paymentInfo.paid),
-        paid_at: paymentInfo.paidAt || null,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      return true;
     }
+
+    const { data: player, error: playerError } = await requireSupabase()
+      .from("players")
+      .select("club_id")
+      .eq("id", playerId)
+      .single();
+    if (playerError) throw playerError;
+
+    const { error } = await requireSupabase().from("monthly_payments").upsert({
+      month_label: monthLabel,
+      group_name: groupName,
+      player_id: playerId,
+      amount: Number(paymentInfo.amount) || 0,
+      paid: Boolean(paymentInfo.paid),
+      paid_at: paymentInfo.paidAt || null,
+      updated_at: new Date().toISOString(),
+      club_id: player.club_id,
+    });
+    if (error) throw error;
     return true;
   },
 
-  // --- TRANSACTIONS ---
-  async getTransactions() {
-    const { data, error } = await requireSupabase().from("transactions").select("*").order("id", { ascending: false });
+  async getTransactions(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("transactions")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
     return (data || []).map((t) => ({
       id: Number(t.id),
@@ -439,8 +554,10 @@ export const supabaseService = {
       value: Number(t.value),
       positive: t.positive,
       date: t.date_label || "",
+      clubId: t.club_id,
     }));
   },
+
   async insertTransaction(tx) {
     const { data, error } = await requireSupabase()
       .from("transactions")
@@ -449,6 +566,7 @@ export const supabaseService = {
         value: Number(tx.value) || 0,
         positive: tx.positive,
         date_label: tx.date || null,
+        club_id: activeClubId(tx.clubId || tx.club_id),
       })
       .select()
       .single();
@@ -459,17 +577,22 @@ export const supabaseService = {
       value: Number(data.value),
       positive: data.positive,
       date: data.date_label || "",
+      clubId: data.club_id,
     };
   },
+
   async deleteTransaction(id) {
     const { error } = await requireSupabase().from("transactions").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- CLUB EVENTS (events) ---
-  async getEvents() {
-    const { data, error } = await requireSupabase().from("club_events").select("*").order("id", { ascending: false });
+  async getEvents(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("club_events")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
     return (data || []).map((e) => ({
       id: Number(e.id),
@@ -480,6 +603,7 @@ export const supabaseService = {
       group: e.group_name || "",
     }));
   },
+
   async insertEvent(event) {
     const { data, error } = await requireSupabase()
       .from("club_events")
@@ -489,28 +613,26 @@ export const supabaseService = {
         time_label: event.time || null,
         detail: event.notes || null,
         group_name: event.group || null,
+        club_id: activeClubId(event.clubId || event.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      type: data.type,
-      date: data.date_label,
-      time: data.time_label || "",
-      notes: data.detail || "",
-      group: data.group_name || "",
-    };
+    return data;
   },
+
   async deleteEvent(id) {
     const { error } = await requireSupabase().from("club_events").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- DOCUMENTS ---
-  async getDocuments() {
-    const { data, error } = await requireSupabase().from("documents").select("*").order("id", { ascending: false });
+  async getDocuments(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("documents")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
     return (data || []).map((d) => ({
       id: Number(d.id),
@@ -522,6 +644,7 @@ export const supabaseService = {
       fileUrl: d.file_url || "",
     }));
   },
+
   async insertDocument(doc) {
     const { data, error } = await requireSupabase()
       .from("documents")
@@ -532,20 +655,14 @@ export const supabaseService = {
         status: doc.status || null,
         expires: doc.expires || null,
         file_url: doc.fileUrl || null,
+        club_id: activeClubId(doc.clubId || doc.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      title: data.title,
-      owner: data.owner || "",
-      type: data.type || "",
-      status: data.status || "",
-      expires: data.expires || "",
-      fileUrl: data.file_url || "",
-    };
+    return data;
   },
+
   async updateDocument(doc) {
     const { data, error } = await requireSupabase()
       .from("documents")
@@ -561,35 +678,25 @@ export const supabaseService = {
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      title: data.title,
-      owner: data.owner || "",
-      type: data.type || "",
-      status: data.status || "",
-      expires: data.expires || "",
-      fileUrl: data.file_url || "",
-    };
+    return data;
   },
+
   async deleteDocument(id) {
     const { error } = await requireSupabase().from("documents").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- EQUIPMENT ---
-  async getEquipment() {
-    const { data, error } = await requireSupabase().from("equipment").select("*").order("id", { ascending: true });
+  async getEquipment(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("equipment")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: true });
     if (error) throw error;
-    return (data || []).map((e) => ({
-      id: Number(e.id),
-      name: e.name,
-      category: e.category || "",
-      total: e.total,
-      assigned: e.assigned || "",
-      missing: e.missing,
-    }));
+    return data || [];
   },
+
   async insertEquipment(eq) {
     const { data, error } = await requireSupabase()
       .from("equipment")
@@ -599,19 +706,14 @@ export const supabaseService = {
         total: Number(eq.total) || 0,
         assigned: eq.assigned || null,
         missing: Number(eq.missing) || 0,
+        club_id: activeClubId(eq.clubId || eq.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      name: data.name,
-      category: data.category || "",
-      total: data.total,
-      assigned: data.assigned || "",
-      missing: data.missing,
-    };
+    return data;
   },
+
   async updateEquipment(eq) {
     const { data, error } = await requireSupabase()
       .from("equipment")
@@ -626,216 +728,186 @@ export const supabaseService = {
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      name: data.name,
-      category: data.category || "",
-      total: data.total,
-      assigned: data.assigned || "",
-      missing: data.missing,
-    };
+    return data;
   },
+
   async deleteEquipment(id) {
     const { error } = await requireSupabase().from("equipment").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- PLAYER EVALUATIONS (evaluations) ---
-  async getEvaluations() {
-    const { data, error } = await requireSupabase().from("player_evaluations").select("*");
+  async getEvaluations(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("player_evaluations")
+      .select("*")
+      .eq("club_id", activeClubId(clubId));
     if (error) throw error;
     const formatted = {};
     (data || []).forEach((row) => {
-      const pId = Number(row.player_id);
-      formatted[pId] = {
-        month: row.month_label,
-        technique: row.technique,
-        speed: row.speed,
-        discipline: row.discipline,
-        attitude: row.attitude,
-        tactics: row.tactics,
-        physical: row.physical,
-      };
+      formatted[Number(row.player_id)] = row;
     });
     return formatted;
   },
+
   async saveEvaluation(playerId, ev) {
-    if (!ev) {
-      const { error } = await requireSupabase().from("player_evaluations").delete().eq("player_id", playerId);
-      if (error) throw error;
-    } else {
-      const { error } = await requireSupabase().from("player_evaluations").upsert({
-        player_id: playerId,
-        month_label: ev.month,
-        technique: Number(ev.technique) || 0,
-        speed: Number(ev.speed) || 0,
-        discipline: Number(ev.discipline) || 0,
-        attitude: Number(ev.attitude) || 0,
-        tactics: Number(ev.tactics) || 0,
-        physical: Number(ev.physical) || 0,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    }
-    return true;
-  },
-
-  // --- DEVELOPMENT PLANS ---
-  async getDevelopmentPlans() {
-    const { data, error } = await requireSupabase().from("development_plans").select("*");
-    if (error) throw error;
-    const formatted = {};
-    (data || []).forEach((row) => {
-      const pId = Number(row.player_id);
-      formatted[pId] = {
-        focus: row.focus || "",
-        objective: row.objective || "",
-        exercises: row.exercises || "",
-        status: row.status || "",
-      };
+    const { data: player, error: playerError } = await requireSupabase()
+      .from("players")
+      .select("club_id")
+      .eq("id", playerId)
+      .single();
+    if (playerError) throw playerError;
+    const { error } = await requireSupabase().from("player_evaluations").upsert({
+      player_id: playerId,
+      month_label: ev.month || ev.monthLabel || "Curent",
+      technique: Number(ev.technique) || 0,
+      speed: Number(ev.speed) || 0,
+      discipline: Number(ev.discipline) || 0,
+      attitude: Number(ev.attitude) || 0,
+      tactics: Number(ev.tactics) || 0,
+      physical: Number(ev.physical) || 0,
+      updated_at: new Date().toISOString(),
+      club_id: player.club_id,
     });
-    return formatted;
-  },
-  async saveDevelopmentPlan(playerId, plan) {
-    if (!plan) {
-      const { error } = await requireSupabase().from("development_plans").delete().eq("player_id", playerId);
-      if (error) throw error;
-    } else {
-      const { error } = await requireSupabase().from("development_plans").upsert({
-        player_id: playerId,
-        focus: plan.focus || null,
-        objective: plan.objective || null,
-        exercises: plan.exercises || null,
-        status: plan.status || null,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    }
+    if (error) throw error;
     return true;
   },
 
-  // --- DISCIPLINE RECORDS (discipline) ---
-  async getDiscipline() {
-    const { data, error } = await requireSupabase().from("discipline_records").select("*").order("id", { ascending: false });
+  async getDevelopmentPlans(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("development_plans")
+      .select("*")
+      .eq("club_id", activeClubId(clubId));
     if (error) throw error;
-    return (data || []).map((d) => ({
-      id: Number(d.id),
-      playerId: Number(d.player_id),
-      type: d.type,
-      note: d.note || "",
-      date: d.date_label || "",
-    }));
+    return data || [];
   },
+
+  async saveDevelopmentPlan(playerId, plan) {
+    const { data: player, error: playerError } = await requireSupabase()
+      .from("players")
+      .select("club_id")
+      .eq("id", playerId)
+      .single();
+    if (playerError) throw playerError;
+    const { error } = await requireSupabase().from("development_plans").upsert({
+      player_id: playerId,
+      focus: plan.focus || "",
+      objective: plan.objective || "",
+      exercises: plan.exercises || "",
+      status: plan.status || "Activ",
+      updated_at: new Date().toISOString(),
+      club_id: player.club_id,
+    });
+    if (error) throw error;
+    return true;
+  },
+
+  async getDiscipline(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("discipline_records")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
   async insertDiscipline(d) {
+    const { data: player, error: playerError } = await requireSupabase()
+      .from("players")
+      .select("club_id")
+      .eq("id", d.playerId || d.player_id)
+      .single();
+    if (playerError) throw playerError;
     const { data, error } = await requireSupabase()
       .from("discipline_records")
       .insert({
-        player_id: d.playerId,
+        player_id: d.playerId || d.player_id,
         type: d.type,
-        note: d.note || null,
-        date_label: d.date || null,
+        note: d.note,
+        date_label: d.date || d.date_label || null,
+        club_id: player.club_id,
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      playerId: Number(data.player_id),
-      type: data.type,
-      note: data.note || "",
-      date: data.date_label || "",
-    };
+    return data;
   },
+
   async deleteDiscipline(id) {
     const { error } = await requireSupabase().from("discipline_records").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- CHAT MESSAGES ---
-  async getChatMessages() {
-    const { data, error } = await requireSupabase().from("chat_messages").select("*").order("id", { ascending: true });
+  async getChatMessages(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("chat_messages")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: true });
     if (error) throw error;
-    return (data || []).map((msg) => ({
-      id: Number(msg.id),
-      audience: msg.audience,
-      author: msg.author_name || "Membru",
-      text: msg.text,
-      date: new Date(msg.created_at).toLocaleDateString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-    }));
+    return data || [];
   },
+
   async insertChatMessage(msg) {
     const { data, error } = await requireSupabase()
       .from("chat_messages")
       .insert({
-        audience: msg.audience,
-        author_name: msg.author,
+        audience: msg.audience || "club",
+        author_id: msg.authorId || null,
+        author_name: msg.author || msg.authorName || null,
         text: msg.text,
+        club_id: activeClubId(msg.clubId || msg.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      audience: data.audience,
-      author: data.author_name || "Membru",
-      text: data.text,
-      date: new Date(data.created_at).toLocaleDateString("ro-RO", { hour: "2-digit", minute: "2-digit" }),
-    };
+    return data;
   },
 
-  // --- MEDIA GALLERY ---
-  async getMedia() {
-    const { data, error } = await requireSupabase().from("media_gallery").select("*").order("id", { ascending: false });
+  async getMedia(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("media_gallery")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
-    return (data || []).map((m) => ({
-      id: Number(m.id),
-      type: m.type || "Meci",
-      title: m.title,
-      url: m.url || "",
-      date: m.date_label || "",
-    }));
+    return data || [];
   },
+
   async insertMedia(m) {
     const { data, error } = await requireSupabase()
       .from("media_gallery")
       .insert({
-        type: m.type || "Meci",
+        type: m.type || "image",
         title: m.title,
-        url: m.url || null,
+        url: m.url,
         date_label: m.date || null,
+        club_id: activeClubId(m.clubId || m.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      type: data.type || "Meci",
-      title: data.title,
-      url: data.url || "",
-      date: data.date_label || "",
-    };
+    return data;
   },
+
   async deleteMedia(id) {
     const { error } = await requireSupabase().from("media_gallery").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
 
-  // --- SCOUTING PLAYERS (scouting) ---
-  async getScouting() {
-    const { data, error } = await requireSupabase().from("scouting_players").select("*").order("id", { ascending: false });
+  async getScouting(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("scouting_players")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("id", { ascending: false });
     if (error) throw error;
-    return (data || []).map((s) => ({
-      id: Number(s.id),
-      name: s.name,
-      age: s.age || "",
-      role: s.role || "",
-      notes: s.notes || "",
-      decision: s.decision || "",
-    }));
+    return data || [];
   },
+
   async insertScouting(s) {
     const { data, error } = await requireSupabase()
       .from("scouting_players")
@@ -845,19 +917,14 @@ export const supabaseService = {
         role: s.role || null,
         notes: s.notes || null,
         decision: s.decision || null,
+        club_id: activeClubId(s.clubId || s.club_id),
       })
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      name: data.name,
-      age: data.age || "",
-      role: data.role || "",
-      notes: data.notes || "",
-      decision: data.decision || "",
-    };
+    return data;
   },
+
   async updateScouting(s) {
     const { data, error } = await requireSupabase()
       .from("scouting_players")
@@ -872,31 +939,104 @@ export const supabaseService = {
       .select()
       .single();
     if (error) throw error;
-    return {
-      id: Number(data.id),
-      name: data.name,
-      age: data.age || "",
-      role: data.role || "",
-      notes: data.notes || "",
-      decision: data.decision || "",
-    };
+    return data;
   },
+
   async deleteScouting(id) {
     const { error } = await requireSupabase().from("scouting_players").delete().eq("id", id);
     if (error) throw error;
     return true;
   },
+
+  async createClub(userId, clubData) {
+    const groups = clubData.ageGroups || clubData.groups || DEFAULT_GROUPS;
+    const { data, error } = await requireSupabase()
+      .from("clubs")
+      .insert({
+        name: clubData.name,
+        logo_url: clubData.logo || clubData.logoUrl || null,
+        city: clubData.city || null,
+        country: clubData.country || null,
+        contact_email: clubData.email || clubData.adminEmail || null,
+        phone: clubData.phone || null,
+        description: clubData.description || null,
+        groups,
+        primary_color: clubData.primaryColor || null,
+        secondary_color: clubData.secondaryColor || null,
+        status: "active",
+        blocked: false,
+        plan: "Free",
+      })
+      .select()
+      .single();
+    if (error) throw error;
+
+    const { error: membershipError } = await requireSupabase()
+      .from("club_memberships")
+      .insert({
+        user_id: userId,
+        club_id: data.id,
+        role: "club_owner",
+        assigned_groups: groups,
+        status: "active",
+      });
+    if (membershipError) throw membershipError;
+
+    const { error: subscriptionError } = await requireSupabase()
+      .from("subscriptions")
+      .insert({
+        club_id: data.id,
+        plan_name: "Free",
+        status: "active",
+        max_players: 20,
+      });
+    if (subscriptionError) throw subscriptionError;
+
+    return mapClub(data);
+  },
+
+  async inviteOwner(email, clubId, role = "club_owner") {
+    // Generate a secure random token (simulated for now)
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+    const { data, error } = await requireSupabase()
+      .from("club_invitations")
+      .insert({
+        club_id: clubId,
+        email: email.toLowerCase().trim(),
+        role: role,
+        token: token,
+        status: "pending",
+        expires_at: expiresAt.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };
 
 export const adminService = {
   async listProfiles() {
-    const { data, error } = await requireSupabase().from("profiles").select("*").order("created_at", { ascending: false });
+    const { data, error } = await requireSupabase()
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return data || [];
   },
+
   async updateProfileRole(id, role, assignedGroups = []) {
-    const { data, error } = await requireSupabase().from("profiles").update({ role, assigned_groups: assignedGroups }).eq("id", id).select().single();
+    const { data, error } = await requireSupabase()
+      .from("profiles")
+      .update({ role, assigned_groups: assignedGroups })
+      .eq("id", id)
+      .select()
+      .single();
     if (error) throw error;
     return data;
-  }
+  },
 };

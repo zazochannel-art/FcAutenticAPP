@@ -1,13 +1,16 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, spacing, radius } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 
 export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [] }) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title="Mai mult" eyebrow="OPȚIUNI ȘI CLUBURI" openNotifications={openNotifications} />
 
       <SectionTitle title="Schimbă Clubul (SaaS)" action="Adaugă" onAction={onCreateClub} />
@@ -22,20 +25,20 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
               <Text style={styles.clubInitial}>{club.name[0]}</Text>
             </View>
             <View style={{flex: 1, marginLeft: 12}}>
-              <Text style={styles.clubName}>{club.name}</Text>
-              <Text style={styles.clubPlan}>{club.plan || "Free"} Plan</Text>
+              <Text style={styles.clubName} numberOfLines={1}>{club.name}</Text>
+              <Text style={styles.clubPlan}>{club.plan_name || club.plan || "Free"} Plan</Text>
             </View>
-            {selectedClub?.id === club.id && <LucideIcons.CheckCircle2 size={20} color={C.green} />}
+            {selectedClub?.id === club.id && <LucideIcons.CheckCircle2 size={18} color={C.cyan} />}
           </Pressable>
         ))}
       </View>
 
       <SectionTitle title="Contul meu" />
       <View style={styles.profileCard}>
-        <LucideIcons.UserCircle2 size={50} color={C.blue} />
-        <View style={{marginLeft: 15}}>
-          <Text style={{color: 'white', fontWeight: '900'}}>{currentUser?.name}</Text>
-          <Text style={{color: C.muted, fontSize: 11}}>{currentUser?.email}</Text>
+        <LucideIcons.UserCircle2 size={isMobile ? 40 : 50} color={C.blue} />
+        <View style={{marginLeft: 15, flex: 1}}>
+          <Text style={{color: 'white', fontWeight: '900', fontSize: 15}} numberOfLines={1}>{currentUser?.name}</Text>
+          <Text style={{color: C.muted, fontSize: 11}} numberOfLines={1}>{currentUser?.email}</Text>
         </View>
       </View>
 
@@ -46,23 +49,22 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
         icon="LogOut"
         onPress={onLogout}
         fullWidth
-        style={{ marginTop: 20, backgroundColor: `${C.red}25` }}
-        textStyle={{ color: C.red }}
+        style={{ marginTop: 8, backgroundColor: `${C.red}15` }}
+        textStyle={{ color: C.red, fontSize: 13 }}
       />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 18 },
-  clubSelector: { backgroundColor: C.card, borderRadius: 20, padding: 10, marginBottom: 20 },
-  clubItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 15, marginBottom: 5 },
-  clubItemActive: { backgroundColor: C.panel },
-  clubIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
-  clubInitial: { color: C.red, fontWeight: '900', fontSize: 18 },
-  clubName: { color: 'white', fontWeight: '800' },
-  clubPlan: { color: C.muted, fontSize: 10 },
-  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.card, padding: 15, borderRadius: 20, marginBottom: 20 },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 16, borderRadius: 16, backgroundColor: `${C.red}15`, marginTop: 20 },
-  logoutText: { color: C.red, fontWeight: '900' }
+  container: { flex: 1, backgroundColor: "#020617" },
+  content: { padding: spacing.md, paddingBottom: 120 },
+  clubSelector: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 20, padding: 8, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  clubItem: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 16, marginBottom: 4 },
+  clubItemActive: { backgroundColor: "rgba(0, 212, 255, 0.08)" },
+  clubIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#030712", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
+  clubInitial: { color: C.cyan, fontWeight: '900', fontSize: 16 },
+  clubName: { color: 'white', fontWeight: '800', fontSize: 13 },
+  clubPlan: { color: C.dim, fontSize: 10, fontWeight: '600', marginTop: 2 },
+  profileCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: "rgba(15,23,42,0.6)", padding: 16, borderRadius: 20, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" }
 });

@@ -7,9 +7,9 @@ import {
   ScrollView,
   ImageBackground,
   Dimensions,
-  KeyboardAvoidingView,
   Platform,
-  Pressable
+  Pressable,
+  SafeAreaView
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -35,7 +35,7 @@ const VIOLET = "#7C3AED";
 const GREEN = "#22C55E";
 const BG_DARK = "#020617";
 
-export default function LoginPage({ onLogin, onBack }) {
+export default function LoginPage({ onLogin, onBack, onRegister, onGoogle, onForgot, loading, error }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +52,7 @@ export default function LoginPage({ onLogin, onBack }) {
           style={StyleSheet.absoluteFill}
         />
 
-        <SafeAreaWrapper>
+        <SafeAreaView style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
 
             {/* Header */}
@@ -123,7 +123,9 @@ export default function LoginPage({ onLogin, onBack }) {
 
                     <View style={styles.formOptions}>
                       <Text style={styles.optionText}>Ține-mă minte</Text>
-                      <Text style={[styles.optionText, { color: CYAN }]}>Ai uitat parola?</Text>
+                      <Pressable onPress={() => onForgot?.(email)}>
+                        <Text style={[styles.optionText, { color: CYAN }]}>Ai uitat parola?</Text>
+                      </Pressable>
                     </View>
 
                     <Pressable onPress={() => onLogin(email, password)}>
@@ -133,10 +135,12 @@ export default function LoginPage({ onLogin, onBack }) {
                         end={{ x: 1, y: 0 }}
                         style={styles.loginBtn}
                       >
-                        <Text style={styles.loginBtnText}>Conectează-te</Text>
+                        <Text style={styles.loginBtnText}>{loading ? "Se verifică..." : "Conectează-te"}</Text>
                         <ArrowRight size={20} color="white" />
                       </LinearGradient>
                     </Pressable>
+
+                    {!!error && <Text style={{ color: 'red', fontSize: 12, textAlign: 'center', marginTop: 10 }}>{error}</Text>}
 
                     <View style={styles.separator}>
                       <View style={styles.line} />
@@ -144,13 +148,13 @@ export default function LoginPage({ onLogin, onBack }) {
                       <View style={styles.line} />
                     </View>
 
-                    <Pressable style={styles.googleBtn}>
+                    <Pressable style={styles.googleBtn} onPress={onGoogle}>
                       <Text style={styles.googleBtnText}>Continuă cu Google</Text>
                     </Pressable>
 
                     <View style={styles.footerLinks}>
                       <Text style={styles.footerText}>Nu ai cont? </Text>
-                      <Pressable>
+                      <Pressable onPress={onRegister}>
                         <Text style={[styles.footerText, { color: CYAN, fontWeight: 'bold' }]}>Creează cont</Text>
                       </Pressable>
                     </View>
@@ -160,15 +164,12 @@ export default function LoginPage({ onLogin, onBack }) {
 
             </View>
           </ScrollView>
-        </SafeAreaWrapper>
+        </SafeAreaView>
       </ImageBackground>
     </View>
   );
 }
 
-function SafeAreaWrapper({ children }) {
-  return <View style={{ flex: 1, paddingTop: Platform.OS === 'ios' ? 50 : 20 }}>{children}</View>;
-}
 
 function BenefitItem({ icon, color, title }) {
   const Icon = { Users, Dumbbell, Trophy }[icon];

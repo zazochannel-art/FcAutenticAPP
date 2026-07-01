@@ -1,7 +1,7 @@
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, radius, spacing } from "../constants/theme";
 import { BeUIButton } from "./ui/be-ui-button";
 
 export function Badge({ size = 48 }) {
@@ -9,19 +9,22 @@ export function Badge({ size = 48 }) {
 }
 
 export function TopBar({ title, eyebrow = "FC AUTENTIC • MANAGER", openNotifications }) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+
   return (
     <View style={styles.topBar}>
-      <View style={styles.logoWrap}><Badge size={44} /></View>
+      <View style={styles.logoWrap}><Badge size={isMobile ? 32 : 40} /></View>
       <View style={styles.topTitleWrap}>
-        <Text style={styles.eyebrow}>{eyebrow}</Text>
-        <Text style={styles.pageTitle}>{title}</Text>
+        <Text style={styles.eyebrow} numberOfLines={1}>{eyebrow}</Text>
+        <Text style={[styles.pageTitle, isMobile && { fontSize: 22 }]} numberOfLines={1}>{title}</Text>
       </View>
       <BeUIButton
         variant="secondary"
         size="icon"
         icon="Bell"
         onPress={openNotifications}
-        style={{ width: 52, height: 52, borderRadius: 17 }}
+        style={{ width: isMobile ? 44 : 52, height: isMobile ? 44 : 52, borderRadius: 12 }}
         aria-label="Notificări"
       />
     </View>
@@ -38,7 +41,7 @@ export function SectionTitle({ title, action, onAction }) {
           variant="ghost"
           size="sm"
           onPress={onAction}
-          textStyle={{ color: C.blue, fontSize: 12, fontWeight: "700" }}
+          textStyle={{ color: C.cyan, fontSize: 11, fontWeight: "800" }}
         />
       ) : null}
     </View>
@@ -49,8 +52,8 @@ export function Metric({ icon, value, label, color }) {
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
     <View style={styles.metric}>
-      <View style={[styles.metricIcon, { backgroundColor: `${color}22` }]}>
-        <Icon size={20} color={color} />
+      <View style={[styles.metricIcon, { backgroundColor: `${color}15` }]}>
+        <Icon size={18} color={color} />
       </View>
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
@@ -67,7 +70,7 @@ export function TrainingField({ label, value, onChange, placeholder, multiline =
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={C.muted}
+        placeholderTextColor={C.dim}
         multiline={multiline}
       />
     </View>
@@ -75,21 +78,19 @@ export function TrainingField({ label, value, onChange, placeholder, multiline =
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 22 },
-  topTitleWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
-  eyebrow: { color: C.blue, fontSize: 9, fontWeight: "900", letterSpacing: 1.7, textAlign: "center" },
-  pageTitle: { color: C.text, fontSize: 27, fontWeight: "900", marginTop: 4, textAlign: "center" },
-  logoWrap: { width: 52, height: 52, borderRadius: 17, backgroundColor: C.card, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
-  topNotifyButton: { width: 52, height: 52, borderRadius: 17, backgroundColor: C.card, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
-  sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 24, marginBottom: 11 },
-  sectionTitle: { color: C.text, fontSize: 18, fontWeight: "800" },
-  sectionAction: { color: C.blue, fontSize: 12, fontWeight: "700" },
+  topBar: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 20, marginTop: 8 },
+  topTitleWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  eyebrow: { color: C.cyan, fontSize: 9, fontWeight: "900", letterSpacing: 1.5, textAlign: "center", textTransform: 'uppercase' },
+  pageTitle: { color: "white", fontSize: 26, fontWeight: "900", marginTop: 4, textAlign: "center" },
+  logoWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(15,23,42,0.6)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 24, marginBottom: 12 },
+  sectionTitle: { color: "white", fontSize: 16, fontWeight: "800", textTransform: 'uppercase', letterSpacing: 0.5 },
   metric: { flex: 1, alignItems: "center" },
-  metricIcon: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 7 },
-  metricValue: { color: C.text, fontSize: 17, fontWeight: "900" },
-  metricLabel: { color: C.muted, fontSize: 9, marginTop: 2 },
-  trainingField: { marginBottom: 13 },
-  trainingFieldLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 0.8, marginBottom: 6 },
-  trainingInput: { backgroundColor: C.bg, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 12 },
-  trainingInputLarge: { minHeight: 72, textAlignVertical: "top" },
+  metricIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+  metricValue: { color: "white", fontSize: 16, fontWeight: "900" },
+  metricLabel: { color: C.dim, fontSize: 9, marginTop: 2, fontWeight: '700' },
+  trainingField: { marginBottom: 16 },
+  trainingFieldLabel: { color: C.dim, fontSize: 9, fontWeight: "900", letterSpacing: 0.8, marginBottom: 8, textTransform: 'uppercase' },
+  trainingInput: { backgroundColor: "rgba(2,6,23,0.5)", borderWidth: 1, borderColor: "#1e293b", color: "white", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, height: 44 },
+  trainingInputLarge: { minHeight: 80, textAlignVertical: "top" },
 });
