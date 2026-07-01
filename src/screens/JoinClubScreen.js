@@ -1,0 +1,134 @@
+import React, { useState } from "react";
+import { ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import { ArrowLeft, ArrowRight, CheckCircle2, Globe, Mail, Shield, Users } from "lucide-react-native";
+import { colors as C } from "../constants/theme";
+
+const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000" };
+
+export default function JoinClubScreen({ onBack, onSuccess }) {
+  const [inviteCode, setInviteCode] = useState("");
+  const [clubName, setClubName] = useState("");
+  const [role, setRole] = useState("Jucător");
+  const [message, setMessage] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const submit = () => {
+    setSent(true);
+    setTimeout(() => onSuccess?.(), 450);
+  };
+
+  return (
+    <View style={styles.container}>
+      <ImageBackground source={stadium} style={styles.bg} imageStyle={{ opacity: 0.18 }}>
+        <LinearGradient colors={["#020617", "rgba(2,6,23,0.82)", "#020617"]} style={StyleSheet.absoluteFill} />
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <Pressable onPress={onBack} style={styles.backButton}>
+                <ArrowLeft size={18} color={C.muted} />
+              </Pressable>
+              <View style={styles.brand}>
+                <Shield size={26} color={C.cyan} />
+                <Text style={styles.brandText}>FC Autentic <Text style={styles.brandAdmin}>Admin</Text></Text>
+              </View>
+              <View style={styles.lang}><Globe size={14} color={C.muted} /><Text style={styles.langText}>Română</Text></View>
+            </View>
+
+            <BlurView intensity={24} tint="dark" style={styles.card}>
+              <View style={styles.iconHero}><Users size={42} color={C.purple} /></View>
+              <Text style={styles.title}>Alătură-te unui club</Text>
+              <Text style={styles.subtitle}>Introdu codul de invitație sau trimite o cerere către administratorul clubului.</Text>
+
+              <Field label="Cod invitație" placeholder="Ex: FC-AUTENTIC-2026" value={inviteCode} onChangeText={setInviteCode} />
+
+              <View style={styles.separator}>
+                <View style={styles.line} /><Text style={styles.sepText}>SAU</Text><View style={styles.line} />
+              </View>
+
+              <Field label="Nume club" placeholder="Ex: FC Autentic" value={clubName} onChangeText={setClubName} />
+
+              <Text style={styles.label}>Rol dorit</Text>
+              <View style={styles.roleRow}>
+                {["Jucător", "Părinte", "Antrenor", "Staff"].map((item) => (
+                  <Pressable key={item} onPress={() => setRole(item)} style={[styles.rolePill, role === item && styles.roleActive]}>
+                    <Text style={[styles.roleText, role === item && styles.roleTextActive]}>{item}</Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <Text style={styles.label}>Mesaj opțional</Text>
+              <TextInput
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Scrie un mesaj scurt pentru club..."
+                placeholderTextColor={C.dim}
+                multiline
+                style={styles.textarea}
+              />
+
+              {sent && (
+                <View style={styles.statusBox}>
+                  <CheckCircle2 size={18} color={C.green} />
+                  <Text style={styles.statusText}>Cererea este în așteptarea aprobării administratorului.</Text>
+                </View>
+              )}
+
+              <Pressable onPress={submit} style={styles.primaryPress}>
+                <LinearGradient colors={[C.cyan, C.purple]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
+                  <Mail size={18} color="white" />
+                  <Text style={styles.primaryText}>Trimite cererea</Text>
+                  <ArrowRight size={18} color="white" />
+                </LinearGradient>
+              </Pressable>
+            </BlurView>
+          </ScrollView>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
+  );
+}
+
+function Field(props) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{props.label}</Text>
+      <TextInput {...props} placeholderTextColor={C.dim} style={styles.input} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#020617" },
+  bg: { flex: 1 },
+  content: { flexGrow: 1, padding: 22, alignItems: "center", justifyContent: "center" },
+  header: { position: "absolute", top: 18, left: 22, right: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(15,23,42,0.65)" },
+  brand: { flexDirection: "row", alignItems: "center", gap: 10 },
+  brandText: { color: "white", fontSize: 18, fontWeight: "900" },
+  brandAdmin: { color: C.cyan, fontSize: 14 },
+  lang: { flexDirection: "row", alignItems: "center", gap: 7, borderRadius: 14, paddingHorizontal: 14, height: 44, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(15,23,42,0.65)" },
+  langText: { color: C.muted, fontSize: 12, fontWeight: "800" },
+  card: { width: "100%", maxWidth: 620, borderRadius: 30, overflow: "hidden", padding: 30, borderWidth: 1, borderColor: "rgba(124,58,237,0.45)", backgroundColor: "rgba(15,23,42,0.58)" },
+  iconHero: { alignSelf: "center", width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(124,58,237,0.16)", borderWidth: 1, borderColor: "rgba(124,58,237,0.42)", marginBottom: 18 },
+  title: { color: "white", fontSize: 30, fontWeight: "900", textAlign: "center" },
+  subtitle: { color: C.muted, fontSize: 14, lineHeight: 22, textAlign: "center", marginTop: 8, marginBottom: 24 },
+  field: { marginBottom: 14 },
+  label: { color: C.muted, fontSize: 11, fontWeight: "900", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 8 },
+  input: { height: 54, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: "white", paddingHorizontal: 16, fontSize: 14, fontWeight: "700" },
+  textarea: { minHeight: 90, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: "white", padding: 16, fontSize: 14, fontWeight: "700", textAlignVertical: "top" },
+  separator: { flexDirection: "row", alignItems: "center", gap: 16, marginVertical: 14 },
+  line: { flex: 1, height: 1, backgroundColor: "rgba(148,163,184,0.14)" },
+  sepText: { color: C.dim, fontWeight: "900", fontSize: 11 },
+  roleRow: { flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 14 },
+  rolePill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.45)" },
+  roleActive: { borderColor: C.purple, backgroundColor: "rgba(124,58,237,0.18)" },
+  roleText: { color: C.muted, fontSize: 12, fontWeight: "900" },
+  roleTextActive: { color: "white" },
+  statusBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(34,197,94,0.28)", backgroundColor: "rgba(34,197,94,0.1)", padding: 14, marginTop: 16 },
+  statusText: { flex: 1, color: C.green, fontSize: 12, fontWeight: "800" },
+  primaryPress: { marginTop: 18 },
+  primaryButton: { height: 58, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  primaryText: { color: "white", fontSize: 15, fontWeight: "900" },
+});

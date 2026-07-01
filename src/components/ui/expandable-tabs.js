@@ -19,13 +19,12 @@ const BORDER = "rgba(255, 255, 255, 0.12)";
 
 function normalizeTitle(title = "") {
   return String(title)
-    .replace("EchipДѓ", "Echipă")
-    .replace("FinanИ›e", "Finanțe")
-    .replace("NotificДѓri", "Notificări")
-    .replace("SetДѓri", "Setări")
-    .replace("PlДѓИ›i", "Plăți")
-    .replace("Panou", "Acasă")
-    .replace("Echipă", "Jucători");
+    .replace("Echipă", "Jucători")
+    .replace("Finanțe", "Finanțe")
+    .replace("Notificări", "Notif.")
+    .replace("Setări", "Setări")
+    .replace("Plăți", "Plăți")
+    .replace("Panou", "Acasă");
 }
 
 function compactTitle(title) {
