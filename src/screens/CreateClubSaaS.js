@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,7 +6,6 @@ import {
   TextInput,
   ScrollView,
   Pressable,
-  Dimensions,
   Platform,
   Alert,
   ActivityIndicator,
@@ -17,37 +16,49 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as LucideIcons from 'lucide-react-native';
 import { supabaseService } from '../services/supabaseService';
-import { colors as C, spacing, radius } from '../constants/theme';
 
 const CYAN = "#00D4FF";
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.65)";
 const BORDER_COLOR = "rgba(0, 212, 255, 0.15)";
-const COUNTRY_OPTIONS = ['RomГўnia', 'Moldova', 'Italia', 'Spania', 'Germania', 'FranИ›a'];
+const COUNTRY_OPTIONS = ['România', 'Moldova', 'Italia', 'Spania', 'Germania', 'Franța'];
 const SEASON_OPTIONS = ['2025 / 2026', '2026 / 2027', '2027 / 2028'];
 const COLOR_PRESETS = [
   { label: 'Cyan', value: '#00D4FF' },
   { label: 'Violet', value: '#6A3CFF' },
   { label: 'Portocaliu', value: '#F97316' },
   { label: 'Verde', value: '#22C55E' },
-  { label: 'RoИ™u', value: '#EF4444' },
+  { label: 'Roșu', value: '#EF4444' },
   { label: 'Galben', value: '#FACC15' },
 ];
 const CLUB_TYPES = ['Amator', 'Juniori', 'Profesionist', 'Academie'];
+const DESCRIPTION_MAX = 160;
+const LOGO_MAX_BYTES = 2 * 1024 * 1024;
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
+const STEP_LABELS = { 1: 'Informații club', 2: 'Administrator', 3: 'Gata de publicare' };
+
+// Alert.alert este no-op pe react-native-web, deci pe web folosim window.alert.
+function notify(title, message) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
 
 export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 1024;
 
-  const [step, setStep] = useState(1);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [formError, setFormError] = useState('');
   const [activePicker, setActivePicker] = useState(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
     city: '',
-    country: 'RomГўnia',
+    country: 'România',
     season: '2025 / 2026',
     ageGroups: ['U13', 'U15', 'U17'],
     primaryColor: '#00D4FF',
@@ -68,7 +79,13 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
     }));
   }, [currentUser]);
 
+  const clubInfoComplete =
+    form.name.trim().length > 0 && form.description.trim().length > 0 && form.city.trim().length > 0;
+  const adminComplete = form.adminName.trim().length > 0 && EMAIL_RE.test(form.adminEmail.trim());
+  const step = !clubInfoComplete ? 1 : !adminComplete ? 2 : 3;
+
   const handleInputChange = (field, value) => {
+    setFormError('');
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -92,30 +109,45 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+      if (asset.size && asset.size > LOGO_MAX_BYTES) {
+        notify('Logo prea mare', 'Alege un fișier de maximum 2MB.');
+        return;
+      }
       handleInputChange('logo', asset.uri || '');
       handleInputChange('logoName', asset.name || 'Logo selectat');
     } catch (error) {
-      Alert.alert('Logo club', error.message || 'Nu am putut selecta logo-ul.');
+      notify('Logo club', error.message || 'Nu am putut selecta logo-ul.');
     }
   };
 
+  const validateForm = () => {
+    if (!form.name.trim()) return 'Completează numele clubului.';
+    if (!form.description.trim()) return 'Adaugă o scurtă descriere a clubului.';
+    if (!form.city.trim()) return 'Completează orașul clubului.';
+    if (form.ageGroups.length === 0) return 'Selectează cel puțin o grupă de vârstă.';
+    if (!form.adminName.trim()) return 'Completează numele administratorului.';
+    if (!EMAIL_RE.test(form.adminEmail.trim())) return 'Introdu o adresă de email validă.';
+    return null;
+  };
+
   const handleFinalSubmit = async () => {
-    if (!form.name?.trim() || !form.city?.trim() || !form.adminEmail?.trim()) {
-      Alert.alert('InformaИ›ii lipsДѓ', 'Te rugДѓm sДѓ completezi cГўmpurile obligatorii (*)');
+    const validationError = validateForm();
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
     if (!userId) {
-      Alert.alert('Autentificare necesarР”С“', 'Nu am gР”С“sit utilizatorul conectat. Te rugР”С“m sР”С“ te autentifici din nou.');
+      setFormError('Nu am găsit utilizatorul conectat. Te rugăm să te autentifici din nou.');
       return;
     }
+    setFormError('');
     setIsPublishing(true);
     try {
       const newClub = await supabaseService.createClub(userId, form);
-      setIsPublishing(false);
       onSuccess?.(newClub);
     } catch (err) {
       setIsPublishing(false);
-      Alert.alert('Eroare', err.message);
+      setFormError(err.message || 'Nu am putut crea clubul. Încearcă din nou.');
     }
   };
 
@@ -125,10 +157,13 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
       <View style={styles.bgDecor}>
         <View style={styles.glowTop} />
         <View style={styles.glowBottom} />
-        {/* Subtle Pitch Lines could be added here as SVG or Image */}
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, isMobile && styles.scrollContentMobile]}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Header Superior with Stepper */}
         <View style={styles.header}>
@@ -156,7 +191,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
              </View>
              <View style={styles.stepInfo}>
                 <Text style={styles.stepCount}>Pasul {step} din 3</Text>
-                <Text style={styles.stepLabel}>InformaИ›ii club</Text>
+                <Text style={styles.stepLabel}>{STEP_LABELS[step]}</Text>
              </View>
            </View>
         </View>
@@ -165,8 +200,8 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
         <View style={styles.titleSection}>
            <View style={styles.accentLine} />
            <View style={{ flex: 1 }}>
-              <Text style={styles.mainTitle}>CreeazДѓ clubul tДѓu</Text>
-              <Text style={styles.mainSub}>CompleteazДѓ informaИ›iile de bazДѓ pentru a-И›i crea clubul И™i a Г®ncepe cДѓlДѓtoria Г®n FC Autentic.</Text>
+              <Text style={styles.mainTitle}>Creează clubul tău</Text>
+              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în FC Autentic.</Text>
            </View>
         </View>
 
@@ -178,46 +213,47 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
               <View style={styles.sectionHeader}>
                 <LucideIcons.Shield size={18} color={CYAN} />
-                <Text style={styles.sectionTitle}>InformaИ›ii despre club</Text>
+                <Text style={styles.sectionTitle}>Informații despre club</Text>
               </View>
 
               <View style={styles.gridRow}>
                 <InputGroup
                   label="Numele clubului *"
-                  placeholder="Ex: FC Autentic BucureИ™ti"
+                  placeholder="Ex: FC Autentic București"
                   icon="Shield"
                   value={form.name}
                   onChange={v => handleInputChange('name', v)}
                   style={{ flex: 1 }}
                 />
                 <View style={{ flex: 1, marginLeft: 16 }}>
-                   <Text style={styles.label}>ScurtДѓ descriere *</Text>
+                   <Text style={styles.label}>Scurtă descriere *</Text>
                    <View style={[styles.textAreaWrap]}>
                      <TextInput
                         style={styles.textArea}
                         multiline
                         numberOfLines={4}
+                        maxLength={DESCRIPTION_MAX}
                         placeholder="Viziunea clubului..."
                         placeholderTextColor="#475569"
                         value={form.description}
                         onChangeText={v => handleInputChange('description', v)}
                      />
-                     <Text style={styles.charCounter}>{form.description.length}/160</Text>
+                     <Text style={styles.charCounter}>{form.description.length}/{DESCRIPTION_MAX}</Text>
                    </View>
                 </View>
               </View>
 
               <View style={[styles.gridRow, { marginTop: 16 }]}>
                 <InputGroup
-                  label="OraИ™ *"
-                  placeholder="Ex: BucureИ™ti"
+                  label="Oraș *"
+                  placeholder="Ex: București"
                   icon="MapPin"
                   value={form.city}
                   onChange={v => handleInputChange('city', v)}
                   style={{ flex: 1 }}
                 />
                 <View style={{ flex: 1, marginLeft: 16 }}>
-                   <Text style={styles.label}>Tara *</Text>
+                   <Text style={styles.label}>Țara *</Text>
                    <Pressable style={styles.inputWrapper} onPress={() => setActivePicker(activePicker === 'country' ? null : 'country')}>
                       <LucideIcons.Globe size={18} color="#64748B" style={{ marginRight: 10 }} />
                       <Text style={{ color: 'white', flex: 1 }}>{form.country}</Text>
@@ -243,14 +279,14 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                    )}
                 </View>
                 <View style={{ flex: 1, marginLeft: 16 }}>
-                   <Text style={styles.label}>Grupe de vГўrstДѓ *</Text>
+                   <Text style={styles.label}>Grupe de vârstă *</Text>
                    <View style={styles.pillRow}>
                       {['U7', 'U9', 'U11', 'U13', 'U15', 'U17', 'U19'].map(g => (
                         <Pressable key={g} onPress={() => toggleAgeGroup(g)} style={[styles.pill, form.ageGroups.includes(g) && styles.pillActive]}>
                           <Text style={[styles.pillText, form.ageGroups.includes(g) && styles.pillTextActive]}>{g}</Text>
                         </Pressable>
                       ))}
-                      <Pressable style={styles.addPill} onPress={() => Alert.alert('Grupe personalizate', 'Adaugarea unei grupe personalizate va fi disponibila in etapa urmatoare.')}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
+                      <Pressable style={styles.addPill} onPress={() => notify('Grupe personalizate', 'Adăugarea unei grupe personalizate va fi disponibilă în etapa următoare.')}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
                    </View>
                 </View>
               </View>
@@ -287,7 +323,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
               </View>
 
               <View style={{ marginTop: 24 }}>
-                <Text style={styles.label}>Incarca logo</Text>
+                <Text style={styles.label}>Încarcă logo</Text>
                 <View style={styles.uploadContainer}>
                   <Pressable style={styles.uploadBox} onPress={pickLogo}>
                     <View style={styles.uploadIconWrap}><LucideIcons.Upload size={20} color={form.logo ? CYAN : "#64748B"} /></View>
@@ -295,11 +331,11 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                       <Text style={styles.uploadTitle}>{form.logoName || "Alege logo-ul clubului"}</Text>
                       <Text style={styles.uploadMeta}>{form.logo ? "Logo selectat pentru club" : "PNG, JPG sau SVG, max. 2MB"}</Text>
                     </View>
-                    <View style={styles.chooseFileBtn}><Text style={styles.chooseFileText}>Alege fisier</Text></View>
+                    <View style={styles.chooseFileBtn}><Text style={styles.chooseFileText}>Alege fișier</Text></View>
                   </Pressable>
                   <View style={styles.uploadInfo}>
                     <LucideIcons.Info size={14} color={VIOLET} />
-                    <Text style={styles.infoMeta}>Logo-ul se salveaza in formular si se trimite impreuna cu datele clubului.</Text>
+                    <Text style={styles.infoMeta}>Logo-ul se salvează în formular și se trimite împreună cu datele clubului.</Text>
                   </View>
                 </View>
               </View>
@@ -313,7 +349,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
               <View style={styles.gridRow}>
                 <InputGroup
-                  label="Nume И™i prenume *"
+                  label="Nume și prenume *"
                   placeholder="Ex: Andrei Popescu"
                   icon="User"
                   value={form.adminName}
@@ -328,7 +364,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                     value={form.adminEmail}
                     onChange={v => handleInputChange('adminEmail', v)}
                   />
-                  <Text style={styles.inputHelp}>Pe aceastДѓ adresДѓ vei primi toate notificДѓrile importante.</Text>
+                  <Text style={styles.inputHelp}>Pe această adresă vei primi toate notificările importante.</Text>
                 </View>
               </View>
 
@@ -367,7 +403,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                       <View style={[styles.previewColorItem, { marginLeft: 20 }]}><View style={[styles.colorSquare, { backgroundColor: form.secondaryColor }]} /><Text style={styles.colorLabel}>Secundară</Text></View>
                    </View>
 
-                   <Text style={styles.previewSecTitle}>Grupe de vГўrstДѓ</Text>
+                   <Text style={styles.previewSecTitle}>Grupe de vârstă</Text>
                    <View style={styles.previewPills}>
                       {form.ageGroups.map(g => (
                         <View key={g} style={styles.miniPill}><Text style={styles.miniPillText}>{g}</Text></View>
@@ -381,7 +417,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
                    <Text style={styles.previewSecTitle}>Rezumat club</Text>
                    <View style={styles.summaryGrid}>
-                      <SummaryCard icon="Users" val="0" label="JucДѓtori" />
+                      <SummaryCard icon="Users" val="0" label="Jucători" />
                       <SummaryCard icon="Users" val="0" label="Staff" />
                       <SummaryCard icon="Trophy" val="0" label="Trofee" />
                       <SummaryCard icon="Calendar" val="0" label="Evenimente" />
@@ -389,7 +425,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
                    <View style={styles.liveNotice}>
                       <LucideIcons.Info size={14} color={VIOLET} />
-                      <Text style={styles.noticeText}>Previzualizarea este actualizatДѓ Г®n timp real pe mДѓsurДѓ ce completezi datele.</Text>
+                      <Text style={styles.noticeText}>Previzualizarea este actualizată în timp real pe măsură ce completezi datele.</Text>
                    </View>
                 </LinearGradient>
              </View>
@@ -397,63 +433,45 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
         </View>
 
-        {/* Footer Actions */}
-        <View style={styles.footer}>
-           <Pressable style={styles.btnSecondary} onPress={onBack}>
-              <LucideIcons.ArrowLeft size={18} color="#94A3B8" />
-              <Text style={styles.btnSecondaryText}>ГЋnapoi</Text>
-           </Pressable>
-
-           <View style={{ alignItems: 'center' }}>
-              <Pressable style={styles.btnOutline}>
-                 <LucideIcons.Save size={18} color="white" />
-                 <Text style={styles.btnOutlineText}>SalveazДѓ draft</Text>
-              </Pressable>
-              <Text style={styles.footerNote}>PoИ›i continua editarea oricГўnd Г®nainte de publicare.</Text>
-           </View>
-
-           <Pressable onPress={handleFinalSubmit} disabled={isPublishing}>
-              <LinearGradient colors={[CYAN, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnPrimary}>
-                 {isPublishing ? <ActivityIndicator color="white" size="small" /> : (
-                   <>
-                    <Text style={styles.btnPrimaryText}>CreeazДѓ clubul</Text>
-                    <LucideIcons.ArrowRight size={18} color="white" />
-                   </>
-                 )}
-              </LinearGradient>
-           </Pressable>
-        </View>
-
       </ScrollView>
 
-      <View style={[styles.stickyFooter, isMobile && styles.stickyFooterMobile]}>
-         <Pressable style={[styles.btnSecondary, isMobile && styles.mobileFooterButton]} onPress={onBack}>
-            <LucideIcons.ArrowLeft size={18} color="#94A3B8" />
-            <Text style={styles.btnSecondaryText}>Inapoi</Text>
-         </Pressable>
+      <View style={styles.stickyFooter}>
+         {formError ? (
+           <View style={styles.errorBanner}>
+              <LucideIcons.AlertTriangle size={14} color="#F87171" />
+              <Text style={styles.errorText}>{formError}</Text>
+           </View>
+         ) : null}
 
-         <Pressable
-           style={[styles.btnOutline, isMobile && styles.mobileFooterButton]}
-           onPress={() => Alert.alert('Draft salvat local', 'Datele completate rР”С“mР“Сћn pe ecran pР“СћnР”С“ finalizezi clubul.')}
-         >
-            <LucideIcons.Save size={18} color="white" />
-            <Text style={styles.btnOutlineText}>Salveaza draft</Text>
-         </Pressable>
+         <View style={[styles.footerButtons, isMobile && styles.footerButtonsMobile]}>
+            <Pressable style={[styles.btnSecondary, isMobile && styles.mobileFooterButton]} onPress={onBack}>
+               <LucideIcons.ArrowLeft size={18} color="#94A3B8" />
+               <Text style={styles.btnSecondaryText}>Înapoi</Text>
+            </Pressable>
 
-         <Pressable
-           onPress={handleFinalSubmit}
-           disabled={isPublishing}
-           style={[styles.primaryPressable, isMobile && styles.mobileFooterButton, isPublishing && styles.disabledButton]}
-         >
-            <LinearGradient colors={[CYAN, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnPrimary}>
-               {isPublishing ? <ActivityIndicator color="white" size="small" /> : (
-                 <>
-                  <Text style={styles.btnPrimaryText}>Finalizeaza clubul</Text>
-                  <LucideIcons.CheckCircle2 size={18} color="white" />
-                 </>
-               )}
-            </LinearGradient>
-         </Pressable>
+            <Pressable
+              style={[styles.btnOutline, isMobile && styles.mobileFooterButton]}
+              onPress={() => notify('Draft salvat local', 'Datele completate rămân pe ecran până finalizezi clubul.')}
+            >
+               <LucideIcons.Save size={18} color="white" />
+               <Text style={styles.btnOutlineText}>Salvează draft</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleFinalSubmit}
+              disabled={isPublishing}
+              style={[styles.primaryPressable, isMobile && styles.mobileFooterButton, isPublishing && styles.disabledButton]}
+            >
+               <LinearGradient colors={[CYAN, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnPrimary}>
+                  {isPublishing ? <ActivityIndicator color="white" size="small" /> : (
+                    <>
+                     <Text style={styles.btnPrimaryText}>Finalizează clubul</Text>
+                     <LucideIcons.CheckCircle2 size={18} color="white" />
+                    </>
+                  )}
+               </LinearGradient>
+            </Pressable>
+         </View>
       </View>
     </View>
   );
@@ -531,6 +549,7 @@ const styles = StyleSheet.create({
 
   scrollView: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 190 },
+  scrollContentMobile: { paddingBottom: 300 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -647,16 +666,11 @@ const styles = StyleSheet.create({
   liveNotice: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: VIOLET + '08', padding: 16, borderRadius: 16, marginTop: 32, borderWidth: 1, borderColor: VIOLET + '20' },
   noticeText: { flex: 1, color: '#94A3B8', fontSize: 11, fontWeight: '600', lineHeight: 16 },
 
-  footer: { display: 'none' },
   stickyFooter: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 16,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
     backgroundColor: 'rgba(2,6,23,0.96)',
@@ -667,13 +681,15 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     shadowOpacity: 0.35,
   },
-  stickyFooterMobile: { flexDirection: 'column', alignItems: 'stretch' },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(248,113,113,0.08)', borderWidth: 1, borderColor: 'rgba(248,113,113,0.3)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 14 },
+  errorText: { flex: 1, color: '#F87171', fontSize: 12, fontWeight: '700' },
+  footerButtons: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 },
+  footerButtonsMobile: { flexDirection: 'column', alignItems: 'stretch' },
   btnSecondary: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   btnSecondaryText: { color: '#94A3B8', fontSize: 13, fontWeight: '900', textTransform: 'uppercase' },
 
   btnOutline: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b' },
   btnOutlineText: { color: 'white', fontSize: 13, fontWeight: '900', textTransform: 'uppercase' },
-  footerNote: { color: '#475569', fontSize: 9, fontWeight: '800', textTransform: 'uppercase', marginTop: 10 },
 
   primaryPressable: { borderRadius: 16, overflow: 'hidden' },
   mobileFooterButton: { width: '100%', justifyContent: 'center' },

@@ -13,7 +13,7 @@ import {
   Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import Svg, { Path, Circle, Rect, G, Line, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, { Path, Circle, Rect, G, Line, Defs, LinearGradient, Stop, Text as SvgText } from "react-native-svg";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -379,20 +379,20 @@ const FootballPitchSVG = () => (
      <Rect x="340" y="60" width="60" height="120" stroke="rgba(255,255,255,0.12)" strokeWidth="1" fill="none" />
 
      {/* Players */}
-     <G transform="translate(30, 120)"><Circle r="8" fill={GREEN} /><Text style={{ fontSize: 6, fill: 'white', fontWeight: '800' }} x="-8" y="14">Stroie</Text></G>
-     <G transform="translate(90, 45)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-6" y="14">Rusu</Text></G>
-     <G transform="translate(90, 95)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-10" y="14">Ionescu(C)</Text></G>
-     <G transform="translate(90, 145)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-8" y="14">Enache</Text></G>
-     <G transform="translate(90, 195)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-8" y="14">Pascu</Text></G>
+     <G transform="translate(30, 120)"><Circle r="8" fill={GREEN} /><SvgText fontSize="6" fill="white" fontWeight="800" x="-8" y="14">Stroie</SvgText></G>
+     <G transform="translate(90, 45)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-6" y="14">Rusu</SvgText></G>
+     <G transform="translate(90, 95)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-10" y="14">Ionescu(C)</SvgText></G>
+     <G transform="translate(90, 145)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-8" y="14">Enache</SvgText></G>
+     <G transform="translate(90, 195)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-8" y="14">Pascu</SvgText></G>
 
-     <G transform="translate(170, 85)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-6" y="14">Rus</Text></G>
-     <G transform="translate(170, 155)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-8" y="14">Măcel</Text></G>
+     <G transform="translate(170, 85)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-6" y="14">Rus</SvgText></G>
+     <G transform="translate(170, 155)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-8" y="14">Măcel</SvgText></G>
 
-     <G transform="translate(250, 45)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-8" y="14">Sârbu</Text></G>
-     <G transform="translate(250, 120)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-8" y="14">Oprea</Text></G>
-     <G transform="translate(250, 195)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-6" y="14">Popa</Text></G>
+     <G transform="translate(250, 45)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-8" y="14">Sârbu</SvgText></G>
+     <G transform="translate(250, 120)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-8" y="14">Oprea</SvgText></G>
+     <G transform="translate(250, 195)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-6" y="14">Popa</SvgText></G>
 
-     <G transform="translate(320, 120)"><Circle r="8" fill={BLUE_ACCENT} /><Text style={{ fontSize: 6, fill: 'white' }} x="-10" y="14">Dumitru</Text></G>
+     <G transform="translate(320, 120)"><Circle r="8" fill={BLUE_ACCENT} /><SvgText fontSize="6" fill="white" x="-10" y="14">Dumitru</SvgText></G>
   </Svg>
 );
 
