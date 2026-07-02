@@ -18,7 +18,7 @@ import {
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 
-import { isSupabaseConfigured, supabase } from "./supabaseClient";
+import { isSupabaseConfigured, supabase, supabaseConfigError } from "./supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
 import { authService } from "./src/services/authService";
 import { colors as C } from "./src/constants/theme";
@@ -218,7 +218,7 @@ function MainApp() {
   }, [memberships, clubs, selectedClubId, currentUser]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || !supabase) return;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user) return;
@@ -352,6 +352,13 @@ function MainApp() {
     setAuthLoading(true);
     setAuthError("");
     try {
+      if (!isSupabaseConfigured || !supabase) {
+        throw new Error(
+          supabaseConfigError ||
+            "Supabase nu este configurat. Adaugă EXPO_PUBLIC_SUPABASE_URL și EXPO_PUBLIC_SUPABASE_ANON_KEY."
+        );
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
@@ -416,6 +423,15 @@ function MainApp() {
       return;
     }
     try {
+      if (!isSupabaseConfigured || !supabase) {
+        Alert.alert(
+          "Supabase neconfigurat",
+          supabaseConfigError ||
+            "Adaugă EXPO_PUBLIC_SUPABASE_URL și EXPO_PUBLIC_SUPABASE_ANON_KEY pentru resetarea parolei."
+        );
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
       if (error) throw error;
       Alert.alert("Resetare parolă", "Verifică email-ul pentru link-ul de resetare.");
@@ -425,7 +441,9 @@ function MainApp() {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    }
     await AsyncStorage.removeItem(STORAGE_KEYS.auth);
     setCurrentUser(null);
     setSelectedClubId(null);
@@ -436,7 +454,7 @@ function MainApp() {
     setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || !supabase) return;
 
     const tableToKey = {
       players: "players",
