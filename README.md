@@ -58,13 +58,6 @@ Proiectul încă acceptă JavaScript (`allowJs: true`). Poți migra treptat fiș
 - `src/screens/*.js` → `src/screens/*.tsx`
 - `src/services/*.js` → `src/services/*.ts`
 
-## Notă
-
-Fișierul vechi mare `App.js` a fost păstrat ca backup în:
-
-`src/screens/LegacyApp.js`
-
-
 ## Fix pentru `npm install` / ETIMEDOUT
 
 Dacă primești eroare de tip `packages.applied-caas-gateway1.internal.api.openai.org` sau `ETIMEDOUT`, cauza era un `package-lock.json` generat cu registry intern. În această versiune fișierul a fost scos și a fost adăugat `.npmrc` cu registry-ul oficial.

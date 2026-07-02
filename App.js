@@ -36,7 +36,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
 });
 
-import WelcomeScreen from "./src/screens/WelcomeScreen";
 import LoginPage from "./src/screens/LoginPage";
 import RegisterPlayerScreen from "./src/screens/RegisterPlayerScreen";
 import CreateClubScreen from "./src/screens/CreateClubSaaS";
@@ -343,9 +342,24 @@ function MainApp() {
       role,
     };
     setCurrentUser(user);
-    setAuthView("onboarding-choice");
     setTab(roleTabs[role]?.[0] || "Panou");
     await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(user));
+
+    // Utilizatorii care au deja un club (membership activ) intră direct în
+    // aplicație; onboarding-ul cu "Creează club / Alătură-te" apare doar
+    // pentru conturile fără niciun club.
+    try {
+      const userMemberships = await supabaseService.getMemberships(user.id);
+      const activeMembership = (userMemberships || []).find((m) => m.status === "active");
+      if (activeMembership) {
+        setSelectedClubId(activeMembership.clubId || activeMembership.club_id);
+        setAuthView("app");
+        return;
+      }
+    } catch (e) {
+      console.warn("Nu am putut verifica cluburile utilizatorului:", e.message);
+    }
+    setAuthView("onboarding-choice");
   };
 
   const loginWithEmail = async (email, password) => {
@@ -417,27 +431,27 @@ function MainApp() {
     }
   };
 
-  const resetPassword = async (email) => {
-    if (!email?.includes("@")) {
-      Alert.alert("Email invalid", "Introdu un email valid pentru resetare.");
-      return;
+  const signUpWithEmail = async (form) => {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error(
+        supabaseConfigError ||
+          "Supabase nu este configurat. Adaugă EXPO_PUBLIC_SUPABASE_URL și EXPO_PUBLIC_SUPABASE_ANON_KEY."
+      );
     }
-    try {
-      if (!isSupabaseConfigured || !supabase) {
-        Alert.alert(
-          "Supabase neconfigurat",
-          supabaseConfigError ||
-            "Adaugă EXPO_PUBLIC_SUPABASE_URL și EXPO_PUBLIC_SUPABASE_ANON_KEY pentru resetarea parolei."
-        );
-        return;
-      }
+    await authService.signUp({ email: form.email, password: form.password, fullName: form.name });
+  };
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
-      if (error) throw error;
-      Alert.alert("Resetare parolă", "Verifică email-ul pentru link-ul de resetare.");
-    } catch (e) {
-      Alert.alert("Eroare", e.message);
+  // Aruncă erori în loc de Alert — LoginPage afișează mesajele inline (Alert e no-op pe web).
+  const resetPassword = async (email) => {
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error(
+        supabaseConfigError ||
+          "Adaugă EXPO_PUBLIC_SUPABASE_URL și EXPO_PUBLIC_SUPABASE_ANON_KEY pentru resetarea parolei."
+      );
     }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    if (error) throw error;
+    return true;
   };
 
   const logout = async () => {
@@ -447,7 +461,7 @@ function MainApp() {
     await AsyncStorage.removeItem(STORAGE_KEYS.auth);
     setCurrentUser(null);
     setSelectedClubId(null);
-    setAuthView("welcome");
+    setAuthView("login");
   };
 
   const toggleTask = (id) =>
@@ -591,20 +605,12 @@ function MainApp() {
     ),
   };
 
-  if (authView === "welcome") {
-    return (
-      <WelcomeScreen
-        onLogin={() => setAuthView("login")}
-        onGuest={() => setAuthView("login")}
-      />
-    );
-  }
-
   if (authView === "login") {
     return (
       <LoginPage
-        onBack={() => setAuthView("welcome")}
+        onBack={() => setAuthView("login")}
         onLogin={loginWithEmail}
+        onSignup={signUpWithEmail}
         loading={authLoading}
         error={authError}
         onRegister={() => {
