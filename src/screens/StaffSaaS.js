@@ -9,7 +9,8 @@ import {
   useWindowDimensions,
   Platform,
   Dimensions,
-  Image
+  Image,
+  Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle } from "react-native-svg";
@@ -233,15 +234,15 @@ const StatCard = ({ icon, label, val, trend, tColor, iColor }) => {
   );
 };
 
-const ActionBtn = ({ icon, label, color, outline }) => {
+const ActionBtn = ({ icon, label, color, outline, onPress }) => {
   const Icon = LucideIcons[icon];
   return (
-    <View style={[styles.actionBtn, outline && { backgroundColor: color + "08", borderColor: color + "40" }]}>
+    <Pressable onPress={onPress || (() => Alert.alert("În lucru", `${label} va fi conectat în următoarea etapă.`))} style={[styles.actionBtn, outline && { backgroundColor: color + "08", borderColor: color + "40" }]}>
        <View style={styles.actionIconOuter}>
           <Icon size={16} color={color} />
        </View>
        <Text style={styles.actionBtnText}>{label}</Text>
-    </View>
+    </Pressable>
   );
 };
 

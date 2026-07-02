@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
@@ -86,7 +86,7 @@ export default function FinancesScreen({
                 label="MARCHEAZĂ ACHITAT"
                 variant="outline"
                 size="sm"
-                onPress={() => {}}
+                onPress={() => Alert.alert("Plată", `${player.name} poate fi marcat achitat din modulul Finanțe SaaS conectat la baza de date.`)}
                 textStyle={{ fontSize: 10 }}
               />
             </View>

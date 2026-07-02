@@ -34,11 +34,12 @@ const BLUE_ACCENT = "#0D8BFF";
 const TEXT_DIM = "#94A3B8";
 const TEXT_TH = "#475569";
 
-export default function SaasAdminScreen({ clubs = [] }) {
+export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
   const { width } = useWindowDimensions();
   const [inviteModal, setInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  globalThis.__fcAutenticCreateClub = onCreateClub;
 
   const handleInvite = async () => {
     if (!inviteEmail.includes("@")) {
@@ -324,8 +325,13 @@ const StatCard = ({ icon, label, val, trend, tColor, iColor, isSmall }) => {
 
 const ActionBtn = ({ icon, label, color, circle, outline, onPress }) => {
   const Icon = LucideIcons[icon];
+  const handlePress =
+    onPress ||
+    (icon === "Plus" && globalThis.__fcAutenticCreateClub
+      ? globalThis.__fcAutenticCreateClub
+      : () => Alert.alert("În lucru", `${label} va fi conectat în următoarea etapă.`));
   return (
-    <Pressable onPress={onPress} style={[styles.actionBtn, outline && { backgroundColor: color + "08", borderColor: color + "40" }]}>
+    <Pressable onPress={handlePress} style={[styles.actionBtn, outline && { backgroundColor: color + "08", borderColor: color + "40" }]}>
        <View style={[styles.actionIconOuter, circle && { backgroundColor: color + "15", borderRadius: 15 }]}>
           <Icon size={16} color={color} />
        </View>

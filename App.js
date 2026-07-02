@@ -500,7 +500,7 @@ function MainApp() {
   const pages = {
     Panou:
       effectiveUser?.role === "super_admin" ? (
-        <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} openNotifications={() => setTab("Mai mult")} />
+        <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Mai mult")} />
       ) : (
         <DashboardScreen
           tasks={tasks}
@@ -573,7 +573,7 @@ function MainApp() {
     ),
     Abonamente: <PricingScreen />,
     "Admin SaaS": (
-      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} openNotifications={() => setTab("Mai mult")} />
+      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Mai mult")} />
     ),
     "Notif.": (
       <NotificationsScreen currentUser={effectiveUser} openNotifications={() => setTab("Notif.")} />
@@ -647,6 +647,7 @@ function MainApp() {
     return (
       <CreateClubScreen
         userId={currentUser?.id}
+        currentUser={currentUser}
         onBack={() => setAuthView("onboarding-choice")}
         onSuccess={(newClub) => {
           queryClient.invalidateQueries({ queryKey: ["clubs"] });
