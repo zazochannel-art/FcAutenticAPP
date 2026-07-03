@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -60,6 +60,7 @@ import TasksSaaS from "./src/screens/TasksSaaS";
 import { ExpandableTabs } from "./src/components/ui/expandable-tabs";
 import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { SaaSAppShell } from "./src/components/SaaSShell";
+import SplashScreen from "./src/components/SplashScreen";
 
 const STORAGE_KEYS = {
   auth: "fc-autentic-auth",
@@ -112,17 +113,18 @@ function resolveEffectiveRole(profile, membership) {
 }
 
 const roleTabs = {
-  super_admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Admin SaaS", "Mai mult"],
-  club_owner: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
-  admin: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
-  coach: ["Panou", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
-  player: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-  parent: ["Panou", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-  viewer: ["Panou", "Calendar", "Mai mult"],
-  guest: ["Panou", "Calendar", "Mai mult"],
+  super_admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Admin SaaS", "Mai mult"],
+  club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
+  admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
+  coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
+  player: ["Dashboard", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  parent: ["Dashboard", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  viewer: ["Dashboard", "Calendar", "Mai mult"],
+  guest: ["Dashboard", "Calendar", "Mai mult"],
 };
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
   return (
     <PersistQueryClientProvider
       client={queryClient}
@@ -131,6 +133,7 @@ export default function App() {
       <SafeAreaView style={{ flex: 1, backgroundColor: "#020617" }}>
         <StatusBar barStyle="light-content" />
         <MainApp />
+        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
       </SafeAreaView>
     </PersistQueryClientProvider>
   );
@@ -143,7 +146,7 @@ function MainApp() {
 
   const [authView, setAuthView] = useState("login");
   const [currentUser, setCurrentUser] = useState(null);
-  const [tab, setTab] = useState("Panou");
+  const [tab, setTab] = useState("Dashboard");
   const [clubSettings] = useState({ clubName: "FC Autentic" });
   const [selectedClubId, setSelectedClubId] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -237,7 +240,7 @@ function MainApp() {
             role,
           });
           setAuthView("app");
-          setTab(roleTabs[role]?.[0] || "Panou");
+          setTab(roleTabs[role]?.[0] || "Dashboard");
         });
     });
   }, []);
@@ -342,7 +345,7 @@ function MainApp() {
       role,
     };
     setCurrentUser(user);
-    setTab(roleTabs[role]?.[0] || "Panou");
+    setTab(roleTabs[role]?.[0] || "Dashboard");
     await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(user));
 
     // Utilizatorii care au deja un club (membership activ) intră direct în
@@ -512,10 +515,7 @@ function MainApp() {
   }, [queryClient]);
 
   const pages = {
-    Panou:
-      effectiveUser?.role === "super_admin" ? (
-        <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Mai mult")} />
-      ) : (
+    Dashboard: (
         <DashboardScreen
           tasks={tasks}
           toggleTask={toggleTask}
@@ -534,7 +534,7 @@ function MainApp() {
           openNotifications={() => setTab("Mai mult")}
         />
       ),
-    Echipă: (
+    "Echipă": (
       <TeamScreen
         players={players}
         setPlayers={handlePlayersChange}
@@ -569,7 +569,7 @@ function MainApp() {
     ),
     Sarcini: <TasksSaaS />,
     Staff: <StaffSaaS openNotifications={() => setTab("Mai mult")} />,
-    Finanțe: (
+    "Finanțe": (
       <FinancesSaaS
         players={players}
         trainings={trainings}
@@ -675,14 +675,14 @@ function MainApp() {
   }
 
   const tabIconsMapping = {
-    Panou: "LayoutGrid",
-    Echipă: "Users",
+    Dashboard: "LayoutGrid",
+    "Echipă": "Users",
     "Antren.": "Dumbbell",
     Meciuri: "Trophy",
     Calendar: "CalendarDays",
     Sarcini: "ListChecks",
     Staff: "UserCog",
-    Finanțe: "Wallet",
+    "Finanțe": "Wallet",
     AI: "Sparkles",
     Abonamente: "CreditCard",
     "Admin SaaS": "ShieldCheck",
@@ -705,11 +705,11 @@ function MainApp() {
           user={effectiveUser}
           selectedClub={selectedClub}
         >
-          {pages[tab] || pages.Panou}
+          {pages[tab] || pages.Dashboard}
         </SaaSAppShell>
       ) : (
         <>
-          <View style={styles.app}>{pages[tab] || pages.Panou}</View>
+          <View style={styles.app}>{pages[tab] || pages.Dashboard}</View>
           <MobileBottomNav
             tabs={activeTabs}
             activeTab={tab}
@@ -726,3 +726,4 @@ const styles = StyleSheet.create({
   app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 100 : 80 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
 });
+
