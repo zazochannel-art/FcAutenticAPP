@@ -13,8 +13,8 @@ Aplicație publicată: `https://zazochannel-art.github.io/FcAutenticAPP/`
 
 ## Cont demo curent
 
-- Super Admin: `igor.gratii.99@mail.ru`
-- Parolă: `super123`
+- Contul de super admin se configurează în Supabase (vezi `docs/SUPABASE_SETUP.md`).
+- Credențialele NU se publică în repository — parola veche `super123` a fost expusă public și trebuie schimbată din Supabase Auth.
 
 ## Observații importante
 

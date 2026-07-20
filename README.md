@@ -1,18 +1,18 @@
 # FC Autentic App
 
-Aplicație Expo React Native pentru administrarea clubului FC Autentic.
+Aplicație Expo (React Native + web) pentru administrarea SaaS a cluburilor de fotbal.
 
 ## Ce conține această versiune
 
-- Autentificare Supabase: login/register/logout.
-- Navigare cu React Navigation: Dashboard, Jucători, Antrenamente, Meciuri, Documente, Admin.
-- Ecrane separate în `src/screens`.
-- Servicii separate în `src/services`.
-- `AdminRolesScreen`: admin poate schimba roluri și grupe permise.
-- `StorageScreen`: încărcare și listare documente în Supabase Storage.
-- `notificationService`: notificări locale și pregătire pentru push notifications.
+- Autentificare Supabase: login / register / reset parolă / logout.
+- Multi-tenant: cluburi, membership-uri, abonamente, invitații (`club_id` pe toate tabelele, izolare prin RLS).
+- Ecrane SaaS în `src/screens`: Dashboard, Echipă, Antrenamente, Meciuri, Calendar, Sarcini, Staff, Finanțe, AI, Abonamente, Admin SaaS.
+- Navigare proprie pe tab-uri (fără React Navigation): `MobileBottomNav` pe mobil, `SaaSAppShell` pe desktop.
+- Date prin React Query cu persistare în AsyncStorage și realtime Supabase.
+- Servicii separate în `src/services` (`supabaseService`, `authService`, `storageService`, `notificationService`).
+- Edge Function `supabase/functions/club-ai-analysis` pentru rapoarte AI pe datele clubului.
+- `supabase/schema.sql` — schema completă a bazei de date (tabele, funcții, trigger-e, politici RLS, bucket `club-documents`), generată din baza live.
 - `tsconfig.json` și tipuri în `src/types` pentru migrare treptată la TypeScript.
-- `supabase-schema.sql` cu tabele, RLS, politici și bucket `club-documents`.
 
 ## Instalare
 
@@ -29,26 +29,28 @@ EXPO_PUBLIC_SUPABASE_URL=https://PROJECT.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=anon_key
 ```
 
+`.env` NU se comite în git (este în `.gitignore`).
+
 ## Supabase
 
 1. Deschide Supabase SQL Editor.
-2. Rulează complet `supabase-schema.sql`.
-3. Creează primul cont din aplicație.
-4. În SQL Editor setează primul utilizator admin:
+2. Rulează complet `supabase/schema.sql` (idempotent — poate fi re-rulat).
+3. Opțional, pentru date de test: `supabase/seed-demo.sql`.
+4. Creează primul cont din aplicație, apoi setează-l super admin:
 
 ```sql
 update public.profiles
-set role = 'admin'
-where email = 'emailul-tau@example.com';
+set platform_role = 'super_admin', role = 'admin'
+where email = 'EMAILUL_TAU';
 ```
 
-Dacă `profiles` nu are coloana `email`, folosește `id` din Auth Users sau rulează:
+Detalii în `docs/SUPABASE_SETUP.md`.
 
-```sql
-update public.profiles
-set role = 'admin'
-where full_name = 'Numele tău';
-```
+## Deploy
+
+- **GitHub Pages** (demo): workflow-ul `.github/workflows/deploy-pages.yml` rulează la push pe `main`. Cheile Supabase se setează în GitHub → Settings → Secrets and variables → Actions: `EXPO_PUBLIC_SUPABASE_URL` și `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+- **Vercel**: configurat prin `vercel.json`; setează aceleași variabile în Vercel Project Settings → Environment Variables.
+- **iOS/Android**: prin Expo EAS (`eas.json`), vezi `docs/IOS_ANDROID.md`.
 
 ## Migrare TypeScript
 
@@ -57,30 +59,3 @@ Proiectul încă acceptă JavaScript (`allowJs: true`). Poți migra treptat fiș
 - `App.js` → `App.tsx`
 - `src/screens/*.js` → `src/screens/*.tsx`
 - `src/services/*.js` → `src/services/*.ts`
-
-## Fix pentru `npm install` / ETIMEDOUT
-
-Dacă primești eroare de tip `packages.applied-caas-gateway1.internal.api.openai.org` sau `ETIMEDOUT`, cauza era un `package-lock.json` generat cu registry intern. În această versiune fișierul a fost scos și a fost adăugat `.npmrc` cu registry-ul oficial.
-
-Rulează:
-
-```bash
-npm config set registry https://registry.npmjs.org/
-rm -rf node_modules package-lock.json
-npm install
-npm run clear
-```
-
-Avertizările `npm warn deprecated` nu opresc instalarea; sunt avertizări venite de la dependențele Expo/React Native.
-
-## Primul admin
-
-După ce creezi primul cont în aplicație, mergi în Supabase SQL Editor și rulează:
-
-```sql
-update public.profiles
-set role = 'admin', assigned_groups = array['U13','U16','U19']
-where email = 'EMAILUL_TAU';
-```
-
-Apoi închide și deschide aplicația din nou.

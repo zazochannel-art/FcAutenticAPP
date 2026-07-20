@@ -996,10 +996,9 @@ export const supabaseService = {
   },
 
   async inviteOwner(email, clubId, role = "club_owner") {
-    // Generate a secure random token (simulated for now)
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // Token-ul e generat de baza de date (default gen_random_bytes) — sigur criptografic.
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
     const { data, error } = await requireSupabase()
       .from("club_invitations")
@@ -1007,7 +1006,6 @@ export const supabaseService = {
         club_id: clubId,
         email: email.toLowerCase().trim(),
         role: role,
-        token: token,
         status: "pending",
         expires_at: expiresAt.toISOString(),
       })

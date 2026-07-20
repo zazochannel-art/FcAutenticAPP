@@ -21,20 +21,19 @@ Nu publica niciodată `.env.production` pe GitHub.
 
 ## 2. Rulează schema
 
-În SQL Editor rulează în ordine:
+În SQL Editor rulează:
 
-1. `supabase-schema.sql`
-2. `supabase-saas-migration.sql`
-3. opțional, pentru test: `supabase-saas-demo-seed.sql`
+1. `supabase/schema.sql` — schema completă (tabele, funcții, trigger-e, RLS, bucket storage)
+2. opțional, pentru test: `supabase/seed-demo.sql`
 
 ## 3. Primul super admin real
 
-După ce creezi contul real din aplicație, setează-l ca super admin:
+După ce creezi contul real din aplicație, setează-l ca super admin (folosește emailul tău):
 
 ```sql
 update public.profiles
 set platform_role = 'super_admin', role = 'admin'
-where email = 'igor.gratii.99@mail.ru';
+where email = 'EMAILUL_TAU';
 ```
 
 Dacă tabela `profiles` nu are email complet pentru contul creat, caută utilizatorul în Supabase Authentication și folosește `id`.
