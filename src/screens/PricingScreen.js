@@ -310,12 +310,11 @@ export default function PricingScreen({ selectedClub, subscription, currentUser 
                       </View>
                    ) : (
                       <View style={styles.featuresColumns}>
-                         <View style={{ flex: 1 }}>
+                         <View style={{ flexBasis: 220, flexGrow: 1 }}>
                             <Text style={styles.columnTitle}>Ce este inclus în Plan {activePlan.name}</Text>
                             {activePlan.included.map((f, i) => <FeatureLine key={i} label={f} included />)}
                          </View>
-                         <View style={{ width: 1, backgroundColor: "rgba(255,255,255,0.05)", marginHorizontal: 24 }} />
-                         <View style={{ flex: 1 }}>
+                         <View style={{ flexBasis: 220, flexGrow: 1 }}>
                             <Text style={styles.columnTitle}>Limitări ale Planului {activePlan.name}</Text>
                             {activePlan.limitations.map((l, i) => <FeatureLine key={i} label={l} />)}
                          </View>
@@ -477,18 +476,18 @@ const styles = StyleSheet.create({
   pageTitle: { color: 'white', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
   pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
-  planTabsRow: { flexDirection: 'row', gap: 10, marginBottom: 30, alignItems: 'center' },
-  planTab: { flex: 1, height: 68, backgroundColor: "rgba(15,23,42,0.4)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
+  planTabsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30, alignItems: 'stretch' },
+  planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: "rgba(15,23,42,0.4)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
   planTabText: { color: TEXT_DIM, fontSize: 12, fontWeight: '800' },
   planTabPrice: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', marginTop: 1 },
   activePlanIndicator: { position: 'absolute', top: 10, right: 10, backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3 },
   activePlanText: { color: TEXT_DIM, fontSize: 7.5, fontWeight: '900' },
-  compareBtn: { width: 160, height: 68, backgroundColor: "rgba(0, 212, 255, 0.05)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.2)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  compareBtn: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: "rgba(0, 212, 255, 0.05)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.2)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   compareBtnText: { color: CYAN, fontSize: 11, fontWeight: '900' },
 
-  topGrid: { flexDirection: 'row', gap: 14, marginBottom: 18 },
-  colLeft: { flex: 1.8 },
-  colRight: { flex: 1 },
+  topGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
+  colLeft: { flexBasis: 340, flexGrow: 1.8 },
+  colRight: { flexBasis: 280, flexGrow: 1 },
 
   cardMain: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 16 },
   planTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -501,13 +500,13 @@ const styles = StyleSheet.create({
   freeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, marginLeft: 16, marginBottom: 6 },
   freeBadgeText: { fontSize: 9, fontWeight: '900' },
 
-  limitsRow: { flexDirection: 'row', gap: 12, marginBottom: 25 },
-  limitBox: { flex: 1, height: 74, backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
+  limitsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 25 },
+  limitBox: { flexBasis: 150, flexGrow: 1, minHeight: 74, backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   limitIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   limitLabel: { color: TEXT_TH, fontSize: 9.5, fontWeight: '800' },
   limitVal: { color: 'white', fontSize: 13, fontWeight: '900', marginTop: 1 },
 
-  cardActions: { flexDirection: 'row', gap: 10 },
+  cardActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionBtn: { flex: 1.2, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   actionBtnOutline: { flex: 1, height: 44, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   actionBtnText: { color: 'white', fontSize: 12, fontWeight: '800' },
@@ -529,11 +528,11 @@ const styles = StyleSheet.create({
   compareLabel: { flex: 1.2, color: TEXT_DIM, fontSize: 10.5, fontWeight: '700' },
   compareVal: { flex: 1, color: TEXT_TH, fontSize: 9.5, fontWeight: '700', textAlign: 'center' },
 
-  middleGrid: { flexDirection: 'row', gap: 14, marginBottom: 18 },
-  colFeatures: { flex: 1.8 },
-  colUsage: { flex: 1 },
+  middleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
+  colFeatures: { flexBasis: 340, flexGrow: 1.8 },
+  colUsage: { flexBasis: 280, flexGrow: 1 },
 
-  featuresColumns: { flexDirection: 'row' },
+  featuresColumns: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   columnTitle: { color: 'white', fontSize: 13, fontWeight: '900', marginBottom: 16 },
   featureLine: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   featureText: { color: 'white', fontSize: 11.5, fontWeight: '600' },
@@ -547,7 +546,7 @@ const styles = StyleSheet.create({
   cardTitle: { color: 'white', fontSize: 14, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   updateTime: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700' },
-  usageContent: { flexDirection: 'row', alignItems: 'center', gap: 20 },
+  usageContent: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 20 },
   usageDonutWrap: { width: 100, alignItems: 'center', justifyContent: 'center' },
   donutContainer: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   donutOverlay: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
