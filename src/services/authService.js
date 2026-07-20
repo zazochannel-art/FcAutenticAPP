@@ -13,18 +13,19 @@ export const authService = {
     return data;
   },
 
-  async signUp({ email, password, fullName, groupName = "U19", playerNo = 0, playerPosition = "Jucător" }) {
+  async signUp({ email, password, fullName, groupName, playerNo, playerPosition }) {
+    // Câmpurile de jucător intră în metadata doar la înregistrarea de jucători:
+    // trigger-ul din DB creează rândul de player numai când acestea există.
+    const metadata = { full_name: fullName };
+    if (groupName || playerPosition || playerNo) {
+      metadata.group_name = groupName || "U19";
+      metadata.player_no = String(playerNo || 0);
+      metadata.player_position = playerPosition || "Jucător";
+    }
     const { data, error } = await requireSupabase().auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-          group_name: groupName,
-          player_no: String(playerNo || 0),
-          player_position: playerPosition,
-        },
-      },
+      options: { data: metadata },
     });
     if (error) throw error;
     return data;

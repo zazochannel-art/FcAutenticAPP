@@ -5,7 +5,7 @@ import { colors as C, radius, spacing } from "../constants/theme";
 import { BlurView } from "expo-blur";
 
 const PRIMARY_ITEMS = [
-  { label: "Panou", icon: "LayoutDashboard" },
+  { label: "Dashboard", icon: "LayoutDashboard" },
   { label: "Echipă", icon: "Users" },
   { label: "Antren.", icon: "Dumbbell" },
   { label: "Meciuri", icon: "Trophy" },

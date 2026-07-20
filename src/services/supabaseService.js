@@ -995,6 +995,23 @@ export const supabaseService = {
     return mapClub(data);
   },
 
+  async acceptInvitation(inviteToken) {
+    const { data, error } = await requireSupabase().rpc("accept_club_invitation", {
+      invite_token: inviteToken,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async requestMembership(clubName, desiredRole = "player") {
+    const { data, error } = await requireSupabase().rpc("request_club_membership", {
+      target_club_name: clubName,
+      desired_role: desiredRole,
+    });
+    if (error) throw error;
+    return data;
+  },
+
   async inviteOwner(email, clubId, role = "club_owner") {
     // Token-ul e generat de baza de date (default gen_random_bytes) — sigur criptografic.
     const expiresAt = new Date();

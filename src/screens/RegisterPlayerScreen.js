@@ -100,6 +100,18 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
             </Pressable>
           </View>
 
+          <Text style={styles.trainingFieldLabel}>Confirmă parola</Text>
+          <View style={styles.passwordWrap}>
+            <TextInput
+              style={styles.passwordInput}
+              value={form.confirmPassword}
+              onChangeText={(confirmPassword) => setForm({ ...form, confirmPassword })}
+              placeholder="Rescrie parola"
+              placeholderTextColor={C.dim}
+              secureTextEntry={!showPassword}
+            />
+          </View>
+
           {!!(localError || error) && <Text style={styles.authError}>{localError || error}</Text>}
 
           <BeUIButton

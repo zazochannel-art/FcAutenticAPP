@@ -5,7 +5,7 @@ import * as LucideIcons from "lucide-react-native";
 import { colors as C } from "../../constants/theme";
 
 const tabIcons = {
-  Panou: "LayoutGrid",
+  Dashboard: "LayoutGrid",
   Echipă: "Users",
   "Antren.": "Dumbbell",
   Meciuri: "Trophy",

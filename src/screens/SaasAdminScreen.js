@@ -39,7 +39,6 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
   const [inviteModal, setInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  globalThis.__fcAutenticCreateClub = onCreateClub;
 
   const handleInvite = async () => {
     if (!inviteEmail.includes("@")) {
@@ -76,7 +75,7 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
 
           {/* Row 1: 4 Large Stat Cards */}
           <View style={styles.statsGrid}>
-             <StatCard icon="Users" label="Cluburi active" val="24" trend="↑ 20% față de luna trecută" tColor={GREEN} iColor={CYAN} />
+             <StatCard icon="Users" label="Cluburi active" val={String(clubs.filter((c) => !c.blocked).length)} trend={`${clubs.length} cluburi în total`} tColor={GREEN} iColor={CYAN} />
              <StatCard icon="Users" label="Utilizatori total" val="312" trend="↑ 18% față de luna trecută" tColor={GREEN} iColor={VIOLET} />
              <StatCard icon="Calendar" label="Abonamente active" val="18" trend="3 se reînnoiesc în 7 zile" tColor={TEXT_DIM} iColor={BLUE_ACCENT} />
              <StatCard icon="Wallet" label="MRR" val="24.600 lei" trend="↑ 15% față de luna trecută" tColor={GREEN} iColor={GREEN} />
@@ -86,7 +85,7 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
           <View style={styles.actionsRow}>
              <Text style={styles.sectionLabel}>Acțiuni rapide</Text>
              <View style={styles.actionsList}>
-                <ActionBtn icon="Plus" label="Creează club" color={CYAN} circle />
+                <ActionBtn icon="Plus" label="Creează club" color={CYAN} circle onPress={onCreateClub} />
                 <ActionBtn icon="UserPlus" label="Invită owner" color={VIOLET} onPress={() => setInviteModal(true)} />
                 <ActionBtn icon="FileText" label="Generează factură" color={BLUE_ACCENT} />
                 <ActionBtn icon="Send" label="Trimite notificare" color={AMBER} outline />
@@ -109,13 +108,28 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
                       <Text style={[styles.th, { flex: 1.5 }]}>Reînnoire</Text>
                       <Text style={[styles.th, { flex: 1 }]}>Status</Text>
                    </View>
-                   <ClubRow name="FC Autentic" sub="andrei@fcautentic.ro" owner="Andrei Popescu" plan="Pro" pColor={BLUE_ACCENT} users="28" players="46" renew="18 mai 2026" subText="în 23 zile" status="Activ" sColor={GREEN} />
-                   <ClubRow name="ACS Progresul" sub="marius@acsprogresul.ro" owner="Marius Ionescu" plan="Elite" pColor={VIOLET} users="34" players="62" renew="11 iun. 2026" subText="în 47 zile" status="Activ" sColor={GREEN} />
-                   <ClubRow name="Real Succes" sub="daniel@realsucces.ro" owner="Daniel Popa" plan="Starter" pColor={AMBER} users="18" players="28" renew="26 mai 2026" subText="în 31 zile" status="Activ" sColor={GREEN} />
-                   <ClubRow name="FC Juniorul" sub="radu@fcjuniorul.ro" owner="Radu Mihai" plan="Free" pColor={TEXT_DIM} users="6" players="12" renew="—" subText="N/A" status="Trial" sColor={BLUE_ACCENT} />
-                   <ClubRow name="Viitorul Chișinău" sub="ionut@viitorul.md" owner="Ionuț Vasilache" plan="Pro" pColor={BLUE_ACCENT} users="22" players="38" renew="02 mai 2026" subText="expirat" status="Expirat" sColor={RED} />
-                   <ClubRow name="Academia Nord" sub="elena@academianord.ro" owner="Elena Bălan" plan="Starter" pColor={AMBER} users="10" players="16" renew="30 apr. 2026" subText="în 4 zile" status="Pending" sColor={AMBER} />
-                   <View style={styles.viewAllFooter}><Text style={styles.viewAllText}>Vezi toate cluburile ›</Text></View>
+                   {clubs.length === 0 && (
+                     <View style={{ alignItems: 'center', paddingVertical: 24, gap: 8 }}>
+                        <LucideIcons.Building2 size={24} color={TEXT_TH} />
+                        <Text style={{ color: TEXT_DIM, fontSize: 11, fontWeight: '600' }}>Niciun club în platformă încă.</Text>
+                     </View>
+                   )}
+                   {clubs.map((club) => (
+                     <ClubRow
+                       key={club.id}
+                       name={club.name}
+                       sub={club.email || "—"}
+                       owner={club.city ? `${club.city}${club.country ? ", " + club.country : ""}` : "—"}
+                       plan={club.plan || "Free"}
+                       pColor={club.plan === "Pro" ? BLUE_ACCENT : club.plan === "Academy" ? VIOLET : club.plan === "Basic" ? AMBER : TEXT_DIM}
+                       users="—"
+                       players="—"
+                       renew="—"
+                       subText=""
+                       status={club.blocked ? "Blocat" : club.status === "active" ? "Activ" : (club.status || "Activ")}
+                       sColor={club.blocked ? RED : club.status === "active" ? GREEN : AMBER}
+                     />
+                   ))}
                 </View>
              </View>
 
@@ -325,11 +339,7 @@ const StatCard = ({ icon, label, val, trend, tColor, iColor, isSmall }) => {
 
 const ActionBtn = ({ icon, label, color, circle, outline, onPress }) => {
   const Icon = LucideIcons[icon];
-  const handlePress =
-    onPress ||
-    (icon === "Plus" && globalThis.__fcAutenticCreateClub
-      ? globalThis.__fcAutenticCreateClub
-      : () => Alert.alert("În lucru", `${label} va fi conectat în următoarea etapă.`));
+  const handlePress = onPress || (() => Alert.alert("În lucru", `${label} va fi conectat în următoarea etapă.`));
   return (
     <Pressable onPress={handlePress} style={[styles.actionBtn, outline && { backgroundColor: color + "08", borderColor: color + "40" }]}>
        <View style={[styles.actionIconOuter, circle && { backgroundColor: color + "15", borderRadius: 15 }]}>

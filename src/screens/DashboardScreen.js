@@ -14,11 +14,18 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
   const balance = incomeTotal - expenseTotal;
 
   const stats = [
-    { icon: "Users", label: "Jucători", value: players.length, trend: "+12%", up: true, color: C.cyan },
-    { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, trend: "+3", up: true, color: C.purple },
-    { icon: "Trophy", label: "Meciuri", value: matches.length, trend: "0", up: true, color: C.blue },
-    { icon: "Wallet", label: "Sold", value: `${(balance / 1000).toFixed(1)}k`, trend: "+5%", up: true, color: C.green },
+    { icon: "Users", label: "Jucători", value: players.length, color: C.cyan },
+    { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, color: C.purple },
+    { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue },
+    { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red },
   ];
+
+  // Activitate recentă derivată din datele reale (cele mai noi înregistrări).
+  const recentActivity = [
+    ...players.slice(-2).map((p) => ({ icon: "User", title: `${p.name} este în lot`, meta: p.group })),
+    ...trainings.slice(0, 2).map((t) => ({ icon: "Dumbbell", title: t.theme || "Antrenament", meta: `${t.group} • ${t.date}` })),
+    ...matches.slice(0, 2).map((m) => ({ icon: "Trophy", title: `Meci vs ${m.opponent}`, meta: `${m.group} • ${m.date}` })),
+  ].slice(0, 5);
 
   const canSeeClubState = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
@@ -40,10 +47,10 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
       {/* Quick Actions */}
       <SectionTitle title="Acțiuni rapide" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.actionScroll} contentContainerStyle={styles.actionContent}>
-        <QuickAction icon="UserPlus" label="Jucător" color={C.cyan} />
-        <QuickAction icon="PlusCircle" label="Antrenament" color={C.purple} />
-        <QuickAction icon="Trophy" label="Meci" color={C.blue} />
-        <QuickAction icon="Send" label="Notificare" color={C.amber} />
+        <QuickAction icon="UserPlus" label="Jucător" color={C.cyan} onPress={() => setTab?.("Echipă")} />
+        <QuickAction icon="PlusCircle" label="Antrenament" color={C.purple} onPress={() => setTab?.("Antren.")} />
+        <QuickAction icon="Trophy" label="Meci" color={C.blue} onPress={() => setTab?.("Meciuri")} />
+        <QuickAction icon="Send" label="Notificare" color={C.amber} onPress={openNotifications} />
       </ScrollView>
 
       <View style={[styles.gridMain, isMobile && styles.mobileGrid]}>
@@ -51,11 +58,13 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
         <GlassCard style={[styles.mainCol, isMobile && { width: "100%" }]}>
            <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>Activitate recentă</Text>
-              <Text style={styles.cardAction}>Vezi tot</Text>
            </View>
-           <ActivityItem icon="User" title="Mihai I. adăugat" time="10:24" user="Popescu" />
-           <ActivityItem icon="Dumbbell" title="Antrenament creat" time="Ieri" user="Marinescu" />
-           <ActivityItem icon="Trophy" title="Meci vs Progresul" time="Ieri" user="Popescu" />
+           {recentActivity.length === 0 && (
+             <Text style={styles.emptyText}>Activitatea clubului va apărea aici după ce adaugi jucători, antrenamente sau meciuri.</Text>
+           )}
+           {recentActivity.map((item, index) => (
+             <ActivityItem key={index} icon={item.icon} title={item.title} time="" user={item.meta} />
+           ))}
         </GlassCard>
 
         {/* Sarcini Urgente */}
@@ -75,10 +84,10 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
   );
 }
 
-const QuickAction = ({ icon, label, color }) => {
+const QuickAction = ({ icon, label, color, onPress }) => {
   const Icon = LucideIcons[icon];
   return (
-    <Pressable style={styles.quickAction}>
+    <Pressable style={styles.quickAction} onPress={onPress}>
       <View style={[styles.actionIcon, { backgroundColor: color + "10", borderColor: color + "30" }]}>
         <Icon size={20} color={color} />
       </View>
@@ -94,7 +103,7 @@ const ActivityItem = ({ icon, title, time, user }) => {
       <View style={styles.activityIcon}><Icon size={16} color={C.cyan} /></View>
       <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={styles.activityTitle} numberOfLines={1}>{title}</Text>
-        <Text style={styles.activityMeta}>{user} • {time}</Text>
+        <Text style={styles.activityMeta}>{[user, time].filter(Boolean).join(" • ")}</Text>
       </View>
     </View>
   );

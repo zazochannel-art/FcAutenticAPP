@@ -1,22 +1,52 @@
 import React, { useState } from "react";
-import { ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
-import { ArrowLeft, ArrowRight, CheckCircle2, Globe, Mail, Shield, Users } from "lucide-react-native";
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Globe, Mail, Shield, Users } from "lucide-react-native";
 import { colors as C } from "../constants/theme";
+import { supabaseService } from "../services/supabaseService";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000" };
+
+const ROLE_MAP = { "Jucător": "player", "Părinte": "parent", "Antrenor": "coach", "Staff": "staff" };
 
 export default function JoinClubScreen({ onBack, onSuccess }) {
   const [inviteCode, setInviteCode] = useState("");
   const [clubName, setClubName] = useState("");
   const [role, setRole] = useState("Jucător");
   const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [pendingInfo, setPendingInfo] = useState("");
 
-  const submit = () => {
-    setSent(true);
-    setTimeout(() => onSuccess?.(), 450);
+  const submit = async () => {
+    setError("");
+    setPendingInfo("");
+    const code = inviteCode.trim();
+    const name = clubName.trim();
+
+    if (!code && !name) {
+      setError("Introdu codul de invitație sau numele clubului.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (code) {
+        // Codul de invitație activează membership-ul imediat, cu rolul din invitație.
+        await supabaseService.acceptInvitation(code);
+        onSuccess?.();
+        return;
+      }
+      const result = await supabaseService.requestMembership(name, ROLE_MAP[role] || "player");
+      setPendingInfo(
+        `Cererea către ${result?.club_name || name} a fost trimisă și așteaptă aprobarea administratorului.`
+      );
+    } catch (e) {
+      setError(e.message || "Nu am putut trimite cererea. Încearcă din nou.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,18 +98,31 @@ export default function JoinClubScreen({ onBack, onSuccess }) {
                 style={styles.textarea}
               />
 
-              {sent && (
+              {!!pendingInfo && (
                 <View style={styles.statusBox}>
                   <CheckCircle2 size={18} color={C.green} />
-                  <Text style={styles.statusText}>Cererea este în așteptarea aprobării administratorului.</Text>
+                  <Text style={styles.statusText}>{pendingInfo}</Text>
                 </View>
               )}
 
-              <Pressable onPress={submit} style={styles.primaryPress}>
+              {!!error && (
+                <View style={styles.errorBox}>
+                  <AlertTriangle size={18} color={C.red} />
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              <Pressable onPress={submit} disabled={loading} style={[styles.primaryPress, loading && { opacity: 0.7 }]}>
                 <LinearGradient colors={[C.cyan, C.purple]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.primaryButton}>
-                  <Mail size={18} color="white" />
-                  <Text style={styles.primaryText}>Trimite cererea</Text>
-                  <ArrowRight size={18} color="white" />
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <>
+                      <Mail size={18} color="white" />
+                      <Text style={styles.primaryText}>Trimite cererea</Text>
+                      <ArrowRight size={18} color="white" />
+                    </>
+                  )}
                 </LinearGradient>
               </Pressable>
             </BlurView>
@@ -128,6 +171,8 @@ const styles = StyleSheet.create({
   roleTextActive: { color: "white" },
   statusBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(34,197,94,0.28)", backgroundColor: "rgba(34,197,94,0.1)", padding: 14, marginTop: 16 },
   statusText: { flex: 1, color: C.green, fontSize: 12, fontWeight: "800" },
+  errorBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.08)", padding: 14, marginTop: 16 },
+  errorText: { flex: 1, color: C.red, fontSize: 12, fontWeight: "800" },
   primaryPress: { marginTop: 18 },
   primaryButton: { height: 58, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   primaryText: { color: "white", fontSize: 15, fontWeight: "900" },
