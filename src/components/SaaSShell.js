@@ -149,7 +149,7 @@ function Topbar({ user, onNotifications }) {
       </Pressable>
       <View style={styles.profilePill}>
         <View style={styles.profileTextWrap}>
-          <Text style={styles.profileName}>{user?.name || "Andrei Popescu"}</Text>
+          <Text style={styles.profileName}>{user?.name || "Utilizator"}</Text>
           <Text style={styles.profileRole}>{user?.role === "super_admin" ? "Administrator" : user?.role || "Admin"}</Text>
         </View>
         <View style={styles.avatar}><Text style={styles.avatarText}>{(user?.name || "A").slice(0, 1)}</Text></View>

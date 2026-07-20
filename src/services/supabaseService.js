@@ -1045,6 +1045,24 @@ export const supabaseService = {
     return true;
   },
 
+  // Imagine de ansamblu a platformei (ecranul Admin SaaS, doar super admin —
+  // RLS limitează oricum rândurile vizibile pentru alte roluri).
+  async getPlatformOverview() {
+    const sb = requireSupabase();
+    const [profilesRes, membershipsRes, playersRes] = await Promise.all([
+      sb.from("profiles").select("id", { count: "exact", head: true }),
+      sb.from("club_memberships").select("club_id,status,role"),
+      sb.from("players").select("club_id"),
+    ]);
+    if (membershipsRes.error) throw membershipsRes.error;
+    if (playersRes.error) throw playersRes.error;
+    return {
+      usersCount: profilesRes.count ?? 0,
+      memberships: membershipsRes.data || [],
+      players: playersRes.data || [],
+    };
+  },
+
   async getClubMembers(clubId) {
     if (!clubId) return [];
     const { data, error } = await requireSupabase().rpc("get_club_members", {
