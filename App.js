@@ -21,7 +21,6 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { isSupabaseConfigured, supabase, supabaseConfigError } from "./src/config/supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
 import { authService } from "./src/services/authService";
-import { colors as C } from "./src/constants/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,7 +58,6 @@ import { SaaSAppShell } from "./src/components/SaaSShell";
 import SplashScreen from "./src/components/SplashScreen";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
-const ENABLE_DEMO_MODE = String(process.env.EXPO_PUBLIC_ENABLE_DEMO || "").toLowerCase() === "true";
 
 const defaultClub = {
   id: DEFAULT_CLUB_ID,
@@ -144,15 +142,6 @@ function MainApp() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [registerError, setRegisterError] = useState("");
-  const [tasks, setTasks] = useState(
-    ENABLE_DEMO_MODE
-      ? [
-          { id: 1, title: "Confirmă lotul pentru meci", meta: "Termen: azi, 16:00", priority: "URGENT", color: C.red, done: false },
-          { id: 2, title: "Achită chiria terenului", meta: "Termen: 25 iunie", priority: "MEDIU", color: C.amber, done: false },
-          { id: 3, title: "Verifică echipamentul", meta: "Responsabil: Andrei", priority: "NORMAL", color: C.blue, done: true },
-        ]
-      : []
-  );
 
   const { data: players = [] } = useQuery({
     queryKey: ["players", selectedClubId],
@@ -198,6 +187,16 @@ function MainApp() {
     queryKey: ["subscriptions"],
     queryFn: () => supabaseService.getSubscriptions(),
     enabled: isSupabaseConfigured && !!currentUser,
+  });
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks", selectedClubId],
+    queryFn: () => supabaseService.getTasks(selectedClubId),
+    enabled: isSupabaseConfigured && !!selectedClubId,
+  });
+  const { data: events = [] } = useQuery({
+    queryKey: ["events", selectedClubId],
+    queryFn: () => supabaseService.getEvents(selectedClubId),
+    enabled: isSupabaseConfigured && !!selectedClubId,
   });
 
   useEffect(() => {
@@ -455,8 +454,16 @@ function MainApp() {
     setAuthView("login");
   };
 
-  const toggleTask = (id) =>
-    setTasks((current) => current.map((task) => (task.id === id ? { ...task, done: !task.done } : task)));
+  const toggleTask = async (id) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    try {
+      await supabaseService.setTaskDone(id, !task.done);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    } catch (e) {
+      Alert.alert("Eroare sarcină", e.message);
+    }
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
@@ -477,6 +484,7 @@ function MainApp() {
       discipline_records: "discipline",
       media_gallery: "mediaGallery",
       scouting_players: "scouting",
+      club_tasks: "tasks",
       training_payments: "payments",
       monthly_payments: "monthlyPayments",
     };
@@ -547,6 +555,7 @@ function MainApp() {
         setAttendance={handleAttendanceChange}
         currentUser={effectiveUser}
         selectedClub={selectedClub}
+        clubId={selectedClubId}
         openNotifications={() => setTab("Mai mult")}
       />
     ),
@@ -555,19 +564,36 @@ function MainApp() {
         players={players}
         matches={matches}
         currentUser={effectiveUser}
+        clubId={selectedClubId}
         openNotifications={() => setTab("Mai mult")}
       />
     ),
     Calendar: (
-      <CalendarSaaS trainings={trainings} matches={matches} openNotifications={() => setTab("Mai mult")} />
+      <CalendarSaaS
+        trainings={trainings}
+        matches={matches}
+        events={events}
+        clubId={selectedClubId}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Mai mult")}
+      />
     ),
-    Sarcini: <TasksSaaS />,
-    Staff: <StaffSaaS openNotifications={() => setTab("Mai mult")} />,
+    Sarcini: <TasksSaaS tasks={tasks} clubId={selectedClubId} currentUser={effectiveUser} />,
+    Staff: (
+      <StaffSaaS
+        selectedClub={selectedClub}
+        clubId={selectedClubId}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Mai mult")}
+      />
+    ),
     "Finanțe": (
       <FinancesSaaS
         players={players}
         trainings={trainings}
         transactions={transactions}
+        clubId={selectedClubId}
+        currentUser={effectiveUser}
         clubSettings={clubSettings}
         openNotifications={() => setTab("Mai mult")}
       />
@@ -579,7 +605,13 @@ function MainApp() {
         openNotifications={() => setTab("Mai mult")}
       />
     ),
-    Abonamente: <PricingScreen />,
+    Abonamente: (
+      <PricingScreen
+        selectedClub={selectedClub}
+        subscription={subscription}
+        currentUser={effectiveUser}
+      />
+    ),
     "Admin SaaS": (
       <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Mai mult")} />
     ),

@@ -6,7 +6,7 @@ Aplicație Expo (React Native + web) pentru administrarea SaaS a cluburilor de f
 
 - Autentificare Supabase: login / register / reset parolă / logout.
 - Multi-tenant: cluburi, membership-uri, abonamente, invitații (`club_id` pe toate tabelele, izolare prin RLS).
-- Ecrane SaaS în `src/screens`: Dashboard, Echipă, Antrenamente, Meciuri, Calendar, Sarcini, Staff, Finanțe, AI, Abonamente, Admin SaaS.
+- Ecrane funcționale conectate la Supabase: Dashboard, Echipă (jucători + prezență), Antrenamente (programare + prezență), Meciuri (program + scoruri), Calendar (agregat + evenimente), Sarcini (CRUD), Staff (membri, cereri, invitații), Finanțe (tranzacții), Rapoarte AI (edge function pe datele clubului), Abonamente (schimbare plan), Admin SaaS.
 - Navigare proprie pe tab-uri (fără React Navigation): `MobileBottomNav` pe mobil, `SaaSAppShell` pe desktop.
 - Date prin React Query cu persistare în AsyncStorage și realtime Supabase.
 - Servicii separate în `src/services` (`supabaseService`, `authService`, `storageService`, `notificationService`).

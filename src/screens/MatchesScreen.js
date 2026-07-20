@@ -1,15 +1,19 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Pressable,
+  TextInput,
+  Modal,
   Platform,
   Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle, Rect, Line } from "react-native-svg";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabaseService } from "../services/supabaseService";
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -46,7 +50,50 @@ function resultOf(score) {
 
 const RESULT_COLORS = { V: GREEN, E: AMBER, "Î": RED };
 
-export default function MatchesScreen({ players = [], matches = [], currentUser, openNotifications }) {
+export default function MatchesScreen({ players = [], matches = [], currentUser, clubId, openNotifications }) {
+  const queryClient = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
+  const [scoreFor, setScoreFor] = useState(null);
+
+  const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
+
+  const saveMatch = async (form) => {
+    if (!form.opponent.trim() || !form.date.trim()) {
+      notify("Date incomplete", "Completează cel puțin adversarul și data meciului.");
+      return;
+    }
+    try {
+      await supabaseService.insertMatch({
+        type: form.type.trim() || "Meci oficial",
+        opponent: form.opponent.trim(),
+        group: form.group.trim() || "Seniori",
+        date: form.date.trim(),
+        time: form.time.trim() || "—",
+        location: form.location.trim() || "—",
+        status: "Programat",
+        clubId,
+      });
+      setAddOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+    } catch (e) {
+      notify("Eroare", e.message);
+    }
+  };
+
+  const saveScore = async (match, score, postNotes) => {
+    if (!parseScore(score)) {
+      notify("Scor invalid", "Folosește formatul „2 - 1” (golurile noastre primele).");
+      return;
+    }
+    try {
+      await supabaseService.updateMatch({ ...match, score: score.trim(), postNotes: postNotes.trim() || match.postNotes, status: "Jucat" });
+      setScoreFor(null);
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+    } catch (e) {
+      notify("Eroare", e.message);
+    }
+  };
+
   const upcoming = useMemo(
     () => matches.filter((m) => !parseScore(m.score)),
     [matches]
@@ -134,13 +181,15 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
           </View>
 
           {/* Row 2: Quick Actions */}
-          <View style={styles.actionsRow}>
-             <View style={styles.actionsList}>
-                <ActionBtn icon="Plus" label="Adaugă meci" color={BLUE_ACCENT} />
-                <ActionBtn icon="Users" label="Setează lot" color={BLUE_ACCENT} />
-                <ActionBtn icon="Send" label="Trimite convocare" color={BLUE_ACCENT} />
-             </View>
-          </View>
+          {canManage && (
+            <View style={styles.actionsRow}>
+               <View style={styles.actionsList}>
+                  <ActionBtn icon="Plus" label="Adaugă meci" color={BLUE_ACCENT} onPress={() => setAddOpen(true)} />
+                  <ActionBtn icon="Users" label="Setează lot" color={BLUE_ACCENT} />
+                  <ActionBtn icon="Send" label="Trimite convocare" color={BLUE_ACCENT} />
+               </View>
+            </View>
+          )}
 
           {/* Row 3: Main Grid */}
           <View style={styles.mainGrid}>
@@ -158,16 +207,20 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                      </View>
                    )}
                    {upcoming.slice(0, 6).map((m, index) => (
-                     <MatchLine
-                       key={m.id}
-                       date={m.date}
-                       opponent={m.opponent}
-                       league={`${m.type || "Meci"} • ${m.group}`}
-                       location={m.location}
-                       time={m.time}
-                       active={index === 0}
-                     />
+                     <Pressable key={m.id} onPress={() => canManage && setScoreFor(m)}>
+                       <MatchLine
+                         date={m.date}
+                         opponent={m.opponent}
+                         league={`${m.type || "Meci"} • ${m.group}`}
+                         location={m.location}
+                         time={m.time}
+                         active={index === 0}
+                       />
+                     </Pressable>
                    ))}
+                   {canManage && upcoming.length > 0 && (
+                     <Text style={styles.tapHint}>Apasă pe un meci pentru a înregistra scorul final.</Text>
+                   )}
                 </View>
 
                 <View style={[styles.cardMain, { marginTop: 18 }]}>
@@ -270,7 +323,105 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
         </ScrollView>
       </View>
+
+      <AddMatchModal visible={addOpen} onClose={() => setAddOpen(false)} onSave={saveMatch} />
+      <ScoreModal match={scoreFor} onClose={() => setScoreFor(null)} onSave={saveScore} />
     </View>
+  );
+}
+
+function AddMatchModal({ visible, onClose, onSave }) {
+  const [form, setForm] = useState({ opponent: "", group: "", date: "", time: "", location: "", type: "Meci oficial" });
+  const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Meci nou</Text>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+          </View>
+
+          <Text style={styles.modalLabel}>ADVERSAR</Text>
+          <TextInput style={styles.modalInput} value={form.opponent} onChangeText={(v) => update("opponent", v)} placeholder="Ex: ACS Progresul" placeholderTextColor={TEXT_TH} />
+
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalLabel}>DATA</Text>
+              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="2 august 2026" placeholderTextColor={TEXT_TH} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalLabel}>ORA</Text>
+              <TextInput style={styles.modalInput} value={form.time} onChangeText={(v) => update("time", v)} placeholder="11:00" placeholderTextColor={TEXT_TH} />
+            </View>
+          </View>
+
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalLabel}>GRUPA</Text>
+              <TextInput style={styles.modalInput} value={form.group} onChangeText={(v) => update("group", v)} placeholder="U16" placeholderTextColor={TEXT_TH} />
+            </View>
+            <View style={{ flex: 2 }}>
+              <Text style={styles.modalLabel}>LOCAȚIE</Text>
+              <TextInput style={styles.modalInput} value={form.location} onChangeText={(v) => update("location", v)} placeholder="Stadionul Central" placeholderTextColor={TEXT_TH} />
+            </View>
+          </View>
+
+          <Text style={styles.modalLabel}>TIP MECI</Text>
+          <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
+            {["Meci oficial", "Amical", "Turneu"].map((t) => (
+              <Pressable key={t} onPress={() => update("type", t)} style={[styles.smallChip, form.type === t && { borderColor: CYAN, backgroundColor: CYAN + "10" }]}>
+                <Text style={[styles.smallChipText, form.type === t && { color: CYAN }]}>{t}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <Pressable style={styles.modalSaveBtn} onPress={() => onSave(form)}>
+            <LucideIcons.Plus size={16} color="white" />
+            <Text style={styles.modalSaveText}>Salvează meciul</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function ScoreModal({ match, onClose, onSave }) {
+  const [score, setScore] = useState("");
+  const [notes, setNotes] = useState("");
+
+  if (!match) return null;
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Scor final: vs {match.opponent}</Text>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+          </View>
+
+          <Text style={styles.modalLabel}>SCOR (NOI - EI)</Text>
+          <TextInput style={styles.modalInput} value={score} onChangeText={setScore} placeholder="2 - 1" placeholderTextColor={TEXT_TH} />
+
+          <Text style={styles.modalLabel}>OBSERVAȚII (OPȚIONAL)</Text>
+          <TextInput
+            style={[styles.modalInput, { height: 70, textAlignVertical: "top", paddingTop: 10 }]}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Cum a decurs meciul..."
+            placeholderTextColor={TEXT_TH}
+            multiline
+          />
+
+          <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, score, notes)}>
+            <LucideIcons.Trophy size={16} color="white" />
+            <Text style={styles.modalSaveText}>Înregistrează rezultatul</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -453,4 +604,16 @@ const styles = StyleSheet.create({
   seasonLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   seasonLabel: { color: TEXT_DIM, fontSize: 10, fontWeight: '700' },
   seasonValue: { color: 'white', fontSize: 11, fontWeight: '900' },
+  tapHint: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600', marginTop: 10 },
+
+  modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 460, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
+  modalLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
+  modalInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+  smallChip: { flex: 1, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: 'center', justifyContent: 'center' },
+  smallChipText: { color: TEXT_DIM, fontSize: 9.5, fontWeight: '900' },
+  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  modalSaveText: { color: 'white', fontSize: 12, fontWeight: '900' },
 });

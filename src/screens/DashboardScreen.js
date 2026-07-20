@@ -73,7 +73,13 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
               <Text style={styles.cardTitle}>Sarcini urgente</Text>
            </View>
            {tasks.filter(t => !t.done).slice(0, 3).map(task => (
-             <TaskItem key={task.id} title={task.title} status={task.priority} color={task.color} date={task.meta?.split(':')[1]?.trim() || "Azi"} />
+             <TaskItem
+               key={task.id}
+               title={task.title}
+               status={task.priority}
+               color={task.priority === "URGENT" ? C.red : task.priority === "MEDIU" ? C.amber : C.blue}
+               date={task.dueLabel || task.meta?.split(':')[1]?.trim() || "Fără termen"}
+             />
            ))}
            {tasks.filter(t => !t.done).length === 0 && (
              <Text style={styles.emptyText}>Nicio sarcină urgentă.</Text>
