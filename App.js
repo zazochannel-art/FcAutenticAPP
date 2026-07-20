@@ -627,6 +627,8 @@ function MainApp() {
         switchClub={switchClub}
         onCreateClub={() => setAuthView("create-club")}
         openNotifications={() => setTab("Notif.")}
+        tabs={activeTabs}
+        setTab={setTab}
       />
     ),
   };
