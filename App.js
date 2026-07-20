@@ -18,7 +18,7 @@ import {
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 
-import { isSupabaseConfigured, supabase, supabaseConfigError } from "./supabaseClient";
+import { isSupabaseConfigured, supabase, supabaseConfigError } from "./src/config/supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
 import { authService } from "./src/services/authService";
 import { colors as C } from "./src/constants/theme";
@@ -45,14 +45,11 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import TeamScreen from "./src/screens/TeamScreen";
 import TrainingsScreen from "./src/screens/TrainingsScreen";
 import MatchesScreen from "./src/screens/MatchesScreen";
-import CalendarScreen from "./src/screens/CalendarScreen";
 import CalendarSaaS from "./src/screens/CalendarSaaS";
-import FinancesScreen from "./src/screens/FinancesScreen";
 import FinancesSaaS from "./src/screens/FinancesSaaS";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
 import MoreScreen from "./src/screens/MoreScreen";
 import SaasAdminScreen from "./src/screens/SaasAdminScreen";
-import AIAnalysisScreen from "./src/screens/AIAnalysisScreen";
 import AISaaSReport from "./src/screens/AISaaSReport";
 import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
@@ -61,10 +58,6 @@ import { ExpandableTabs } from "./src/components/ui/expandable-tabs";
 import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import SplashScreen from "./src/components/SplashScreen";
-
-const STORAGE_KEYS = {
-  auth: "fc-autentic-auth",
-};
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 const ENABLE_DEMO_MODE = String(process.env.EXPO_PUBLIC_ENABLE_DEMO || "").toLowerCase() === "true";
@@ -346,7 +339,6 @@ function MainApp() {
     };
     setCurrentUser(user);
     setTab(roleTabs[role]?.[0] || "Dashboard");
-    await AsyncStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(user));
 
     // Utilizatorii care au deja un club (membership activ) intră direct în
     // aplicație; onboarding-ul cu "Creează club / Alătură-te" apare doar
@@ -385,15 +377,13 @@ function MainApp() {
         .eq("id", data.user.id)
         .single();
 
-      // If profile doesn't exist, create a default one
+      // Profilul lipsește (cont creat înainte de trigger-ul de signup):
+      // inserăm doar câmpurile obligatorii, iar rolul rămâne pe default-ul DB.
       if (profileError) {
-        console.log("Profile not found, creating default profile");
         const defaultProfile = {
           id: data.user.id,
           email: data.user.email,
           full_name: data.user.email?.split("@")[0] || "User",
-          role: "viewer",
-          created_at: new Date().toISOString(),
         };
         const { error: insertError } = await supabase
           .from("profiles")
@@ -461,7 +451,6 @@ function MainApp() {
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut();
     }
-    await AsyncStorage.removeItem(STORAGE_KEYS.auth);
     setCurrentUser(null);
     setSelectedClubId(null);
     setAuthView("login");

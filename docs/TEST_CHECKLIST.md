@@ -3,9 +3,7 @@
 ## Demo public
 
 - Deschide `https://zazochannel-art.github.io/FcAutenticAPP/?v=super-admin`
-- Login:
-  - email: `igor.gratii.99@mail.ru`
-  - parolă: `super123`
+- Login cu contul tău de super admin (credențialele nu se scriu în repository).
 - Verifică Panou Super Admin.
 - Verifică Admin.
 - Verifică Echipă.

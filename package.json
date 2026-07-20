@@ -16,16 +16,11 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.3",
-    "@opentelemetry/api": "^1.9.0",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-navigation/bottom-tabs": "^6.6.1",
-    "@react-navigation/native": "^6.1.18",
-    "@react-navigation/native-stack": "^6.11.0",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/query-async-storage-persister": "^5.101.2",
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-query-persist-client": "^5.101.2",
-    "clsx": "^2.1.1",
     "expo": "~54.0.35",
     "expo-asset": "~12.0.13",
     "expo-blur": "~15.0.8",
@@ -35,8 +30,6 @@
     "expo-linear-gradient": "~15.0.8",
     "expo-notifications": "~0.32.17",
     "expo-status-bar": "~3.0.9",
-    "framer-motion": "^12.42.2",
-    "lucide-react": "^1.22.0",
     "lucide-react-native": "^1.22.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -45,8 +38,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "react-native-url-polyfill": "^2.0.0",
-    "react-native-web": "^0.21.0",
-    "tailwind-merge": "^3.6.0"
+    "react-native-web": "^0.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
