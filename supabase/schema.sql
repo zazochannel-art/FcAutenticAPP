@@ -42,6 +42,7 @@ create table if not exists public.clubs (
   blocked boolean not null default false,
   primary_color text,
   secondary_color text,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
   created_at timestamptz default now()
 );
 
@@ -323,6 +324,7 @@ create index if not exists idx_players_club_id on public.players(club_id);
 create index if not exists idx_trainings_club_id on public.trainings(club_id);
 create index if not exists idx_matches_club_id on public.matches(club_id);
 create index if not exists idx_memberships_user_club on public.club_memberships(user_id, club_id);
+create unique index if not exists uq_club_memberships_user_club on public.club_memberships(user_id, club_id);
 create index if not exists idx_subscriptions_club_id on public.subscriptions(club_id);
 create index if not exists idx_invitations_club_id on public.club_invitations(club_id);
 create index if not exists idx_club_events_club_id on public.club_events(club_id);
@@ -343,17 +345,17 @@ create index if not exists idx_monthly_payments_club_id on public.monthly_paymen
 -- 5) Funcții helper (roluri și acces)
 -- ----------------------------------------------------------------------------
 create or replace function public.my_role()
-returns text language sql stable as $$
+returns text language sql stable set search_path = public as $$
   select role::text from public.profiles where id = auth.uid()
 $$;
 
 create or replace function public.my_groups()
-returns text[] language sql stable as $$
+returns text[] language sql stable set search_path = public as $$
   select assigned_groups from public.profiles where id = auth.uid()
 $$;
 
 create or replace function public.current_profile()
-returns public.profiles language sql stable as $$
+returns public.profiles language sql stable set search_path = public as $$
   select * from public.profiles where id = (select auth.uid())
 $$;
 
@@ -410,7 +412,7 @@ $$;
 create or replace function public.upsert_evaluation(
   p_player_id bigint, p_month_label text, p_technique integer, p_speed integer,
   p_discipline integer, p_attitude integer, p_tactics integer, p_physical integer
-) returns void language plpgsql as $$
+) returns void language plpgsql set search_path = public as $$
 begin
   insert into public.player_evaluations
     (player_id, month_label, technique, speed, discipline, attitude, tactics, physical, updated_at)
@@ -429,39 +431,102 @@ end;
 $$;
 
 -- ----------------------------------------------------------------------------
--- 6) Trigger de signup: creează player + profil pentru fiecare cont nou
+-- 6) Trigger de signup: rând de jucător doar pentru înregistrările de jucători
+--    (metadata cu group_name/player_position), legat de clubul implicit;
+--    celelalte conturi primesc doar profil.
 -- ----------------------------------------------------------------------------
 create or replace function public.handle_new_player_signup()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
   new_player_id bigint;
   player_group text;
+  display_name text;
 begin
-  player_group := coalesce(new.raw_user_meta_data->>'group_name', 'U19');
+  display_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
 
-  insert into public.players (no, name, role, group_name, status)
-  values (
-    coalesce(nullif(new.raw_user_meta_data->>'player_no', '')::integer, 0),
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data->>'player_position', 'Jucător'),
-    player_group,
-    'Activ'
-  )
-  returning id into new_player_id;
+  if (new.raw_user_meta_data ? 'player_position') or (new.raw_user_meta_data ? 'group_name') then
+    player_group := coalesce(new.raw_user_meta_data->>'group_name', 'U19');
 
-  insert into public.profiles (id, full_name, role, assigned_groups, player_id, email)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    'player',
-    array[player_group],
-    new_player_id,
-    new.email
-  );
+    insert into public.players (no, name, role, group_name, status, club_id)
+    values (
+      coalesce(nullif(new.raw_user_meta_data->>'player_no', '')::integer, 0),
+      display_name,
+      coalesce(new.raw_user_meta_data->>'player_position', 'Jucător'),
+      player_group,
+      'Activ',
+      '00000000-0000-0000-0000-000000000000'::uuid
+    )
+    returning id into new_player_id;
+
+    insert into public.profiles (id, full_name, role, assigned_groups, player_id, email)
+    values (new.id, display_name, 'player', array[player_group], new_player_id, new.email);
+  else
+    insert into public.profiles (id, full_name, role, assigned_groups, email)
+    values (new.id, display_name, 'player', '{}', new.email);
+  end if;
 
   return new;
 end;
 $$;
+
+-- ----------------------------------------------------------------------------
+-- 6b) Alăturarea la un club: acceptare invitație prin cod și cerere pending
+-- ----------------------------------------------------------------------------
+create or replace function public.accept_club_invitation(invite_token text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  inv record;
+  user_email text;
+begin
+  if auth.uid() is null then
+    raise exception 'Autentificare necesară.';
+  end if;
+  select email into user_email from auth.users where id = auth.uid();
+
+  select * into inv from public.club_invitations where token = trim(invite_token) and status = 'pending';
+  if not found then
+    raise exception 'Codul de invitație nu este valid sau a fost deja folosit.';
+  end if;
+  if inv.expires_at is not null and inv.expires_at < now() then
+    update public.club_invitations set status = 'expired' where id = inv.id;
+    raise exception 'Invitația a expirat.';
+  end if;
+  if lower(inv.email) is distinct from lower(coalesce(user_email, '')) then
+    raise exception 'Invitația a fost emisă pentru altă adresă de email.';
+  end if;
+
+  insert into public.club_memberships (user_id, club_id, role, status)
+  values (auth.uid(), inv.club_id, inv.role, 'active')
+  on conflict (user_id, club_id)
+  do update set role = excluded.role, status = 'active';
+
+  update public.club_invitations set status = 'accepted' where id = inv.id;
+  return jsonb_build_object('club_id', inv.club_id, 'role', inv.role);
+end $$;
+
+create or replace function public.request_club_membership(target_club_name text, desired_role text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  target record;
+  safe_role text;
+begin
+  if auth.uid() is null then
+    raise exception 'Autentificare necesară.';
+  end if;
+  select id, name into target from public.clubs
+  where lower(name) = lower(trim(target_club_name))
+  limit 1;
+  if not found then
+    raise exception 'Nu am găsit un club cu acest nume.';
+  end if;
+  safe_role := case when desired_role = any(array['player','parent','coach','staff']) then desired_role else 'player' end;
+
+  insert into public.club_memberships (user_id, club_id, role, status)
+  values (auth.uid(), target.id, safe_role, 'pending')
+  on conflict (user_id, club_id) do nothing;
+
+  return jsonb_build_object('club_id', target.id, 'club_name', target.name, 'status', 'pending');
+end $$;
 
 drop trigger if exists on_auth_user_created_fc_autentic on auth.users;
 create trigger on_auth_user_created_fc_autentic
@@ -472,7 +537,7 @@ create trigger on_auth_user_created_fc_autentic
 -- 7) Realtime broadcast pe toate tabelele aplicației
 -- ----------------------------------------------------------------------------
 create or replace function public.realtime_broadcast_all_changes()
-returns trigger language plpgsql security definer as $$
+returns trigger language plpgsql security definer set search_path = public, realtime as $$
 declare
   v_topic text;
 begin
@@ -577,10 +642,10 @@ create policy clubs_update_saas on public.clubs
   with check (public.current_user_has_club_role(id, array['club_owner']) or public.current_user_is_super_admin());
 
 -- club_memberships
-drop policy if exists "Utilizatorii pot adăuga apartenențe" on public.club_memberships;
-create policy "Utilizatorii pot adăuga apartenențe" on public.club_memberships
-  for insert to authenticated with check (auth.uid() = user_id);
-
+-- Insert-ul este restricționat: creatorul clubului își adaugă membership-ul de
+-- club_owner, restul utilizatorilor pot doar cere alăturarea (pending, rol
+-- neprivilegiat). Update-ul este rezervat ownerilor/super adminilor, ca un
+-- utilizator să nu-și poată escalada singur rolul sau statusul.
 drop policy if exists "Utilizatorii pot vedea apartenențele proprii" on public.club_memberships;
 create policy "Utilizatorii pot vedea apartenențele proprii" on public.club_memberships
   for select to authenticated using (auth.uid() = user_id);
@@ -593,19 +658,30 @@ create policy memberships_select_saas on public.club_memberships
     or public.current_user_is_super_admin()
   );
 
+drop policy if exists "Utilizatorii pot adăuga apartenențe" on public.club_memberships;
 drop policy if exists memberships_write_saas on public.club_memberships;
-create policy memberships_write_saas on public.club_memberships
-  for all to authenticated
-  using (
-    user_id = auth.uid()
-    or public.current_user_has_club_role(club_id, array['club_owner'])
-    or public.current_user_is_super_admin()
-  )
+
+drop policy if exists memberships_insert_saas on public.club_memberships;
+create policy memberships_insert_saas on public.club_memberships
+  for insert to authenticated
   with check (
-    user_id = auth.uid()
+    (auth.uid() = user_id and role = 'club_owner' and status = 'active'
+      and exists (select 1 from public.clubs c where c.id = club_id and c.created_by = auth.uid()))
+    or (auth.uid() = user_id and status = 'pending' and role = any(array['player','parent','coach','staff']))
     or public.current_user_has_club_role(club_id, array['club_owner'])
     or public.current_user_is_super_admin()
   );
+
+drop policy if exists memberships_update_saas on public.club_memberships;
+create policy memberships_update_saas on public.club_memberships
+  for update to authenticated
+  using (public.current_user_has_club_role(club_id, array['club_owner']) or public.current_user_is_super_admin())
+  with check (public.current_user_has_club_role(club_id, array['club_owner']) or public.current_user_is_super_admin());
+
+drop policy if exists memberships_delete_saas on public.club_memberships;
+create policy memberships_delete_saas on public.club_memberships
+  for delete to authenticated
+  using (user_id = auth.uid() or public.current_user_has_club_role(club_id, array['club_owner']) or public.current_user_is_super_admin());
 
 -- subscriptions
 drop policy if exists subscriptions_select_saas on public.subscriptions;
@@ -886,6 +962,20 @@ create policy club_documents_write on storage.objects
   for insert to authenticated with check (bucket_id = 'club-documents');
 
 -- ----------------------------------------------------------------------------
--- 10) Primul super admin (rulează manual, cu emailul tău)
+-- 10) Igienizare: funcțiile SECURITY DEFINER nu sunt expuse rolului anon
+-- ----------------------------------------------------------------------------
+revoke execute on function public.accept_club_invitation(text) from anon;
+revoke execute on function public.request_club_membership(text, text) from anon;
+revoke execute on function public.current_user_platform_role() from anon;
+revoke execute on function public.current_user_is_super_admin() from anon;
+revoke execute on function public.current_user_has_club_role(uuid, text[]) from anon;
+revoke execute on function public.current_user_can_read_club(uuid) from anon;
+revoke execute on function public.current_user_player_id() from anon;
+revoke execute on function public.current_user_child_player_id() from anon;
+revoke execute on function public.current_user_can_read_player(bigint, uuid) from anon;
+revoke execute on function public.realtime_broadcast_all_changes() from anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 11) Primul super admin (rulează manual, cu emailul tău)
 -- ----------------------------------------------------------------------------
 -- update public.profiles set platform_role = 'super_admin' where email = 'EMAILUL_TAU';

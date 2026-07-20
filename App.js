@@ -54,7 +54,6 @@ import AISaaSReport from "./src/screens/AISaaSReport";
 import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
 import TasksSaaS from "./src/screens/TasksSaaS";
-import { ExpandableTabs } from "./src/components/ui/expandable-tabs";
 import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import SplashScreen from "./src/components/SplashScreen";
@@ -488,6 +487,12 @@ function MainApp() {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => {
         const key = tableToKey[payload.table];
         if (!key) return;
+        // Cheile pentru memberships nu sunt indexate după club_id, ci după user_id —
+        // invalidăm întreaga familie ca să nu ratăm actualizări.
+        if (key === "memberships") {
+          queryClient.invalidateQueries({ queryKey: ["memberships"] });
+          return;
+        }
         const clubId = payload.new?.club_id || payload.old?.club_id;
         if (clubId) {
           queryClient.invalidateQueries({ queryKey: [key, clubId] });
