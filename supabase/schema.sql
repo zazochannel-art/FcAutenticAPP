@@ -305,6 +305,19 @@ create table if not exists public.media_gallery (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.club_tasks (
+  id bigint generated always as identity primary key,
+  title text not null,
+  detail text,
+  priority text not null default 'NORMAL' check (priority in ('URGENT','MEDIU','NORMAL')),
+  due_label text,
+  assignee text,
+  done boolean not null default false,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
+  club_id uuid not null references public.clubs(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.scouting_players (
   id bigint generated always as identity primary key,
   name text not null,
@@ -340,6 +353,7 @@ create index if not exists idx_development_plans_club_id on public.development_p
 create index if not exists idx_discipline_records_club_id on public.discipline_records(club_id);
 create index if not exists idx_training_payments_club_id on public.training_payments(club_id);
 create index if not exists idx_monthly_payments_club_id on public.monthly_payments(club_id);
+create index if not exists idx_club_tasks_club_id on public.club_tasks(club_id);
 
 -- ----------------------------------------------------------------------------
 -- 5) Funcții helper (roluri și acces)
@@ -559,7 +573,7 @@ begin
     'profiles','players','trainings','attendance','matches','player_observations',
     'training_payments','monthly_payments','transactions','club_events','documents',
     'equipment','player_evaluations','development_plans','discipline_records',
-    'chat_messages','media_gallery','scouting_players'
+    'chat_messages','media_gallery','scouting_players','club_tasks'
   ] loop
     execute format('drop trigger if exists realtime_broadcast_%I on public.%I', t, t);
     execute format(
@@ -594,6 +608,7 @@ alter table public.discipline_records enable row level security;
 alter table public.chat_messages enable row level security;
 alter table public.media_gallery enable row level security;
 alter table public.scouting_players enable row level security;
+alter table public.club_tasks enable row level security;
 
 -- profiles
 drop policy if exists profiles_select_own on public.profiles;
@@ -945,6 +960,43 @@ create policy scouting_write_saas on public.scouting_players
   for all to authenticated
   using (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']))
   with check (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']));
+
+-- club_tasks
+drop policy if exists tasks_select_saas on public.club_tasks;
+create policy tasks_select_saas on public.club_tasks
+  for select to authenticated using (public.current_user_can_read_club(club_id));
+
+drop policy if exists tasks_write_saas on public.club_tasks;
+create policy tasks_write_saas on public.club_tasks
+  for all to authenticated
+  using (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']))
+  with check (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']));
+
+-- ----------------------------------------------------------------------------
+-- 8b) Membrii unui club cu nume/email din profil (ecranul Staff).
+--     SECURITY DEFINER: profiles nu e citibil între utilizatori; accesul e
+--     restricționat la membrii clubului prin current_user_can_read_club.
+-- ----------------------------------------------------------------------------
+create or replace function public.get_club_members(target_club_id uuid)
+returns table (
+  membership_id uuid,
+  user_id uuid,
+  full_name text,
+  email text,
+  role text,
+  status text,
+  assigned_groups text[],
+  joined_at timestamptz
+) language sql security definer set search_path = public stable as $$
+  select cm.id, cm.user_id, p.full_name, p.email, cm.role, cm.status, cm.assigned_groups, cm.joined_at
+  from public.club_memberships cm
+  left join public.profiles p on p.id = cm.user_id
+  where cm.club_id = target_club_id
+    and public.current_user_can_read_club(target_club_id)
+  order by cm.joined_at
+$$;
+
+revoke execute on function public.get_club_members(uuid) from anon;
 
 -- ----------------------------------------------------------------------------
 -- 9) Storage: bucket pentru documente club (folosit de storageService)

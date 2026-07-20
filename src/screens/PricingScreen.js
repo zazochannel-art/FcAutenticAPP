@@ -9,10 +9,13 @@ import {
   useWindowDimensions,
   Platform,
   Dimensions,
-  Image
+  Image,
+  Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Path, Circle, Rect, G } from "react-native-svg";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabaseService } from "../services/supabaseService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -140,9 +143,42 @@ const PLAN_DATA = {
   }
 };
 
-export default function PricingScreen() {
-  const [selectedPlan, setSelectedPlan] = useState('free');
+const PLAN_MAX_PLAYERS = { free: 20, starter: 50, pro: 150, elite: null };
+
+function notify(title, msg) {
+  if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
+  else Alert.alert(title, msg);
+}
+
+export default function PricingScreen({ selectedClub, subscription, currentUser }) {
+  const queryClient = useQueryClient();
+  // Planul activ al clubului vine din abonamentul real.
+  const currentPlanId = String(subscription?.planName || selectedClub?.plan || "free").toLowerCase();
+  const [selectedPlan, setSelectedPlan] = useState(PLAN_DATA[currentPlanId] ? currentPlanId : 'free');
+  const [saving, setSaving] = useState(false);
   const activePlan = PLAN_DATA[selectedPlan];
+
+  const isOwner = ["super_admin", "club_owner"].includes(currentUser?.role);
+  const isCurrent = selectedPlan === currentPlanId;
+
+  const activatePlan = async () => {
+    if (!isOwner) {
+      notify("Acces restricționat", "Doar owner-ul clubului poate schimba planul.");
+      return;
+    }
+    if (!selectedClub?.id) return;
+    setSaving(true);
+    try {
+      await supabaseService.updateSubscriptionPlan(selectedClub.id, activePlan.name, PLAN_MAX_PLAYERS[selectedPlan]);
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["clubs"] });
+      notify("Plan activat", `Clubul ${selectedClub.name} folosește acum planul ${activePlan.name}.`);
+    } catch (e) {
+      notify("Eroare", e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -167,7 +203,7 @@ export default function PricingScreen() {
               >
                 <Text style={[styles.planTabText, selectedPlan === plan.id && { color: plan.color }]}>{plan.name}</Text>
                 <Text style={styles.planTabPrice}>{plan.price}/lună</Text>
-                {selectedPlan === plan.id && <View style={styles.activePlanIndicator}><Text style={styles.activePlanText}>Plan actual</Text></View>}
+                {currentPlanId === plan.id && <View style={styles.activePlanIndicator}><Text style={styles.activePlanText}>Plan actual</Text></View>}
               </Pressable>
             ))}
             <Pressable style={styles.compareBtn}>
@@ -199,9 +235,19 @@ export default function PricingScreen() {
                    </View>
 
                    <View style={styles.cardActions}>
-                      <Pressable style={[styles.actionBtn, { backgroundColor: activePlan.id === 'elite' ? AMBER : CYAN }]}><Text style={styles.actionBtnTextDark}>{activePlan.id === 'elite' ? '👑 Activează plan' : 'Activează plan'}</Text></Pressable>
-                      <Pressable style={styles.actionBtnOutline}><LucideIcons.Pencil size={16} color="white" /><Text style={styles.actionBtnText}>Editează</Text></Pressable>
-                      <Pressable style={styles.actionBtnOutline}><LucideIcons.Users size={16} color="white" /><Text style={styles.actionBtnText}>Vezi cluburi</Text></Pressable>
+                      <Pressable
+                        onPress={activatePlan}
+                        disabled={saving || isCurrent || !isOwner}
+                        style={[
+                          styles.actionBtn,
+                          { backgroundColor: activePlan.id === 'elite' ? AMBER : CYAN },
+                          (saving || isCurrent || !isOwner) && { opacity: 0.55 },
+                        ]}
+                      >
+                        <Text style={styles.actionBtnTextDark}>
+                          {saving ? "Se activează..." : isCurrent ? "Planul curent" : !isOwner ? "Doar owner-ul poate activa" : "Activează plan"}
+                        </Text>
+                      </Pressable>
                    </View>
                 </View>
              </View>
@@ -300,30 +346,24 @@ export default function PricingScreen() {
              </View>
           </View>
 
-          {/* Bottom Table */}
+          {/* Clubul tău pe planul curent */}
           <View style={styles.cardMain}>
              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Cluburi pe Planul {activePlan.name} ({activePlan.clubs.length})</Text>
-                <Pressable style={styles.seeAllBtn}>
-                   <Text style={[styles.seeAllText, { color: activePlan.color }]}>Vezi toate cluburile</Text>
-                   <LucideIcons.ArrowRight size={14} color={activePlan.color} />
-                </Pressable>
+                <Text style={styles.cardTitle}>Abonamentul clubului tău</Text>
              </View>
-
-             <View style={styles.tableHeader}>
-                <Text style={[styles.th, { flex: 2 }]}>Club</Text>
-                <Text style={[styles.th, { flex: 1.5 }]}>{selectedPlan === 'elite' ? 'Academie' : 'Owner'}</Text>
-                <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>Jucători</Text>
-                <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>{selectedPlan === 'elite' ? 'Staff' : 'Administratori'}</Text>
-                <Text style={[styles.th, { flex: 1.5 }]}>Abonament</Text>
-                <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>Status</Text>
-                <Text style={[styles.th, { flex: 1.5 }]}>Înregistrat la</Text>
-                <View style={{ width: 40 }} />
+             <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}>
+                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", alignItems: 'center', justifyContent: 'center' }}>
+                   <LucideIcons.Shield size={16} color={CYAN} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                   <Text style={{ color: 'white', fontSize: 13, fontWeight: '900' }}>{selectedClub?.name || "Clubul tău"}</Text>
+                   <Text style={{ color: TEXT_TH, fontSize: 10, fontWeight: '700', marginTop: 2 }}>
+                     Plan curent: {subscription?.planName || selectedClub?.plan || "Free"}
+                     {subscription?.maxPlayers ? ` • max. ${subscription.maxPlayers} jucători` : ""}
+                     {subscription?.status ? ` • ${subscription.status === "active" ? "activ" : subscription.status}` : ""}
+                   </Text>
+                </View>
              </View>
-
-             {activePlan.clubs.map((club, i) => (
-                <ClubRow key={i} {...club} plan={activePlan.name} pPrice={activePlan.price + "/lună"} color={activePlan.color} isElite={selectedPlan === 'elite'} />
-             ))}
           </View>
 
         </ScrollView>

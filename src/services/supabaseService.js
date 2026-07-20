@@ -995,6 +995,130 @@ export const supabaseService = {
     return mapClub(data);
   },
 
+  async getTasks(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("club_tasks")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("done", { ascending: true })
+      .order("id", { ascending: false });
+    if (error) throw error;
+    return (data || []).map((t) => ({
+      id: Number(t.id),
+      title: t.title,
+      detail: t.detail || "",
+      priority: t.priority || "NORMAL",
+      meta: t.due_label ? `Termen: ${t.due_label}` : (t.assignee ? `Responsabil: ${t.assignee}` : ""),
+      dueLabel: t.due_label || "",
+      assignee: t.assignee || "",
+      done: Boolean(t.done),
+      clubId: t.club_id,
+    }));
+  },
+
+  async insertTask(task) {
+    const { data, error } = await requireSupabase()
+      .from("club_tasks")
+      .insert({
+        title: task.title,
+        detail: task.detail || null,
+        priority: task.priority || "NORMAL",
+        due_label: task.dueLabel || null,
+        assignee: task.assignee || null,
+        club_id: activeClubId(task.clubId || task.club_id),
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async setTaskDone(id, done) {
+    const { error } = await requireSupabase().from("club_tasks").update({ done }).eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
+  async deleteTask(id) {
+    const { error } = await requireSupabase().from("club_tasks").delete().eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
+  async getClubMembers(clubId) {
+    if (!clubId) return [];
+    const { data, error } = await requireSupabase().rpc("get_club_members", {
+      target_club_id: clubId,
+    });
+    if (error) throw error;
+    return (data || []).map((m) => ({
+      membershipId: m.membership_id,
+      userId: m.user_id,
+      name: m.full_name || m.email || "Utilizator",
+      email: m.email || "",
+      role: normalizeRole(m.role),
+      status: m.status || "active",
+      assignedGroups: m.assigned_groups || [],
+      joinedAt: m.joined_at,
+    }));
+  },
+
+  async setMembershipStatus(membershipId, status) {
+    const { error } = await requireSupabase()
+      .from("club_memberships")
+      .update({ status })
+      .eq("id", membershipId);
+    if (error) throw error;
+    return true;
+  },
+
+  async removeMembership(membershipId) {
+    const { error } = await requireSupabase()
+      .from("club_memberships")
+      .delete()
+      .eq("id", membershipId);
+    if (error) throw error;
+    return true;
+  },
+
+  async updateSubscriptionPlan(clubId, planName, maxPlayers) {
+    const { data, error } = await requireSupabase()
+      .from("subscriptions")
+      .upsert(
+        {
+          club_id: clubId,
+          plan_name: planName,
+          status: "active",
+          max_players: maxPlayers ?? null,
+        },
+        { onConflict: "club_id" }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+
+    // Ține și clubs.plan sincronizat, pentru afișare.
+    await requireSupabase().from("clubs").update({ plan: planName }).eq("id", clubId);
+    return mapSubscription(data);
+  },
+
+  async runAiAnalysis({ clubId, analysisType, question }) {
+    const { data, error } = await requireSupabase().functions.invoke("club-ai-analysis", {
+      body: { clubId, analysisType, question },
+    });
+    if (error) {
+      // Eroarea de la functions.invoke are corpul răspunsului în context.
+      let message = error.message || "AI indisponibil.";
+      try {
+        const body = await error.context?.json?.();
+        if (body?.error) message = body.error;
+      } catch (_) { /* păstrăm mesajul generic */ }
+      throw new Error(message);
+    }
+    if (data?.error) throw new Error(data.error);
+    return data;
+  },
+
   async acceptInvitation(inviteToken) {
     const { data, error } = await requireSupabase().rpc("accept_club_invitation", {
       invite_token: inviteToken,
