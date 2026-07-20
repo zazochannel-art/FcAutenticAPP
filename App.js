@@ -610,6 +610,7 @@ function MainApp() {
         selectedClub={selectedClub}
         subscription={subscription}
         currentUser={effectiveUser}
+        players={players}
       />
     ),
     "Admin SaaS": (

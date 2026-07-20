@@ -150,7 +150,7 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
-export default function PricingScreen({ selectedClub, subscription, currentUser }) {
+export default function PricingScreen({ selectedClub, subscription, currentUser, players = [] }) {
   const queryClient = useQueryClient();
   // Planul activ al clubului vine din abonamentul real.
   const currentPlanId = String(subscription?.planName || selectedClub?.plan || "free").toLowerCase();
@@ -160,6 +160,8 @@ export default function PricingScreen({ selectedClub, subscription, currentUser 
 
   const isOwner = ["super_admin", "club_owner"].includes(currentUser?.role);
   const isCurrent = selectedPlan === currentPlanId;
+  // Limita reală de jucători vine din abonament; null = nelimitat.
+  const currentMaxPlayers = subscription?.maxPlayers ?? PLAN_MAX_PLAYERS[currentPlanId] ?? null;
 
   const activatePlan = async () => {
     if (!isOwner) {
@@ -326,19 +328,27 @@ export default function PricingScreen({ selectedClub, subscription, currentUser 
              <View style={styles.colUsage}>
                 <View style={styles.cardMain}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>Utilizare plan</Text>
-                      <Text style={styles.updateTime}>Actualizat acum 5 minute</Text>
+                      <Text style={styles.cardTitle}>Utilizarea clubului tău</Text>
                    </View>
                    <View style={styles.usageContent}>
                       <View style={styles.usageDonutWrap}>
-                         <UsageDonut per={activePlan.usage.per} label={activePlan.usage.val} sub={activePlan.usage.sub || "jucători"} color={activePlan.color} />
+                         <UsageDonut
+                           per={currentMaxPlayers ? Math.min(Math.round((players.length / currentMaxPlayers) * 100), 100) : 0}
+                           label={currentMaxPlayers ? `${players.length} / ${currentMaxPlayers}` : `${players.length}`}
+                           sub="jucători"
+                           color={PLAN_DATA[currentPlanId]?.color || CYAN}
+                         />
                       </View>
                       <View style={styles.usageBars}>
-                         {activePlan.usage.bars.map((bar, i) => <UsageBar key={i} {...bar} />)}
-                         <View style={styles.viewDetailsBtn}>
-                            <Text style={styles.viewDetailsText}>Vezi detalii utilizare</Text>
-                            <LucideIcons.ArrowRight size={14} color={TEXT_TH} />
-                         </View>
+                         <UsageBar
+                           label="Jucători utilizați"
+                           val={currentMaxPlayers ? `${players.length} / ${currentMaxPlayers}` : `${players.length} / nelimitat`}
+                           per={currentMaxPlayers ? Math.min(players.length / currentMaxPlayers, 1) : 0.05}
+                           color={PLAN_DATA[currentPlanId]?.color || CYAN}
+                         />
+                         <Text style={styles.usageHint}>
+                           Pe planul {subscription?.planName || "Free"}{currentMaxPlayers ? `, limita este de ${currentMaxPlayers} jucători` : ", jucătorii sunt nelimitați"}.
+                         </Text>
                       </View>
                    </View>
                 </View>
@@ -546,6 +556,7 @@ const styles = StyleSheet.create({
   cardTitle: { color: 'white', fontSize: 14, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   updateTime: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700' },
+  usageHint: { color: '#475569', fontSize: 9.5, fontWeight: '600', marginTop: 10, lineHeight: 14 },
   usageContent: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 20 },
   usageDonutWrap: { width: 100, alignItems: 'center', justifyContent: 'center' },
   donutContainer: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
