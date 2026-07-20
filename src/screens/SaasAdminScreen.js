@@ -99,37 +99,43 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
                    <View style={styles.cardHeader}>
                       <Text style={styles.cardTitle}>Cluburi în platformă</Text>
                    </View>
-                   <View style={styles.tableHeader}>
-                      <Text style={[styles.th, { flex: 1.5 }]}>Club</Text>
-                      <Text style={[styles.th, { flex: 2 }]}>Owner</Text>
-                      <Text style={[styles.th, { flex: 0.8 }]}>Plan</Text>
-                      <Text style={[styles.th, { width: 45, textAlign: 'center' }]}>Utilizatori</Text>
-                      <Text style={[styles.th, { width: 45, textAlign: 'center' }]}>Jucători</Text>
-                      <Text style={[styles.th, { flex: 1.5 }]}>Reînnoire</Text>
-                      <Text style={[styles.th, { flex: 1 }]}>Status</Text>
-                   </View>
                    {clubs.length === 0 && (
                      <View style={{ alignItems: 'center', paddingVertical: 24, gap: 8 }}>
                         <LucideIcons.Building2 size={24} color={TEXT_TH} />
                         <Text style={{ color: TEXT_DIM, fontSize: 11, fontWeight: '600' }}>Niciun club în platformă încă.</Text>
                      </View>
                    )}
-                   {clubs.map((club) => (
-                     <ClubRow
-                       key={club.id}
-                       name={club.name}
-                       sub={club.email || "—"}
-                       owner={club.city ? `${club.city}${club.country ? ", " + club.country : ""}` : "—"}
-                       plan={club.plan || "Free"}
-                       pColor={club.plan === "Pro" ? BLUE_ACCENT : club.plan === "Academy" ? VIOLET : club.plan === "Basic" ? AMBER : TEXT_DIM}
-                       users="—"
-                       players="—"
-                       renew="—"
-                       subText=""
-                       status={club.blocked ? "Blocat" : club.status === "active" ? "Activ" : (club.status || "Activ")}
-                       sColor={club.blocked ? RED : club.status === "active" ? GREEN : AMBER}
-                     />
-                   ))}
+                   {clubs.length > 0 && (
+                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                       <View style={{ minWidth: 620, flexGrow: 1 }}>
+                         <View style={styles.tableHeader}>
+                            <Text style={[styles.th, { flex: 1.5 }]}>Club</Text>
+                            <Text style={[styles.th, { flex: 2 }]}>Owner</Text>
+                            <Text style={[styles.th, { flex: 0.8 }]}>Plan</Text>
+                            <Text style={[styles.th, { width: 45, textAlign: 'center' }]}>Utilizatori</Text>
+                            <Text style={[styles.th, { width: 45, textAlign: 'center' }]}>Jucători</Text>
+                            <Text style={[styles.th, { flex: 1.5 }]}>Reînnoire</Text>
+                            <Text style={[styles.th, { flex: 1 }]}>Status</Text>
+                         </View>
+                         {clubs.map((club) => (
+                           <ClubRow
+                             key={club.id}
+                             name={club.name}
+                             sub={club.email || "—"}
+                             owner={club.city ? `${club.city}${club.country ? ", " + club.country : ""}` : "—"}
+                             plan={club.plan || "Free"}
+                             pColor={club.plan === "Pro" ? BLUE_ACCENT : club.plan === "Academy" ? VIOLET : club.plan === "Basic" ? AMBER : TEXT_DIM}
+                             users="—"
+                             players="—"
+                             renew="—"
+                             subText=""
+                             status={club.blocked ? "Blocat" : club.status === "active" ? "Activ" : (club.status || "Activ")}
+                             sColor={club.blocked ? RED : club.status === "active" ? GREEN : AMBER}
+                           />
+                         ))}
+                       </View>
+                     </ScrollView>
+                   )}
                 </View>
              </View>
 
@@ -170,7 +176,7 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
 
           {/* Row 4: Bottom Grid (Revenue / Activity / Health) */}
           <View style={styles.bottomGrid}>
-             <View style={{ flex: 1.3 }}>
+             <View style={{ flexBasis: 320, flexGrow: 1.3 }}>
                 <View style={styles.cardBottom}>
                    <View style={styles.cardHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -189,7 +195,7 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
                 </View>
              </View>
 
-             <View style={{ flex: 1 }}>
+             <View style={{ flexBasis: 280, flexGrow: 1 }}>
                 <View style={styles.cardBottom}>
                    <View style={styles.cardHeader}>
                       <Text style={styles.cardTitle}>Activitate recentă</Text>
@@ -203,7 +209,7 @@ export default function SaasAdminScreen({ clubs = [], onCreateClub }) {
                 </View>
              </View>
 
-             <View style={{ flex: 1 }}>
+             <View style={{ flexBasis: 280, flexGrow: 1 }}>
                 <View style={styles.cardBottom}>
                    <Text style={[styles.cardTitle, { marginBottom: 18 }]}>Sănătate platformă</Text>
                    <View style={styles.healthGrid}>
@@ -444,10 +450,10 @@ const styles = StyleSheet.create({
   pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   // --- Stats CSS ---
-  statsGrid: { flexDirection: 'row', gap: 14, marginBottom: 25 },
-  statCard: { flex: 1, backgroundColor: CARD_BG, borderRadius: 16, padding: 18, height: 100, borderHorizontal: 1, borderColor: BORDER_COLOR },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 25 },
+  statCard: { flexBasis: 170, flexGrow: 1, backgroundColor: CARD_BG, borderRadius: 16, padding: 18, minHeight: 100, borderWidth: 1, borderColor: BORDER_COLOR },
   statContent: { flexDirection: 'row', alignItems: 'center' },
-  statIconWrap: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderHorizontal: 1 },
+  statIconWrap: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   statLabel: { color: TEXT_DIM, fontSize: 11, fontWeight: '700' },
   statVal: { color: 'white', fontSize: 22, fontWeight: '900', marginTop: 3 },
   statTrend: { fontSize: 10, fontWeight: '800', marginTop: 10 },
@@ -455,17 +461,17 @@ const styles = StyleSheet.create({
   // --- Actions Row ---
   actionsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   sectionLabel: { color: TEXT_TH, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.2, marginRight: 18 },
-  actionsList: { flex: 1, flexDirection: 'row', gap: 12 },
-  actionBtn: { flex: 1, height: 44, backgroundColor: "rgba(15,23,42,0.4)", borderRadius: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10, borderHorizontal: 1, borderColor: "rgba(255,255,255,0.06)" },
+  actionsList: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  actionBtn: { flexBasis: 160, flexGrow: 1, height: 44, backgroundColor: "rgba(15,23,42,0.4)", borderRadius: 10, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
   actionIconOuter: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
   actionBtnText: { color: 'white', fontSize: 12, fontWeight: '800' },
 
   // --- Middle Grid CSS ---
-  middleGrid: { flexDirection: 'row', gap: 14, marginBottom: 20 },
-  colLeft: { flex: 1.5 },
-  colRight: { flex: 1 },
-  cardMain: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderHorizontal: 1, borderColor: BORDER_COLOR },
-  cardSide: { backgroundColor: CARD_BG, borderRadius: 20, padding: 18, borderHorizontal: 1, borderColor: BORDER_COLOR },
+  middleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 20 },
+  colLeft: { flexBasis: 360, flexGrow: 1.5 },
+  colRight: { flexBasis: 280, flexGrow: 1 },
+  cardMain: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  cardSide: { backgroundColor: CARD_BG, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: BORDER_COLOR },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   cardTitle: { color: 'white', fontSize: 13, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
   sideLink: { color: CYAN, fontSize: 11, fontWeight: '800' },
@@ -473,7 +479,7 @@ const styles = StyleSheet.create({
   tableHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
   th: { color: TEXT_TH, fontSize: 9, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
   tableRow: { flexDirection: 'row', alignItems: 'center', height: 56, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
-  miniClubCrest: { width: 28, height: 28, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', borderHorizontal: 1, borderColor: "rgba(255,255,255,0.05)" },
+  miniClubCrest: { width: 28, height: 28, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   rowMainText: { color: 'white', fontSize: 12, fontWeight: '800' },
   rowSubText: { color: TEXT_TH, fontSize: 9, fontWeight: '600', marginTop: 1 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, minWidth: 60, alignItems: 'center' },
@@ -495,21 +501,21 @@ const styles = StyleSheet.create({
   legendTotal: { color: TEXT_TH, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', marginTop: 12 },
 
   // --- Bottom Grid CSS ---
-  bottomGrid: { flexDirection: 'row', gap: 14 },
-  cardBottom: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderHorizontal: 1, borderColor: BORDER_COLOR },
+  bottomGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
+  cardBottom: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
   chartSub: { color: TEXT_TH, fontSize: 9, fontWeight: '900', marginLeft: 10 },
   revenueLegend: { flexDirection: 'row', gap: 16, marginBottom: 16 },
   revLegItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   revDot: { width: 7, height: 7, borderRadius: 3.5 },
   revLegText: { color: TEXT_DIM, fontSize: 10, fontWeight: '700' },
-  chartAreaLarge: { height: 220, alignItems: 'center', justifyContent: 'center', backgroundColor: "rgba(0, 212, 255, 0.02)", borderRadius: 16, borderHorizontal: 1, borderColor: "rgba(0, 212, 255, 0.1)" },
+  chartAreaLarge: { height: 220, alignItems: 'center', justifyContent: 'center', backgroundColor: "rgba(0, 212, 255, 0.02)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.1)" },
 
   activityLine: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
   activityIconWrap: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   activityTime: { color: TEXT_TH, fontSize: 9, fontWeight: '900', marginTop: 3 },
 
   healthGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  healthMiniCard: { width: '47%', backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, padding: 14, borderHorizontal: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', gap: 12 },
+  healthMiniCard: { width: '47%', backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', gap: 12 },
   healthIconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   healthVal: { color: 'white', fontSize: 14, fontWeight: '900' },
   healthLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '800' },
