@@ -639,6 +639,7 @@ function MainApp() {
         players={players}
         trainings={trainings}
         transactions={transactions}
+        selectedClub={selectedClub}
         clubId={selectedClubId}
         currentUser={effectiveUser}
         clubSettings={clubSettings}

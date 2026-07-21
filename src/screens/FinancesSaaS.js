@@ -11,8 +11,21 @@ import {
   Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
+
+const MONTH_NAMES = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
+
+// Ultimele 6 luni ca etichete „Iulie 2026" (cheia folosită în monthly_payments).
+function recentMonths(count = 6) {
+  const out = [];
+  const now = new Date();
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push(`${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`);
+  }
+  return out;
+}
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -36,8 +49,9 @@ function money(value) {
   return `${Number(value || 0).toLocaleString("ro-RO")} lei`;
 }
 
-export default function FinancesSaaS({ transactions = [], clubId, currentUser }) {
+export default function FinancesSaaS({ transactions = [], players = [], selectedClub, clubId, currentUser }) {
   const queryClient = useQueryClient();
+  const [view, setView] = useState("transactions");
   const [addOpen, setAddOpen] = useState(false);
   const [filter, setFilter] = useState("Toate");
   const [busyId, setBusyId] = useState(null);
@@ -100,9 +114,22 @@ export default function FinancesSaaS({ transactions = [], clubId, currentUser })
 
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Finanțe</Text>
-          <Text style={styles.pageSub}>Veniturile și cheltuielile clubului, într-un singur loc.</Text>
+          <Text style={styles.pageSub}>Venituri, cheltuieli și cotizațiile lunare ale jucătorilor.</Text>
         </View>
 
+        {/* View toggle */}
+        <View style={styles.segment}>
+          {[["transactions", "Tranzacții"], ["fees", "Cotizații"]].map(([key, label]) => (
+            <Pressable key={key} onPress={() => setView(key)} style={[styles.segmentBtn, view === key && styles.segmentBtnActive]}>
+              <Text style={[styles.segmentText, view === key && { color: CYAN }]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {view === "fees" ? (
+          <FeesModule players={players} selectedClub={selectedClub} clubId={clubId} canManage={canManage} />
+        ) : (
+        <>
         {/* Stat Cards */}
         <View style={styles.statsGrid}>
            <StatCard icon="ArrowUpCircle" label="Venituri" val={money(totals.income)} iColor={GREEN} />
@@ -165,11 +192,145 @@ export default function FinancesSaaS({ transactions = [], clubId, currentUser })
             </View>
           ))}
         </View>
+        </>
+        )}
 
       </ScrollView>
 
       <AddTransactionModal visible={addOpen} onClose={() => setAddOpen(false)} onSave={save} />
     </View>
+  );
+}
+
+function FeesModule({ players, selectedClub, clubId, canManage }) {
+  const queryClient = useQueryClient();
+  const months = useMemo(() => recentMonths(6), []);
+  const groups = selectedClub?.groups?.length
+    ? selectedClub.groups
+    : Array.from(new Set(players.map((p) => p.group).filter(Boolean)));
+
+  const [month, setMonth] = useState(months[0]);
+  const [group, setGroup] = useState(groups[0] || "");
+  const [defaultFee, setDefaultFee] = useState("200");
+  const [busyId, setBusyId] = useState(null);
+
+  const { data: payments = {} } = useQuery({
+    queryKey: ["monthlyPayments", clubId],
+    queryFn: () => supabaseService.getMonthlyPayments(clubId),
+    enabled: !!clubId,
+  });
+
+  const key = `${month}-${group}`;
+  const monthGroupPayments = payments[key] || {};
+  const groupPlayers = players.filter((p) => p.group === group);
+
+  const paidCount = groupPlayers.filter((p) => monthGroupPayments[p.id]?.paid).length;
+  const collected = groupPlayers.reduce(
+    (sum, p) => sum + (monthGroupPayments[p.id]?.paid ? Number(monthGroupPayments[p.id]?.amount || 0) : 0),
+    0
+  );
+
+  const togglePaid = async (player) => {
+    const current = monthGroupPayments[player.id];
+    const amount = current?.amount || defaultFee || "0";
+    setBusyId(player.id);
+    try {
+      await supabaseService.saveMonthlyPayment(month, group, player.id, {
+        paid: !current?.paid,
+        amount,
+        paidAt: !current?.paid ? new Date().toISOString().slice(0, 10) : "",
+      });
+      queryClient.invalidateQueries({ queryKey: ["monthlyPayments"] });
+    } catch (e) {
+      notify("Eroare", e.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (groups.length === 0) {
+    return (
+      <View style={styles.emptyBox}>
+        <LucideIcons.Users size={30} color={TEXT_TH} />
+        <Text style={styles.emptyText}>Nu există grupe cu jucători. Adaugă jucători în tab-ul Echipă.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <>
+      {/* Stat cards cotizații */}
+      <View style={styles.statsGrid}>
+        <StatCard icon="CircleCheck" label="Plătit" val={`${paidCount}/${groupPlayers.length}`} iColor={GREEN} />
+        <StatCard icon="Wallet" label="Încasat luna asta" val={money(collected)} iColor={CYAN} />
+        <StatCard icon="Users" label="Jucători în grupă" val={String(groupPlayers.length)} iColor={VIOLET} />
+      </View>
+
+      {/* Selectoare lună + grupă */}
+      <Text style={styles.feesLabel}>LUNA</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+        {months.map((m) => (
+          <Pressable key={m} onPress={() => setMonth(m)} style={[styles.chip, month === m && styles.chipActive]}>
+            <Text style={[styles.chipText, month === m && { color: CYAN }]}>{m}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      <Text style={styles.feesLabel}>GRUPA</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+        {groups.map((g) => (
+          <Pressable key={g} onPress={() => setGroup(g)} style={[styles.chip, group === g && styles.chipActive]}>
+            <Text style={[styles.chipText, group === g && { color: CYAN }]}>{g}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {canManage && (
+        <View style={styles.feeInputRow}>
+          <Text style={styles.feeInputLabel}>Cotizație implicită (lei):</Text>
+          <TextInput
+            style={styles.feeInput}
+            value={defaultFee}
+            onChangeText={setDefaultFee}
+            keyboardType="numeric"
+            placeholder="200"
+            placeholderTextColor={TEXT_TH}
+          />
+        </View>
+      )}
+
+      {/* Lista jucătorilor */}
+      <View style={styles.cardMain}>
+        <Text style={styles.cardTitle}>COTIZAȚII {group} • {month.toUpperCase()}</Text>
+        {groupPlayers.length === 0 && (
+          <View style={styles.emptyBox}>
+            <LucideIcons.UserX size={28} color={TEXT_TH} />
+            <Text style={styles.emptyText}>Niciun jucător în grupa {group}.</Text>
+          </View>
+        )}
+        {groupPlayers.map((player) => {
+          const p = monthGroupPayments[player.id];
+          const paid = !!p?.paid;
+          return (
+            <View key={player.id} style={styles.feeRow}>
+              <View style={styles.feeAvatar}><LucideIcons.User size={13} color="white" /></View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.feeName} numberOfLines={1}>{player.name}</Text>
+                <Text style={styles.feeSub}>{paid ? `Plătit • ${money(p.amount)}${p.paidAt ? ` • ${p.paidAt}` : ""}` : "Neplătit"}</Text>
+              </View>
+              <Pressable
+                onPress={() => canManage && togglePaid(player)}
+                disabled={!canManage || busyId === player.id}
+                style={[styles.feeToggle, { backgroundColor: (paid ? GREEN : RED) + "18", borderColor: (paid ? GREEN : RED) + "40" }]}
+              >
+                {paid ? <LucideIcons.Check size={13} color={GREEN} /> : <LucideIcons.X size={13} color={RED} />}
+                <Text style={[styles.feeToggleText, { color: paid ? GREEN : RED }]}>{paid ? "Plătit" : "Neplătit"}</Text>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+    </>
   );
 }
 
@@ -260,6 +421,25 @@ const styles = StyleSheet.create({
   statIconWrap: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   statVal: { color: 'white', fontSize: 15, fontWeight: '900' },
   statLabel: { color: TEXT_DIM, fontSize: 9.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
+
+  segment: { flexDirection: 'row', backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 12, padding: 4, marginBottom: 18, borderWidth: 1, borderColor: BORDER_COLOR },
+  segmentBtn: { flex: 1, height: 38, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segmentBtnActive: { backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "30" },
+  segmentText: { color: TEXT_DIM, fontSize: 12, fontWeight: '900' },
+
+  feesLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginRight: 6 },
+  chipActive: { borderColor: CYAN, backgroundColor: CYAN + "10" },
+  chipText: { color: TEXT_DIM, fontSize: 10.5, fontWeight: '800' },
+  feeInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 6, marginBottom: 14 },
+  feeInputLabel: { color: TEXT_DIM, fontSize: 11, fontWeight: '700' },
+  feeInput: { width: 90, height: 38, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, color: 'white', fontSize: 12, fontWeight: '700' },
+  feeRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
+  feeAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", alignItems: 'center', justifyContent: 'center' },
+  feeName: { color: 'white', fontSize: 12, fontWeight: '800' },
+  feeSub: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
+  feeToggle: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 32, borderRadius: 9, borderWidth: 1 },
+  feeToggleText: { fontSize: 10, fontWeight: '900' },
 
   controlsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' },
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: BLUE_ACCENT, paddingHorizontal: 16, height: 38, borderRadius: 10 },
