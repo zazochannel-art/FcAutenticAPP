@@ -144,6 +144,7 @@ const PLAN_DATA = {
 };
 
 const PLAN_MAX_PLAYERS = { free: 20, starter: 50, pro: 150, elite: null };
+const NEXT_PLAN = { free: "starter", starter: "pro", pro: "elite" };
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -208,10 +209,6 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                 {currentPlanId === plan.id && <View style={styles.activePlanIndicator}><Text style={styles.activePlanText}>Plan actual</Text></View>}
               </Pressable>
             ))}
-            <Pressable style={styles.compareBtn}>
-               <LucideIcons.LayoutGrid size={16} color={CYAN} />
-               <Text style={styles.compareBtnText}>Compară planurile</Text>
-            </Pressable>
           </View>
 
           {/* Top Content Grid */}
@@ -280,7 +277,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                       <View style={styles.benefitList}>
                          {activePlan.nextStep.benefits.map((b, i) => <BenefitItem key={i} label={b} color={activePlan.nextStep.color} />)}
                       </View>
-                      <Pressable style={styles.upgradeLink}>
+                      <Pressable style={styles.upgradeLink} onPress={() => NEXT_PLAN[selectedPlan] && setSelectedPlan(NEXT_PLAN[selectedPlan])}>
                          <Text style={[styles.upgradeLinkText, { color: activePlan.nextStep.color }]}>{activePlan.nextStep.link}</Text>
                          <LucideIcons.ChevronRight size={16} color={activePlan.nextStep.color} />
                       </Pressable>
@@ -449,30 +446,6 @@ const UsageBar = ({ label, val, per, color }) => (
      <View style={styles.usageBarBg}>
         <View style={[styles.usageBarFill, { width: `${per * 100}%`, backgroundColor: color }]} />
      </View>
-  </View>
-);
-
-const ClubRow = ({ name, id, owner, academy, players, admins, staff, plan, pPrice, status, date, color, isElite }) => (
-  <View style={styles.tableRow}>
-     <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center' }}>
-        <View style={styles.miniClubCrest}><LucideIcons.Shield size={14} color="white" /></View>
-        <View style={{ marginLeft: 12 }}>
-           <Text style={styles.rowMainText}>{name}</Text>
-           <Text style={styles.rowSubText}>ID: {id}</Text>
-        </View>
-     </View>
-     <Text style={[styles.rowMainText, { flex: 1.5 }]}>{isElite ? academy : owner}</Text>
-     <Text style={[styles.rowMainText, { flex: 1, textAlign: 'center' }]}>{players}</Text>
-     <Text style={[styles.rowMainText, { flex: 1, textAlign: 'center' }]}>{isElite ? staff : admins}</Text>
-     <View style={{ flex: 1.5 }}>
-        <Text style={[styles.rowMainText, { color: color }]}>{plan}</Text>
-        <Text style={styles.rowSubText}>{pPrice}</Text>
-     </View>
-     <View style={{ flex: 1, alignItems: 'center' }}>
-        <View style={[styles.statusBadge, { backgroundColor: GREEN + "15" }]}><Text style={[styles.statusBadgeText, { color: GREEN }]}>{status}</Text></View>
-     </View>
-     <Text style={[styles.rowMainText, { flex: 1.5 }]}>{date}</Text>
-     <Pressable style={{ width: 40, alignItems: 'center' }}><LucideIcons.MoreHorizontal size={18} color={TEXT_TH} /></Pressable>
   </View>
 );
 

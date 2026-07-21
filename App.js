@@ -449,6 +449,25 @@ function MainApp() {
     }
   };
 
+  const signInWithGoogle = async () => {
+    setAuthError("");
+    if (!isSupabaseConfigured || !supabase) {
+      setAuthError(supabaseConfigError || "Supabase nu este configurat.");
+      return;
+    }
+    if (Platform.OS !== "web") {
+      Alert.alert("Google", "Autentificarea Google este disponibilă în versiunea web a aplicației.");
+      return;
+    }
+    // Redirect real către Google. La revenire, sesiunea e preluată automat
+    // de supabase.auth.getSession() din efectul de montare.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) setAuthError(error.message);
+  };
+
   const signUpWithEmail = async (form) => {
     if (!isSupabaseConfigured || !supabase) {
       throw new Error(
@@ -571,6 +590,7 @@ function MainApp() {
         trainings={trainings}
         attendance={attendance}
         selectedClub={selectedClub}
+        setTab={setTab}
         openNotifications={() => setTab("Mai mult")}
       />
     ),
@@ -674,7 +694,7 @@ function MainApp() {
           setRegisterError("");
           setAuthView("register");
         }}
-        onGoogle={() => Alert.alert("Google Login", "Autentificarea Google va fi disponibilă într-o versiune viitoare.")}
+        onGoogle={signInWithGoogle}
         onForgot={resetPassword}
       />
     );

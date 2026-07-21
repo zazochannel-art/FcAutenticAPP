@@ -185,8 +185,6 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
             <View style={styles.actionsRow}>
                <View style={styles.actionsList}>
                   <ActionBtn icon="Plus" label="Adaugă meci" color={BLUE_ACCENT} onPress={() => setAddOpen(true)} />
-                  <ActionBtn icon="Users" label="Setează lot" color={BLUE_ACCENT} />
-                  <ActionBtn icon="Send" label="Trimite convocare" color={BLUE_ACCENT} />
                </View>
             </View>
           )}
