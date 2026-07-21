@@ -65,48 +65,13 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
       </ScrollView>
 
       <View style={styles.sidebarFooter}>
-        {/* Season Info Widget from Mockup */}
-        <View style={styles.seasonInfoWidget}>
-           <View style={styles.seasonInfoHeader}>
-              <Text style={styles.seasonTitle}>SEZON 2024/25</Text>
-              <LucideIcons.ChevronDown size={14} color={C.muted} />
-           </View>
-           <Text style={styles.leagueText}>Liga 3, Seria 4</Text>
-           <Text style={styles.matchdayText}>Etapa 24 din 34</Text>
-
-           <View style={styles.seasonStatRow}>
-              <Text style={styles.seasonStatLabel}>PUNCTE</Text>
-              <Text style={styles.seasonStatVal}>48</Text>
-           </View>
-           <View style={styles.seasonProgressBar}>
-              <View style={[styles.seasonProgressFill, { width: '65%' }]} />
-           </View>
-
-           <View style={styles.seasonStatRow}>
-              <Text style={styles.seasonStatLabel}>POZIȚIE</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                 <Text style={styles.seasonStatVal}>3</Text>
-                 <LucideIcons.ChevronUp size={12} color={C.green} />
-              </View>
-           </View>
-
-           <Pressable style={styles.fullStandingsBtn}>
-              <LucideIcons.BarChart3 size={14} color={C.muted} />
-              <Text style={styles.fullStandingsText}>Vezi clasamentul complet</Text>
-           </Pressable>
-        </View>
-
         <View style={styles.clubCard}>
           <Image source={require("../../assets/icon-square.png")} style={styles.clubLogoSmall} />
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.clubName}>{selectedClub?.name || "FC Autentic"}</Text>
-            <Text style={styles.clubSeason}>Sezon 2025/2026</Text>
+            <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || "FC Autentic"}</Text>
+            <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : "Club"}</Text>
           </View>
         </View>
-        <Pressable style={styles.seasonButton}>
-          <LucideIcons.Calendar size={15} color={C.muted} />
-          <Text style={styles.seasonText}>Schimbă sezonul</Text>
-        </Pressable>
       </View>
     </View>
   );

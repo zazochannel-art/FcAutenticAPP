@@ -54,6 +54,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
   const [isPublishing, setIsPublishing] = useState(false);
   const [formError, setFormError] = useState('');
   const [activePicker, setActivePicker] = useState(null);
+  const [customGroup, setCustomGroup] = useState('');
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -92,6 +93,15 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
   const toggleAgeGroup = (group) => {
     const active = form.ageGroups.includes(group);
     handleInputChange('ageGroups', active ? form.ageGroups.filter(g => g !== group) : [...form.ageGroups, group]);
+  };
+
+  const addCustomGroup = () => {
+    const g = customGroup.trim();
+    if (!g) return;
+    if (!form.ageGroups.includes(g)) {
+      handleInputChange('ageGroups', [...form.ageGroups, g]);
+    }
+    setCustomGroup('');
   };
 
   const selectOption = (field, value) => {
@@ -286,7 +296,22 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                           <Text style={[styles.pillText, form.ageGroups.includes(g) && styles.pillTextActive]}>{g}</Text>
                         </Pressable>
                       ))}
-                      <Pressable style={styles.addPill} onPress={() => notify('Grupe personalizate', 'Adăugarea unei grupe personalizate va fi disponibilă în etapa următoare.')}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
+                      {form.ageGroups.filter(g => !['U7','U9','U11','U13','U15','U17','U19'].includes(g)).map(g => (
+                        <Pressable key={g} onPress={() => toggleAgeGroup(g)} style={[styles.pill, styles.pillActive]}>
+                          <Text style={[styles.pillText, styles.pillTextActive]}>{g}  ✕</Text>
+                        </Pressable>
+                      ))}
+                   </View>
+                   <View style={styles.customGroupRow}>
+                      <TextInput
+                        style={styles.customGroupInput}
+                        value={customGroup}
+                        onChangeText={setCustomGroup}
+                        onSubmitEditing={addCustomGroup}
+                        placeholder="Adaugă grupă (ex: Seniori)"
+                        placeholderTextColor="#475569"
+                      />
+                      <Pressable style={styles.addPill} onPress={addCustomGroup}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
                    </View>
                 </View>
               </View>
@@ -450,14 +475,6 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
             </Pressable>
 
             <Pressable
-              style={[styles.btnOutline, isMobile && styles.mobileFooterButton]}
-              onPress={() => notify('Draft salvat local', 'Datele completate rămân pe ecran până finalizezi clubul.')}
-            >
-               <LucideIcons.Save size={18} color="white" />
-               <Text style={styles.btnOutlineText}>Salvează draft</Text>
-            </Pressable>
-
-            <Pressable
               onPress={handleFinalSubmit}
               disabled={isPublishing}
               style={[styles.primaryPressable, isMobile && styles.mobileFooterButton, isPublishing && styles.disabledButton]}
@@ -603,6 +620,8 @@ const styles = StyleSheet.create({
   pillText: { color: '#475569', fontSize: 10, fontWeight: '900' },
   pillTextActive: { color: CYAN },
   addPill: { width: 38, height: 38, borderRadius: 19, borderStyle: 'dashed', borderWidth: 1, borderColor: CYAN, alignItems: 'center', justifyContent: 'center' },
+  customGroupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  customGroupInput: { flex: 1, height: 40, backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 12, paddingHorizontal: 12, color: 'white', fontSize: 12, fontWeight: '600' },
 
   colorRow: { flexDirection: 'row' },
   colorPicker: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 14, paddingHorizontal: 12, height: 52 },

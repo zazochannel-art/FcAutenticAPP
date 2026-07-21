@@ -60,7 +60,7 @@ function statusInfo(status) {
   return { label: status || "Activ", color: GREEN };
 }
 
-export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, openNotifications }) {
+export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, openNotifications, setTab }) {
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
   const [addOpen, setAddOpen] = useState(false);
@@ -166,9 +166,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
             <View style={styles.actionsRow}>
                <View style={styles.actionsList}>
                   <ActionBtn icon="UserPlus" label="Adaugă jucător" color={BLUE_ACCENT} onPress={() => setAddOpen(true)} />
-                  <ActionBtn icon="Users" label="Setează lot" color={BLUE_ACCENT} />
-                  <ActionBtn icon="MessageSquare" label="Trimite mesaj" color={BLUE_ACCENT} />
-                  <ActionBtn icon="CheckCircle" label="Marchează prezență" color={BLUE_ACCENT} />
+                  <ActionBtn icon="CheckCircle" label="Marchează prezență" color={BLUE_ACCENT} onPress={() => setTab?.("Antren.")} />
                </View>
             </View>
           )}
