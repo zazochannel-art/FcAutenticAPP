@@ -13,14 +13,18 @@ export const authService = {
     return data;
   },
 
-  async signUp({ email, password, fullName, groupName, playerNo, playerPosition }) {
-    // Câmpurile de jucător intră în metadata doar la înregistrarea de jucători:
-    // trigger-ul din DB creează rândul de player numai când acestea există.
+  async signUp({ email, password, fullName, groupName, playerNo, playerPosition, joinCode }) {
+    // Datele de jucător + codul de club intră în metadata; trigger-ul din DB
+    // (handle_new_player_signup) creează jucătorul și membership-ul direct în
+    // clubul identificat prin cod. Fără cod se creează doar un profil.
     const metadata = { full_name: fullName };
     if (groupName || playerPosition || playerNo) {
       metadata.group_name = groupName || "U19";
       metadata.player_no = String(playerNo || 0);
       metadata.player_position = playerPosition || "Jucător";
+    }
+    if (joinCode) {
+      metadata.join_code = String(joinCode).trim().toUpperCase();
     }
     const { data, error } = await requireSupabase().auth.signUp({
       email,

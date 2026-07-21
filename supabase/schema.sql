@@ -42,9 +42,19 @@ create table if not exists public.clubs (
   blocked boolean not null default false,
   primary_color text,
   secondary_color text,
+  join_code text unique default upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8)),
   created_by uuid references auth.users(id) on delete set null default auth.uid(),
   created_at timestamptz default now()
 );
+
+-- Cod de club pentru cluburile existente (idempotent)
+alter table public.clubs add column if not exists join_code text;
+update public.clubs set join_code = upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8)) where join_code is null;
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'clubs_join_code_key') then
+    alter table public.clubs add constraint clubs_join_code_key unique (join_code);
+  end if;
+end $$;
 
 create table if not exists public.club_memberships (
   id uuid primary key default gen_random_uuid(),
@@ -449,18 +459,29 @@ $$;
 --    (metadata cu group_name/player_position), legat de clubul implicit;
 --    celelalte conturi primesc doar profil.
 -- ----------------------------------------------------------------------------
+-- La signup: dacă metadata conține un cod de club valid, jucătorul e creat și
+-- adăugat DIRECT în acel club (player + membership + profil legat). Fără cod
+-- valid se creează doar un profil — nu mai există jucători orfani.
 create or replace function public.handle_new_player_signup()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
   new_player_id bigint;
   player_group text;
   display_name text;
+  target_club uuid;
+  join_code_input text;
 begin
   display_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
+  player_group := coalesce(nullif(new.raw_user_meta_data->>'group_name', ''), 'U19');
+  join_code_input := nullif(trim(new.raw_user_meta_data->>'join_code'), '');
 
-  if (new.raw_user_meta_data ? 'player_position') or (new.raw_user_meta_data ? 'group_name') then
-    player_group := coalesce(new.raw_user_meta_data->>'group_name', 'U19');
+  if join_code_input is not null then
+    select id into target_club from public.clubs
+    where upper(join_code) = upper(join_code_input) and blocked = false
+    limit 1;
+  end if;
 
+  if target_club is not null then
     insert into public.players (no, name, role, group_name, status, club_id)
     values (
       coalesce(nullif(new.raw_user_meta_data->>'player_no', '')::integer, 0),
@@ -468,12 +489,16 @@ begin
       coalesce(new.raw_user_meta_data->>'player_position', 'Jucător'),
       player_group,
       'Activ',
-      '00000000-0000-0000-0000-000000000000'::uuid
+      target_club
     )
     returning id into new_player_id;
 
     insert into public.profiles (id, full_name, role, assigned_groups, player_id, email)
     values (new.id, display_name, 'player', array[player_group], new_player_id, new.email);
+
+    insert into public.club_memberships (user_id, club_id, role, assigned_groups, status)
+    values (new.id, target_club, 'player', array[player_group], 'active')
+    on conflict (user_id, club_id) do nothing;
   else
     insert into public.profiles (id, full_name, role, assigned_groups, email)
     values (new.id, display_name, 'player', '{}', new.email);

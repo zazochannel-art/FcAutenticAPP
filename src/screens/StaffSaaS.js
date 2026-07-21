@@ -133,10 +133,34 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser, openNotif
            <StatCard icon="UserPlus" label="Cereri în așteptare" val={String(pendingMembers.length)} iColor={AMBER} />
         </View>
 
+        {/* Cod de înregistrare jucători */}
+        {!!selectedClub?.joinCode && (
+          <View style={styles.codeCard}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.codeCardLabel}>COD DE ÎNREGISTRARE JUCĂTORI</Text>
+              <Text style={styles.codeCardValue}>{selectedClub.joinCode}</Text>
+              <Text style={styles.codeCardHint}>Dă acest cod jucătorilor — îl introduc la „Înregistrare jucător” și intră direct în club.</Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                if (Platform.OS === "web" && navigator?.clipboard) {
+                  navigator.clipboard.writeText(selectedClub.joinCode);
+                  notify("Copiat", "Codul a fost copiat în clipboard.");
+                } else {
+                  notify("Cod club", selectedClub.joinCode);
+                }
+              }}
+              style={styles.codeCopyBtn}
+            >
+              <LucideIcons.Copy size={16} color={CYAN} />
+            </Pressable>
+          </View>
+        )}
+
         {isOwner && (
           <Pressable style={styles.inviteBtn} onPress={() => setInviteOpen(true)}>
             <LucideIcons.Mail size={16} color="white" />
-            <Text style={styles.inviteBtnText}>Invită membru nou</Text>
+            <Text style={styles.inviteBtnText}>Invită membru (staff)</Text>
           </Pressable>
         )}
 
@@ -307,6 +331,11 @@ const styles = StyleSheet.create({
 
   inviteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: BLUE_ACCENT, height: 44, borderRadius: 12, marginBottom: 16 },
   inviteBtnText: { color: 'white', fontSize: 12, fontWeight: '900' },
+  codeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: CYAN + "0C", borderWidth: 1, borderColor: CYAN + "30", borderRadius: 14, padding: 14, marginBottom: 16 },
+  codeCardLabel: { color: TEXT_DIM, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8 },
+  codeCardValue: { color: CYAN, fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },
+  codeCardHint: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600', marginTop: 4, lineHeight: 13 },
+  codeCopyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: CYAN + "15", alignItems: 'center', justifyContent: 'center' },
 
   cardMain: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR },
   cardTitle: { color: 'white', fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },

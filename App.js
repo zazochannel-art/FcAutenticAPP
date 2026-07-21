@@ -412,8 +412,12 @@ function MainApp() {
         groupName: form.group,
         playerNo: form.no,
         playerPosition: form.role,
+        joinCode: form.clubCode,
       });
-      Alert.alert("Cont creat", "Autentifică-te cu email-ul și parola setate.");
+      Alert.alert(
+        "Cont creat",
+        "Ai fost adăugat în club. Dacă e nevoie, confirmă emailul, apoi autentifică-te — vei intra direct în clubul tău."
+      );
       setAuthView("login");
     } catch (e) {
       setRegisterError(e.message);
@@ -688,6 +692,12 @@ function MainApp() {
           queryClient.invalidateQueries({ queryKey: ["clubs"] });
           queryClient.invalidateQueries({ queryKey: ["memberships"] });
           if (newClub?.id) setSelectedClubId(newClub.id);
+          if (newClub?.joinCode) {
+            Alert.alert(
+              "Club creat",
+              `Codul de înregistrare pentru jucători este: ${newClub.joinCode}\n\nÎl găsești oricând în ecranul Staff. Dă-l jucătorilor ca să se alăture clubului.`
+            );
+          }
           setAuthView("app");
         }}
       />

@@ -31,6 +31,7 @@ function mapClub(row) {
     createdAt: row.created_at || "",
     primaryColor: row.primary_color || "",
     secondaryColor: row.secondary_color || "",
+    joinCode: row.join_code || "",
   };
 }
 
