@@ -12,6 +12,9 @@ import {
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle, Rect, G, Text as SvgText } from "react-native-svg";
+import { useQuery } from "@tanstack/react-query";
+import { supabaseService } from "../services/supabaseService";
+import PlayerDetailModal from "../components/PlayerDetailModal";
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -60,13 +63,26 @@ function statusInfo(status) {
   return { label: status || "Activ", color: GREEN };
 }
 
-export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, openNotifications, setTab }) {
+export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, openNotifications, setTab }) {
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
   const [addOpen, setAddOpen] = useState(false);
+  const [detailPlayer, setDetailPlayer] = useState(null);
 
   const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
   const clubGroups = selectedClub?.groups?.length ? selectedClub.groups : DEFAULT_GROUPS;
+  const activeClubId = clubId || selectedClub?.id;
+
+  const { data: evaluations = {} } = useQuery({
+    queryKey: ["evaluations", activeClubId],
+    queryFn: () => supabaseService.getEvaluations(activeClubId),
+    enabled: !!activeClubId,
+  });
+  const { data: observations = {} } = useQuery({
+    queryKey: ["observations", activeClubId],
+    queryFn: () => supabaseService.getObservations(activeClubId),
+    enabled: !!activeClubId,
+  });
 
   // Rata de prezență per jucător: prezent/întârziat din totalul marcajelor.
   const presenceByPlayer = useMemo(() => {
@@ -226,7 +242,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                      const presence = presenceByPlayer[player.id];
                      const rate = presence?.total ? presence.present / presence.total : null;
                      return (
-                       <View key={player.id} style={styles.tableRow}>
+                       <Pressable key={player.id} style={styles.tableRow} onPress={() => setDetailPlayer(player)}>
                           <Text style={styles.rowNum}>{player.no || "—"}</Text>
                           <View style={{ flex: 2.5, flexDirection: 'row', alignItems: 'center' }}>
                              <View style={styles.miniAvatar}><LucideIcons.User size={12} color="white" /></View>
@@ -243,8 +259,9 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                                 {rate !== null && <View style={[styles.ratingBarFill, { width: `${Math.round(rate * 100)}%`, backgroundColor: GREEN }]} />}
                              </View>
                              <Text style={[styles.ratingVal, rate === null && { color: TEXT_TH }]}>{rate === null ? "—" : `${Math.round(rate * 100)}%`}</Text>
+                             <LucideIcons.ChevronRight size={13} color={TEXT_TH} />
                           </View>
-                       </View>
+                       </Pressable>
                      );
                    })}
                 </View>
@@ -359,6 +376,16 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
         onSave={addPlayer}
         groups={clubGroups}
       />
+
+      {detailPlayer && (
+        <PlayerDetailModal
+          player={detailPlayer}
+          canManage={canManage}
+          evaluations={evaluations}
+          observations={observations}
+          onClose={() => setDetailPlayer(null)}
+        />
+      )}
     </View>
   );
 }
