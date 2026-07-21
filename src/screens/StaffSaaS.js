@@ -67,11 +67,13 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser, openNotif
   const pendingMembers = members.filter((m) => m.status === "pending");
   const staffMembers = activeMembers.filter((m) => ["club_owner", "admin", "coach", "staff"].includes(m.role));
 
-  const setStatus = async (member, status) => {
+  const approve = async (member) => {
     setBusyId(member.membershipId);
     try {
-      await supabaseService.setMembershipStatus(member.membershipId, status);
+      // RPC-ul activează membership-ul și creează jucătorul în lot din datele lui.
+      await supabaseService.approveMember(member.membershipId);
       refresh();
+      queryClient.invalidateQueries({ queryKey: ["players"] });
     } catch (e) {
       notify("Eroare", e.message);
     } finally {
@@ -178,7 +180,7 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser, openNotif
                 {isOwner && (
                   <View style={{ flexDirection: "row", gap: 8 }}>
                     <Pressable
-                      onPress={() => setStatus(member, "active")}
+                      onPress={() => approve(member)}
                       disabled={busyId === member.membershipId}
                       style={[styles.smallBtn, { backgroundColor: GREEN + "18" }]}
                     >
