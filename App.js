@@ -49,6 +49,7 @@ import MatchesScreen from "./src/screens/MatchesScreen";
 import CalendarSaaS from "./src/screens/CalendarSaaS";
 import FinancesSaaS from "./src/screens/FinancesSaaS";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
+import MyProfileScreen from "./src/screens/MyProfileScreen";
 import MoreScreen from "./src/screens/MoreScreen";
 import SaasAdminScreen from "./src/screens/SaasAdminScreen";
 import AISaaSReport from "./src/screens/AISaaSReport";
@@ -109,8 +110,8 @@ const roleTabs = {
   club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
   admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
   coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
-  player: ["Dashboard", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-  parent: ["Dashboard", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  player: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  parent: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Mai mult"],
   viewer: ["Dashboard", "Calendar", "Mai mult"],
   guest: ["Dashboard", "Calendar", "Mai mult"],
 };
@@ -516,7 +517,7 @@ function MainApp() {
 
     const tableToKey = {
       players: "players",
-      chat_messages: "chatMessages",
+      chat_messages: "announcements",
       matches: "matches",
       trainings: "trainings",
       attendance: "attendance",
@@ -579,7 +580,7 @@ function MainApp() {
           subscription={subscription}
           memberships={memberships}
           invitations={invitations}
-          openNotifications={() => setTab("Mai mult")}
+          openNotifications={() => setTab("Notif.")}
         />
       ),
     "Echipă": (
@@ -590,8 +591,9 @@ function MainApp() {
         trainings={trainings}
         attendance={attendance}
         selectedClub={selectedClub}
+        clubId={selectedClubId}
         setTab={setTab}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Antren.": (
@@ -603,7 +605,7 @@ function MainApp() {
         currentUser={effectiveUser}
         selectedClub={selectedClub}
         clubId={selectedClubId}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     Meciuri: (
@@ -612,7 +614,7 @@ function MainApp() {
         matches={matches}
         currentUser={effectiveUser}
         clubId={selectedClubId}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     Calendar: (
@@ -622,7 +624,7 @@ function MainApp() {
         events={events}
         clubId={selectedClubId}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     Sarcini: <TasksSaaS tasks={tasks} clubId={selectedClubId} currentUser={effectiveUser} />,
@@ -631,7 +633,7 @@ function MainApp() {
         selectedClub={selectedClub}
         clubId={selectedClubId}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Finanțe": (
@@ -643,14 +645,14 @@ function MainApp() {
         clubId={selectedClubId}
         currentUser={effectiveUser}
         clubSettings={clubSettings}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     AI: (
       <AISaaSReport
         currentUser={effectiveUser}
         selectedClub={selectedClub}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     ),
     Abonamente: (
@@ -662,10 +664,22 @@ function MainApp() {
       />
     ),
     "Admin SaaS": (
-      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Mai mult")} />
+      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Notif.")} />
     ),
     "Notif.": (
-      <NotificationsScreen currentUser={effectiveUser} openNotifications={() => setTab("Notif.")} />
+      <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} openNotifications={() => setTab("Notif.")} />
+    ),
+    "Profil": (
+      <MyProfileScreen
+        currentUser={effectiveUser}
+        players={players}
+        trainings={trainings}
+        matches={matches}
+        attendance={attendance}
+        clubId={selectedClubId}
+        selectedClub={selectedClub}
+        openNotifications={() => setTab("Notif.")}
+      />
     ),
     "Mai mult": (
       <MoreScreen
@@ -721,7 +735,7 @@ function MainApp() {
         onJoinClub={() => setAuthView("join-club")}
         onAcceptInvitation={() => setAuthView("app")}
         onLogout={logout}
-        openNotifications={() => setTab("Mai mult")}
+        openNotifications={() => setTab("Notif.")}
       />
     );
   }
@@ -795,6 +809,7 @@ function MainApp() {
     AI: "Sparkles",
     Abonamente: "CreditCard",
     "Admin SaaS": "ShieldCheck",
+    "Profil": "User",
     "Mai mult": "Menu",
   };
 
