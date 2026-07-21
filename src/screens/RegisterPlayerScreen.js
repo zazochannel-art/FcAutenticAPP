@@ -19,6 +19,7 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
     group: "U19",
     no: "",
     role: "Mijlocaș",
+    clubCode: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
@@ -27,6 +28,10 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
     const email = form.email.trim().toLowerCase();
     if (form.name.trim().length < 3) {
       setLocalError("Introdu numele complet.");
+      return;
+    }
+    if (form.clubCode.trim().length < 4) {
+      setLocalError("Introdu codul clubului primit de la antrenor/administrator.");
       return;
     }
     if (!email.includes("@")) {
@@ -60,10 +65,18 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
         <View style={styles.loginHero}>
           <Badge size={isMobile ? 60 : 82} />
           <Text style={[styles.loginTitle, isMobile && { fontSize: 24 }]}>Cont jucător</Text>
-          <Text style={styles.loginSubtitle}>Creează profilul personal în FC Autentic.</Text>
+          <Text style={styles.loginSubtitle}>Alătură-te clubului tău cu codul primit de la antrenor.</Text>
         </View>
 
         <View style={[styles.formCard, !isMobile && { maxWidth: 500, alignSelf: 'center' }]}>
+          <TrainingField
+            label="Cod club"
+            value={form.clubCode}
+            onChange={(clubCode) => setForm({ ...form, clubCode: clubCode.toUpperCase() })}
+            placeholder="Ex: A1B2C3D4"
+          />
+          <Text style={styles.codeHint}>Primești codul de la antrenorul sau administratorul clubului.</Text>
+
           <TrainingField label="Nume complet" value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Andrei Popescu" />
           <TrainingField label="Email" value={form.email} onChange={(email) => setForm({ ...form, email })} placeholder="andrei@email.com" />
 
@@ -145,4 +158,5 @@ const styles = StyleSheet.create({
   passwordWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: "rgba(2,6,23,0.5)", borderWidth: 1, borderColor: '#1e293b', borderRadius: 12, paddingHorizontal: 12, marginBottom: 12, height: 48 },
   passwordInput: { flex: 1, color: 'white', fontSize: 13, fontWeight: '600' },
   authError: { color: C.red, fontSize: 11, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
+  codeHint: { color: C.dim, fontSize: 10, fontWeight: '600', marginTop: -8, marginBottom: 16, lineHeight: 14 },
 });

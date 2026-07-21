@@ -31,6 +31,7 @@ function mapClub(row) {
     createdAt: row.created_at || "",
     primaryColor: row.primary_color || "",
     secondaryColor: row.secondary_color || "",
+    joinCode: row.join_code || "",
   };
 }
 
@@ -1088,6 +1089,15 @@ export const supabaseService = {
       .eq("id", membershipId);
     if (error) throw error;
     return true;
+  },
+
+  // Aprobă un membru: activează membership-ul și, pentru jucători, îl creează în lot.
+  async approveMember(membershipId) {
+    const { data, error } = await requireSupabase().rpc("approve_club_member", {
+      target_membership_id: membershipId,
+    });
+    if (error) throw error;
+    return data;
   },
 
   async removeMembership(membershipId) {

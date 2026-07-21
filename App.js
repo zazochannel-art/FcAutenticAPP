@@ -2,9 +2,11 @@
 import {
   Alert,
   Platform,
+  Pressable,
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  Text,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -349,10 +351,31 @@ function MainApp() {
         setAuthView("app");
         return;
       }
+      // Cererea de alăturare așteaptă aprobarea owner-ului.
+      const pendingMembership = (userMemberships || []).find((m) => m.status === "pending");
+      if (pendingMembership) {
+        setAuthView("pending-approval");
+        return;
+      }
     } catch (e) {
       console.warn("Nu am putut verifica cluburile utilizatorului:", e.message);
     }
     setAuthView("onboarding-choice");
+  };
+
+  const recheckMembership = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const userMemberships = await supabaseService.getMemberships(currentUser.id);
+      const active = (userMemberships || []).find((m) => m.status === "active");
+      if (active) {
+        setSelectedClubId(active.clubId || active.club_id);
+        queryClient.invalidateQueries();
+        setAuthView("app");
+      }
+    } catch (e) {
+      console.warn("Nu am putut reverifica statusul:", e.message);
+    }
   };
 
   const loginWithEmail = async (email, password) => {
@@ -412,8 +435,12 @@ function MainApp() {
         groupName: form.group,
         playerNo: form.no,
         playerPosition: form.role,
+        joinCode: form.clubCode,
       });
-      Alert.alert("Cont creat", "Autentifică-te cu email-ul și parola setate.");
+      Alert.alert(
+        "Cont creat",
+        "Cererea ta de alăturare a fost trimisă. Un administrator al clubului trebuie să o aprobe. Dacă e nevoie, confirmă emailul, apoi autentifică-te."
+      );
       setAuthView("login");
     } catch (e) {
       setRegisterError(e.message);
@@ -688,6 +715,12 @@ function MainApp() {
           queryClient.invalidateQueries({ queryKey: ["clubs"] });
           queryClient.invalidateQueries({ queryKey: ["memberships"] });
           if (newClub?.id) setSelectedClubId(newClub.id);
+          if (newClub?.joinCode) {
+            Alert.alert(
+              "Club creat",
+              `Codul de înregistrare pentru jucători este: ${newClub.joinCode}\n\nÎl găsești oricând în ecranul Staff. Dă-l jucătorilor ca să se alăture clubului.`
+            );
+          }
           setAuthView("app");
         }}
       />
@@ -700,6 +733,32 @@ function MainApp() {
         onBack={() => setAuthView("onboarding-choice")}
         onSuccess={() => setAuthView("app")}
       />
+    );
+  }
+
+  if (authView === "pending-approval") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.pendingWrap}>
+          <View style={styles.pendingCard}>
+            <View style={styles.pendingIcon}>
+              <Text style={{ fontSize: 34 }}>⏳</Text>
+            </View>
+            <Text style={styles.pendingTitle}>Cererea ta așteaptă aprobarea</Text>
+            <Text style={styles.pendingText}>
+              Contul tău a fost creat. Un administrator al clubului trebuie să îți aprobe alăturarea.
+              Vei avea acces imediat ce ești aprobat.
+            </Text>
+            <Pressable style={styles.pendingPrimary} onPress={recheckMembership}>
+              <Text style={styles.pendingPrimaryText}>Verifică din nou</Text>
+            </Pressable>
+            <Pressable style={styles.pendingGhost} onPress={logout}>
+              <Text style={styles.pendingGhostText}>Ieșire</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -754,5 +813,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#020617" },
   app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 100 : 80 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
+  pendingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  pendingCard: { width: "100%", maxWidth: 420, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 24, padding: 28, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", alignItems: "center" },
+  pendingIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: "rgba(250,204,21,0.12)", borderWidth: 1, borderColor: "rgba(250,204,21,0.3)", alignItems: "center", justifyContent: "center", marginBottom: 18 },
+  pendingTitle: { color: "white", fontSize: 20, fontWeight: "900", textAlign: "center" },
+  pendingText: { color: "#94A3B8", fontSize: 13, fontWeight: "600", textAlign: "center", lineHeight: 20, marginTop: 10, marginBottom: 22 },
+  pendingPrimary: { width: "100%", height: 50, borderRadius: 14, backgroundColor: "#0D8BFF", alignItems: "center", justifyContent: "center" },
+  pendingPrimaryText: { color: "white", fontSize: 14, fontWeight: "900" },
+  pendingGhost: { width: "100%", height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 10 },
+  pendingGhostText: { color: "#94A3B8", fontSize: 13, fontWeight: "800" },
 });
 
