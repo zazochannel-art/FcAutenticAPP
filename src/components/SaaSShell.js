@@ -37,7 +37,9 @@ const ADMIN_LABELS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori"]
 
 export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout }) {
   const toItem = (label) => ({ label, icon: TAB_ICONS[label] || "Circle" });
-  const primaryItems = tabs.filter((label) => !ADMIN_LABELS.includes(label)).map(toItem);
+  // „Mai mult” nu se mai afișează în sidebar; setările/cluburile sunt accesibile
+  // din cardul de profil (dreapta sus).
+  const primaryItems = tabs.filter((label) => !ADMIN_LABELS.includes(label) && label !== "Mai mult").map(toItem);
   const adminItems = tabs.filter((label) => ADMIN_LABELS.includes(label)).map(toItem);
 
   return (
