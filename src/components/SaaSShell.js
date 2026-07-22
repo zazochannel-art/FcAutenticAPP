@@ -52,10 +52,8 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
         selectedClub={selectedClub}
       />
       <View style={styles.main}>
-        <View style={styles.mainInner}>
-          <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} />
-          <View style={styles.pageFrame}>{children}</View>
-        </View>
+        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} />
+        <View style={styles.pageFrame}>{children}</View>
       </View>
     </View>
   );
@@ -155,10 +153,7 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
 
 const styles = StyleSheet.create({
   shell: { flex: 1, flexDirection: "row", backgroundColor: C.bg },
-  main: { flex: 1, padding: 12 },
-  // Conținutul are lățime maximă și e centrat, ca pe ecrane late cardurile să
-  // nu se întindă exagerat (aspect „stretched”).
-  mainInner: { flex: 1, width: "100%", maxWidth: 1320, alignSelf: "center", gap: 10 },
+  main: { flex: 1, padding: 12, gap: 10 },
   pageFrame: { flex: 1, overflow: "hidden", borderRadius: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.08)", backgroundColor: "rgba(2,6,23,0.35)" },
   sidebar: {
     width: 260,
