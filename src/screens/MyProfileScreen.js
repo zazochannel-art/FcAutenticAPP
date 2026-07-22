@@ -1,12 +1,18 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Pressable, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { notificationService } from "../services/notificationService";
 import { parseRoDate } from "../utils/dates";
+
+function notify(title, msg) {
+  if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
+  else Alert.alert(title, msg);
+}
 
 // Eticheta de convocare pentru portalul jucătorului.
 const CALLUP = {
@@ -80,6 +86,31 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
       .slice(0, 5);
   }, [trainings, matches, myPlayer]);
 
+  const enableReminders = async () => {
+    if (Platform.OS === "web") {
+      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația mobilă FC Autentic (iOS/Android).");
+      return;
+    }
+    if (upcoming.length === 0) {
+      notify("Nicio activitate", "Nu ai activități viitoare pentru care să setez remindere.");
+      return;
+    }
+    try {
+      let count = 0;
+      for (const item of upcoming) {
+        const id = await notificationService.scheduleReminder(
+          `${item.kind}: ${item.title}`,
+          `${item.date} • ${item.time} • ${item.location}`,
+          item.d
+        );
+        if (id) count += 1;
+      }
+      notify("Remindere setate", count ? `Am programat ${count} remindere (cu 2h înainte).` : "Activitățile sunt prea aproape pentru remindere.");
+    } catch (e) {
+      notify("Eroare", e.message);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
@@ -132,7 +163,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
           )}
 
           {/* Program */}
-          <SectionTitle title="Următoarele activități" />
+          <SectionTitle title="Următoarele activități" action="Reminder" onAction={enableReminders} />
           {upcoming.length === 0 ? (
             <View style={styles.plainCard}><Text style={styles.plainText}>Nicio activitate programată pentru grupa {myPlayer.group}.</Text></View>
           ) : (
