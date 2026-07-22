@@ -18,6 +18,10 @@ const TAB_ICONS = {
   AI: "Bot",
   Abonamente: "CreditCard",
   Documente: "FolderOpen",
+  Echipament: "Package",
+  "Disciplină": "ShieldAlert",
+  Scouting: "Binoculars",
+  Galerie: "Images",
   Profil: "User",
   "Mai mult": "Settings",
   // Administrare platformă
