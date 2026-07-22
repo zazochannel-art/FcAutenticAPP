@@ -700,7 +700,10 @@ create policy profiles_super_admin_saas on public.profiles
 -- clubs
 drop policy if exists "Utilizatorii pot crea cluburi" on public.clubs;
 create policy "Utilizatorii pot crea cluburi" on public.clubs
-  for insert to authenticated with check (true);
+  -- Un utilizator poate crea doar cluburi atribuite lui însuși. Coloana
+  -- created_by are default auth.uid(), deci inserția normală trece, dar nu se
+  -- poate falsifica proprietarul (evită politica permisivă WITH CHECK (true)).
+  for insert to authenticated with check (created_by = auth.uid());
 
 drop policy if exists "Utilizatorii pot vedea cluburile proprii" on public.clubs;
 create policy "Utilizatorii pot vedea cluburile proprii" on public.clubs
@@ -1093,3 +1096,26 @@ revoke execute on function public.realtime_broadcast_all_changes() from anon, au
 -- 11) Primul super admin (rulează manual, cu emailul tău)
 -- ----------------------------------------------------------------------------
 -- update public.profiles set platform_role = 'super_admin' where email = 'EMAILUL_TAU';
+
+-- ----------------------------------------------------------------------------
+-- 12) Întărire acces RPC (hardening)
+-- ----------------------------------------------------------------------------
+-- Funcțiile de acțiune de mai jos trebuie apelate doar de utilizatori
+-- autentificați. Le retragem din PUBLIC/anon și le acordăm explicit rolului
+-- `authenticated`. NU atingem helper-ele current_user_* — acestea sunt folosite
+-- în politicile RLS și trebuie să rămână executabile de `authenticated`.
+revoke execute on function public.approve_club_member(uuid) from public;
+revoke execute on function public.approve_club_member(uuid) from anon;
+grant execute on function public.approve_club_member(uuid) to authenticated;
+
+revoke execute on function public.request_club_membership(text, text) from public;
+revoke execute on function public.request_club_membership(text, text) from anon;
+grant execute on function public.request_club_membership(text, text) to authenticated;
+
+revoke execute on function public.accept_club_invitation(text) from public;
+revoke execute on function public.accept_club_invitation(text) from anon;
+grant execute on function public.accept_club_invitation(text) to authenticated;
+
+revoke execute on function public.get_club_members(uuid) from public;
+revoke execute on function public.get_club_members(uuid) from anon;
+grant execute on function public.get_club_members(uuid) to authenticated;

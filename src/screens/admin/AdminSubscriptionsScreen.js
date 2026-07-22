@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable, Modal, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, ActivityIndicator } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../../services/supabaseService";

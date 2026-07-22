@@ -8,10 +8,6 @@ import { supabaseService } from "../services/supabaseService";
 const CARD_BG = "#071127";
 const BORDER = "rgba(0, 212, 255, 0.12)";
 const CYAN = "#00D4FF";
-const VIOLET = "#7C3AED";
-const AMBER = "#FACC15";
-const GREEN = "#22C55E";
-const RED = "#EF4444";
 const BLUE = "#0D8BFF";
 const DIM = "#94A3B8";
 const TH = "#475569";
@@ -235,7 +231,7 @@ const RadarChart = ({ scores }) => {
     const val = (Number(scores[key]) || 0) / 10;
     return `${cx + r * val * Math.cos(angle)},${cy + r * val * Math.sin(angle)}`;
   }).join(" ");
-  const grid = METRICS.map(([], i) => {
+  const grid = METRICS.map((_, i) => {
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
     return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
   });

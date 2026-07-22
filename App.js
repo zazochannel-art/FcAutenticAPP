@@ -22,6 +22,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 
 import { isSupabaseConfigured, supabase, supabaseConfigError } from "./src/config/supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
+import { resolveEffectiveRole } from "./src/utils/roles";
 import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
@@ -92,21 +93,6 @@ const defaultSubscription = {
   expiresAt: "",
   createdAt: "29 iunie 2026",
 };
-
-
-function normalizeMembershipRole(role) {
-  if (role === "owner") return "club_owner";
-  return role;
-}
-
-function resolveEffectiveRole(profile, membership) {
-  if (profile?.platform_role === "super_admin") return "super_admin";
-  if (profile?.role === "super_admin") return "super_admin";
-  if (membership?.role) return normalizeMembershipRole(membership.role);
-  if (profile?.role === "admin") return "admin";
-  if (profile?.platform_role) return profile.platform_role;
-  return "viewer";
-}
 
 // Taburile de administrare a platformei (super-admin în mod platformă).
 const ADMIN_PLATFORM_TABS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori", "Mai mult"];
@@ -549,6 +535,8 @@ function MainApp() {
 
     const tableToKey = {
       players: "players",
+      clubs: "clubs",
+      subscriptions: "subscriptions",
       chat_messages: "announcements",
       matches: "matches",
       trainings: "trainings",
@@ -574,10 +562,11 @@ function MainApp() {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => {
         const key = tableToKey[payload.table];
         if (!key) return;
-        // Cheile pentru memberships nu sunt indexate după club_id, ci după user_id —
-        // invalidăm întreaga familie ca să nu ratăm actualizări.
-        if (key === "memberships") {
-          queryClient.invalidateQueries({ queryKey: ["memberships"] });
+        // Aceste chei sunt interogate global (fără club_id în cheie): memberships
+        // e indexat după user_id, iar clubs/subscriptions sunt liste de platformă.
+        // Invalidăm întreaga familie ca să nu ratăm actualizări.
+        if (key === "memberships" || key === "clubs" || key === "subscriptions") {
+          queryClient.invalidateQueries({ queryKey: [key] });
           return;
         }
         const clubId = payload.new?.club_id || payload.old?.club_id;
@@ -837,30 +826,6 @@ function MainApp() {
       </SafeAreaView>
     );
   }
-
-  const tabIconsMapping = {
-    Dashboard: "LayoutGrid",
-    "Echipă": "Users",
-    "Antren.": "Dumbbell",
-    Meciuri: "Trophy",
-    Calendar: "CalendarDays",
-    Sarcini: "ListChecks",
-    Staff: "UserCog",
-    "Finanțe": "Wallet",
-    AI: "Sparkles",
-    Abonamente: "CreditCard",
-    "Panou SaaS": "LayoutDashboard",
-    "Cluburi": "Building2",
-    "Abonamente SaaS": "CreditCard",
-    "Utilizatori": "Users",
-    "Profil": "User",
-    "Mai mult": "Menu",
-  };
-
-  const navTabs = activeTabs.map((label) => ({
-    title: label,
-    icon: tabIconsMapping[label] || "Circle",
-  }));
 
   return (
     <SafeAreaView style={styles.safe}>

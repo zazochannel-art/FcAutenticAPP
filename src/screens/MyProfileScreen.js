@@ -1,11 +1,12 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import Svg, { Polygon, Line, Circle } from "react-native-svg";
+import Svg, { Polygon, Line } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { parseRoDate } from "../utils/dates";
 
 const METRICS = [
   ["technique", "Tehnică"],
@@ -15,17 +16,6 @@ const METRICS = [
   ["tactics", "Tactică"],
   ["physical", "Fizic"],
 ];
-
-// Etichetele de dată sunt text liber; extragem zi+lună pentru sortare aproximativă.
-const MONTH_PREFIXES = { ian: 0, feb: 1, mar: 2, apr: 3, mai: 4, iun: 5, iul: 6, aug: 7, sep: 8, oct: 9, noi: 10, nov: 10, dec: 11 };
-function parseRoDate(label) {
-  if (!label) return null;
-  const m = String(label).toLowerCase().match(/(\d{1,2})\s*([a-zăâîșț]+)\.?\s*(\d{4})?/);
-  if (!m) return null;
-  const month = MONTH_PREFIXES[m[2].slice(0, 3)];
-  if (month === undefined) return null;
-  return new Date(m[3] ? Number(m[3]) : new Date().getFullYear(), month, Number(m[1]));
-}
 
 export default function MyProfileScreen({ currentUser, players = [], trainings = [], matches = [], attendance = {}, clubId, selectedClub, openNotifications }) {
   const isParent = currentUser?.role === "parent";
@@ -172,7 +162,7 @@ const RadarChart = ({ evalRow }) => {
     const v = (Number(evalRow[key]) || 0) / 10;
     return `${cx + r * v * Math.cos(a)},${cy + r * v * Math.sin(a)}`;
   }).join(" ");
-  const grid = METRICS.map(([], i) => {
+  const grid = METRICS.map((_, i) => {
     const a = (Math.PI * 2 * i) / n - Math.PI / 2;
     return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
   });
