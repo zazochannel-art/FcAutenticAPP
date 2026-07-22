@@ -46,7 +46,6 @@ export default function ProfileSheet({ visible, user, selectedClub, onClose, onL
               <MenuItem icon="User" label="Profilul meu" onPress={() => go("Profil")} />
             )}
             <MenuItem icon="Settings" label="Setări și cluburi" onPress={() => go("Mai mult")} />
-            <MenuItem icon="Bell" label="Anunțuri" onPress={() => go("Notif.")} />
             <MenuItem icon="LogOut" label="Ieșire din cont" danger onPress={() => { onClose?.(); onLogout?.(); }} />
           </View>
         </Pressable>
