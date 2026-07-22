@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, Switch, Modal, TextInput, Platform, Alert, ActivityIndicator } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Switch, Modal, TextInput, Platform, Alert, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,14 +11,6 @@ import { supabaseService } from "../services/supabaseService";
 
 const APP_VERSION = "1.0.0";
 const NOTIF_KEY = "fc_notif_prefs";
-
-const TAB_ICONS = {
-  Dashboard: "LayoutGrid", "Echipă": "Users", "Antren.": "Dumbbell", Meciuri: "Trophy",
-  Calendar: "CalendarDays", Sarcini: "ListChecks", Staff: "UserCog", "Finanțe": "Wallet",
-  AI: "Sparkles", Abonamente: "CreditCard", Documente: "FolderOpen", Echipament: "Package",
-  "Disciplină": "ShieldAlert", Scouting: "Binoculars", Galerie: "Images", Profil: "User",
-  "Panou SaaS": "LayoutDashboard", Cluburi: "Building2", "Abonamente SaaS": "CreditCard", Utilizatori: "Users",
-};
 
 const NOTIF_ITEMS = [
   ["announcements", "Anunțuri club", "Megaphone"],
@@ -42,12 +34,8 @@ async function copyText(text) {
   return false;
 }
 
-export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [], tabs = [], setTab }) {
-  const { width } = useWindowDimensions();
-  const isMobile = width < 768;
-
+export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [] }) {
   const isStaff = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
-  const hiddenTabs = isMobile ? tabs.slice(4).filter((t) => t !== "Mai mult") : [];
 
   const queryClient = useQueryClient();
   const [prefs, setPrefs] = useState({ announcements: true, callups: true, trainings: true, payments: true });
@@ -95,24 +83,6 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title="Setări" eyebrow="CONT, CLUB ȘI PREFERINȚE" openNotifications={openNotifications} />
-
-      {hiddenTabs.length > 0 && (
-        <>
-          <SectionTitle title="Toate paginile" />
-          <View style={styles.card}>
-            {hiddenTabs.map((tabName) => {
-              const Icon = LucideIcons[TAB_ICONS[tabName]] || LucideIcons.Circle;
-              return (
-                <Pressable key={tabName} style={styles.row} onPress={() => setTab?.(tabName)}>
-                  <View style={styles.rowIcon}><Icon size={18} color={C.cyan} /></View>
-                  <Text style={styles.rowLabel} numberOfLines={1}>{tabName}</Text>
-                  <LucideIcons.ChevronRight size={15} color={C.dim} />
-                </Pressable>
-              );
-            })}
-          </View>
-        </>
-      )}
 
       {/* Contul meu */}
       <SectionTitle title="Contul meu" />
