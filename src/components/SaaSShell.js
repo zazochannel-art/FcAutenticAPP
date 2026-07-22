@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
 import { BlurView } from "expo-blur";
+import ProfileSheet from "./ProfileSheet";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
 // lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
@@ -34,7 +35,7 @@ const TAB_ICONS = {
 // Taburile care aparțin secțiunii de administrare a platformei.
 const ADMIN_LABELS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori"];
 
-export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub }) {
+export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout }) {
   const toItem = (label) => ({ label, icon: TAB_ICONS[label] || "Circle" });
   const primaryItems = tabs.filter((label) => !ADMIN_LABELS.includes(label)).map(toItem);
   const adminItems = tabs.filter((label) => ADMIN_LABELS.includes(label)).map(toItem);
@@ -49,7 +50,7 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
         selectedClub={selectedClub}
       />
       <View style={styles.main}>
-        <Topbar user={user} onNotifications={() => setTab("Mai mult")} />
+        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} />
         <View style={styles.pageFrame}>{children}</View>
       </View>
     </View>
@@ -104,7 +105,8 @@ function MenuItem({ tab, activeTab, setTab }) {
   );
 }
 
-function Topbar({ user, onNotifications }) {
+function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
+  const [profileOpen, setProfileOpen] = useState(false);
   return (
     <View style={styles.topbar}>
       <View style={styles.searchBox}>
@@ -126,14 +128,23 @@ function Topbar({ user, onNotifications }) {
         <LucideIcons.Bell size={19} color="white" />
         <View style={styles.notifyDot}><Text style={styles.notifyText}>3</Text></View>
       </Pressable>
-      <View style={styles.profilePill}>
+      <Pressable style={styles.profilePill} onPress={() => setProfileOpen(true)}>
         <View style={styles.profileTextWrap}>
           <Text style={styles.profileName}>{user?.name || "Utilizator"}</Text>
           <Text style={styles.profileRole}>{user?.role === "super_admin" ? "Administrator" : user?.role || "Admin"}</Text>
         </View>
         <View style={styles.avatar}><Text style={styles.avatarText}>{(user?.name || "A").slice(0, 1)}</Text></View>
         <LucideIcons.ChevronDown size={14} color={C.muted} />
-      </View>
+      </Pressable>
+
+      <ProfileSheet
+        visible={profileOpen}
+        user={user}
+        selectedClub={selectedClub}
+        onClose={() => setProfileOpen(false)}
+        onLogout={onLogout}
+        onNavigate={setTab}
+      />
     </View>
   );
 }

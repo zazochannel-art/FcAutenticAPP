@@ -884,6 +884,7 @@ function MainApp() {
           setTab={navigateTab}
           user={effectiveUser}
           selectedClub={managingClub || selectedClub}
+          onLogout={logout}
         >
           {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
         </SaaSAppShell>
