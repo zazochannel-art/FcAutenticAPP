@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions, Switch, Modal, TextInput, Platform, Alert, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LucideIcons from "lucide-react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { colors as C, spacing } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { authService } from "../services/authService";
+import { supabaseService } from "../services/supabaseService";
 
 const APP_VERSION = "1.0.0";
 const NOTIF_KEY = "fc_notif_prefs";
@@ -47,9 +49,27 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
   const isStaff = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
   const hiddenTabs = isMobile ? tabs.slice(4).filter((t) => t !== "Mai mult") : [];
 
+  const queryClient = useQueryClient();
   const [prefs, setPrefs] = useState({ announcements: true, callups: true, trainings: true, payments: true });
   const [nameOpen, setNameOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
+  const [clubEditOpen, setClubEditOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const canEditClub = ["super_admin", "club_owner", "admin"].includes(currentUser?.role);
+
+  const deleteAccount = () => {
+    const run = async () => {
+      setDeleting(true);
+      try {
+        await authService.deleteAccount();
+        onLogout?.();
+      } catch (e) { notify("Eroare", e.message); } finally { setDeleting(false); }
+    };
+    const msg = "Contul tău și toate datele asociate vor fi șterse definitiv. Acțiunea nu poate fi anulată.";
+    if (Platform.OS === "web") { if (window.confirm(`Șterge contul\n\n${msg}`)) run(); }
+    else Alert.alert("Șterge contul", msg, [{ text: "Anulează", style: "cancel" }, { text: "Șterge definitiv", style: "destructive", onPress: run }]);
+  };
 
   useEffect(() => {
     AsyncStorage.getItem(NOTIF_KEY).then((raw) => {
@@ -114,6 +134,13 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
           <Text style={styles.rowLabel}>Schimbă parola</Text>
           <LucideIcons.ChevronRight size={15} color={C.dim} />
         </Pressable>
+        <Pressable style={styles.row} onPress={deleteAccount} disabled={deleting}>
+          <View style={[styles.rowIcon, { borderColor: C.red + "40" }]}>
+            {deleting ? <ActivityIndicator size="small" color={C.red} /> : <LucideIcons.Trash2 size={17} color={C.red} />}
+          </View>
+          <Text style={[styles.rowLabel, { color: C.red }]}>Șterge contul</Text>
+          <LucideIcons.ChevronRight size={15} color={C.dim} />
+        </Pressable>
       </View>
 
       {/* Notificări */}
@@ -153,6 +180,13 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
               </Pressable>
             </View>
             <Text style={styles.hint}>Dă acest cod jucătorilor și părinților ca să se alăture clubului.</Text>
+            {canEditClub && (
+              <Pressable style={styles.row} onPress={() => setClubEditOpen(true)}>
+                <View style={styles.rowIcon}><LucideIcons.Settings2 size={17} color={C.cyan} /></View>
+                <Text style={styles.rowLabel}>Editează clubul</Text>
+                <LucideIcons.ChevronRight size={15} color={C.dim} />
+              </Pressable>
+            )}
           </View>
         </>
       ) : null}
@@ -198,7 +232,91 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
 
       <EditNameModal visible={nameOpen} currentName={currentUser?.name} onClose={() => setNameOpen(false)} />
       <ChangePasswordModal visible={passOpen} onClose={() => setPassOpen(false)} />
+      <ClubSettingsModal
+        visible={clubEditOpen}
+        club={selectedClub}
+        onClose={() => setClubEditOpen(false)}
+        onSaved={() => { setClubEditOpen(false); queryClient.invalidateQueries({ queryKey: ["clubs"] }); }}
+      />
     </ScrollView>
+  );
+}
+
+function ClubSettingsModal({ visible, club, onClose, onSaved }) {
+  const [form, setForm] = useState({ name: "", city: "", country: "", phone: "", email: "", primaryColor: "", secondaryColor: "", logoUrl: "", groups: "" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (visible && club) {
+      setForm({
+        name: club.name || "",
+        city: club.city || "",
+        country: club.country || "",
+        phone: club.phone || "",
+        email: club.email || "",
+        primaryColor: club.primaryColor || "",
+        secondaryColor: club.secondaryColor || "",
+        logoUrl: club.logo || "",
+        groups: (club.groups || []).join(", "),
+      });
+    }
+  }, [visible, club]);
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const save = async () => {
+    if (form.name.trim().length < 2) { notify("Nume lipsă", "Clubul are nevoie de un nume."); return; }
+    setSaving(true);
+    try {
+      const groups = form.groups.split(",").map((g) => g.trim()).filter(Boolean);
+      await supabaseService.updateClub(club.id, {
+        name: form.name.trim(),
+        city: form.city.trim(),
+        country: form.country.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        primaryColor: form.primaryColor.trim(),
+        secondaryColor: form.secondaryColor.trim(),
+        logoUrl: form.logoUrl.trim(),
+        groups: groups.length ? groups : undefined,
+      });
+      notify("Salvat", "Datele clubului au fost actualizate.");
+      onSaved();
+    } catch (e) { notify("Eroare", e.message); } finally { setSaving(false); }
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalCard, { maxHeight: "88%" }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Editează clubul</Text>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.dim} /></Pressable>
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.modalLabel}>NUME CLUB</Text>
+            <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => set("name", v)} placeholder="FC Autentic" placeholderTextColor={C.dim} />
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>ORAȘ</Text><TextInput style={styles.modalInput} value={form.city} onChangeText={(v) => set("city", v)} placeholder="Chișinău" placeholderTextColor={C.dim} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>ȚARĂ</Text><TextInput style={styles.modalInput} value={form.country} onChangeText={(v) => set("country", v)} placeholder="Moldova" placeholderTextColor={C.dim} /></View>
+            </View>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>EMAIL</Text><TextInput style={styles.modalInput} value={form.email} onChangeText={(v) => set("email", v)} placeholder="contact@club.md" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>TELEFON</Text><TextInput style={styles.modalInput} value={form.phone} onChangeText={(v) => set("phone", v)} placeholder="+373..." placeholderTextColor={C.dim} /></View>
+            </View>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>CULOARE PRIMARĂ</Text><TextInput style={styles.modalInput} value={form.primaryColor} onChangeText={(v) => set("primaryColor", v)} placeholder="#00D4FF" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>CULOARE SECUNDARĂ</Text><TextInput style={styles.modalInput} value={form.secondaryColor} onChangeText={(v) => set("secondaryColor", v)} placeholder="#7C3AED" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
+            </View>
+            <Text style={styles.modalLabel}>LOGO (URL, opțional)</Text>
+            <TextInput style={styles.modalInput} value={form.logoUrl} onChangeText={(v) => set("logoUrl", v)} placeholder="https://..." placeholderTextColor={C.dim} autoCapitalize="none" />
+            <Text style={styles.modalLabel}>GRUPE (separate prin virgulă)</Text>
+            <TextInput style={styles.modalInput} value={form.groups} onChangeText={(v) => set("groups", v)} placeholder="U13, U16, U19, Seniori" placeholderTextColor={C.dim} />
+            <SaveButton saving={saving} onPress={save} label="Salvează clubul" />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
   );
 }
 

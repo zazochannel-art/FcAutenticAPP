@@ -1154,6 +1154,31 @@ export const supabaseService = {
     return mapClub(data);
   },
 
+  // Editarea datelor clubului (nume, oraș, culori, grupe etc.). Permisă
+  // owner-ilor/super-adminilor prin politica clubs_update_saas.
+  async updateClub(clubId, data) {
+    const payload = {};
+    if (data.name !== undefined) payload.name = data.name;
+    if (data.city !== undefined) payload.city = data.city || null;
+    if (data.country !== undefined) payload.country = data.country || null;
+    if (data.email !== undefined) payload.contact_email = data.email || null;
+    if (data.phone !== undefined) payload.phone = data.phone || null;
+    if (data.description !== undefined) payload.description = data.description || null;
+    if (data.logoUrl !== undefined) payload.logo_url = data.logoUrl || null;
+    if (data.primaryColor !== undefined) payload.primary_color = data.primaryColor || null;
+    if (data.secondaryColor !== undefined) payload.secondary_color = data.secondaryColor || null;
+    if (data.groups !== undefined) payload.groups = data.groups;
+
+    const { data: row, error } = await requireSupabase()
+      .from("clubs")
+      .update(payload)
+      .eq("id", clubId)
+      .select()
+      .single();
+    if (error) throw error;
+    return mapClub(row);
+  },
+
   async runAiAnalysis({ clubId, analysisType, question }) {
     const { data, error } = await requireSupabase().functions.invoke("club-ai-analysis", {
       body: { clubId, analysisType, question },
