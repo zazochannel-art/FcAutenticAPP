@@ -14,6 +14,8 @@ import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle, Rect, Line } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
+import { parseScore, resultOf, seasonSummary } from "../utils/matches";
+import RoDateField from "../components/RoDateField";
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -33,29 +35,25 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
-// Scorul este text liber ("2 - 1"); îl interpretăm ca "noi - ei".
-function parseScore(score) {
-  const match = String(score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
-  if (!match) return null;
-  return { ours: Number(match[1]), theirs: Number(match[2]) };
-}
-
-function resultOf(score) {
-  const parsed = parseScore(score);
-  if (!parsed) return null;
-  if (parsed.ours > parsed.theirs) return "V";
-  if (parsed.ours < parsed.theirs) return "Î";
-  return "E";
-}
-
 const RESULT_COLORS = { V: GREEN, E: AMBER, "Î": RED };
 
 export default function MatchesScreen({ players = [], matches = [], currentUser, clubId, openNotifications }) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [scoreFor, setScoreFor] = useState(null);
+  const [callUpFor, setCallUpFor] = useState(null);
 
   const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
+
+  const saveCallUps = async (match, callUps) => {
+    try {
+      await supabaseService.updateMatch({ ...match, callUps });
+      setCallUpFor(null);
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+    } catch (e) {
+      notify("Eroare", e.message);
+    }
+  };
 
   const saveMatch = async (form) => {
     if (!form.opponent.trim() || !form.date.trim()) {
@@ -105,18 +103,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
   const nextMatch = upcoming[0];
 
-  const seasonStats = useMemo(() => {
-    let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0;
-    played.forEach((m) => {
-      const s = parseScore(m.score);
-      goalsFor += s.ours;
-      goalsAgainst += s.theirs;
-      if (s.ours > s.theirs) wins += 1;
-      else if (s.ours < s.theirs) losses += 1;
-      else draws += 1;
-    });
-    return { wins, draws, losses, goalsFor, goalsAgainst, diff: goalsFor - goalsAgainst };
-  }, [played]);
+  const seasonStats = useMemo(() => seasonSummary(played), [played]);
 
   const form = played.slice(0, 5).map((m) => resultOf(m.score));
   const lastFivePoints = form.reduce((sum, r) => sum + (r === "V" ? 3 : r === "E" ? 1 : 0), 0);
@@ -204,21 +191,35 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                         <Text style={styles.emptyText}>Niciun meci programat momentan.</Text>
                      </View>
                    )}
-                   {upcoming.slice(0, 6).map((m, index) => (
-                     <Pressable key={m.id} onPress={() => canManage && setScoreFor(m)}>
-                       <MatchLine
-                         date={m.date}
-                         opponent={m.opponent}
-                         league={`${m.type || "Meci"} • ${m.group}`}
-                         location={m.location}
-                         time={m.time}
-                         active={index === 0}
-                       />
-                     </Pressable>
-                   ))}
-                   {canManage && upcoming.length > 0 && (
-                     <Text style={styles.tapHint}>Apasă pe un meci pentru a înregistra scorul final.</Text>
-                   )}
+                   {upcoming.slice(0, 6).map((m, index) => {
+                     const callCount = Object.keys(m.callUps || {}).length;
+                     return (
+                       <View key={m.id}>
+                         <MatchLine
+                           date={m.date}
+                           opponent={m.opponent}
+                           league={`${m.type || "Meci"} • ${m.group}`}
+                           location={m.location}
+                           time={m.time}
+                           active={index === 0}
+                         />
+                         {canManage && (
+                           <View style={styles.matchActions}>
+                             <Pressable onPress={() => setCallUpFor(m)} style={[styles.matchActionBtn, callCount > 0 && { borderColor: CYAN + "40", backgroundColor: CYAN + "10" }]}>
+                               <LucideIcons.ClipboardCheck size={12} color={callCount > 0 ? CYAN : TEXT_DIM} />
+                               <Text style={[styles.matchActionText, callCount > 0 && { color: CYAN }]}>
+                                 {callCount > 0 ? `Lot: ${callCount} convocați` : "Setează lotul"}
+                               </Text>
+                             </Pressable>
+                             <Pressable onPress={() => setScoreFor(m)} style={styles.matchActionBtn}>
+                               <LucideIcons.Trophy size={12} color={TEXT_DIM} />
+                               <Text style={styles.matchActionText}>Scor final</Text>
+                             </Pressable>
+                           </View>
+                         )}
+                       </View>
+                     );
+                   })}
                 </View>
 
                 <View style={[styles.cardMain, { marginTop: 18 }]}>
@@ -324,7 +325,89 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
       <AddMatchModal visible={addOpen} onClose={() => setAddOpen(false)} onSave={saveMatch} />
       <ScoreModal match={scoreFor} onClose={() => setScoreFor(null)} onSave={saveScore} />
+      <CallUpModal match={callUpFor} players={players} onClose={() => setCallUpFor(null)} onSave={saveCallUps} />
     </View>
+  );
+}
+
+// Convocarea la meci: statusul fiecărui jucător e „titular”, „rezerva” sau
+// neconvocat (absent din obiectul callUps). Cheile sunt id-uri de jucător.
+const CALLUP_CYCLE = { none: "titular", titular: "rezerva", rezerva: "none" };
+const CALLUP_LABEL = { titular: "Titular", rezerva: "Rezervă", none: "—" };
+const CALLUP_COLOR = { titular: GREEN, rezerva: AMBER, none: TEXT_TH };
+
+function CallUpModal({ match, players, onClose, onSave }) {
+  const [callUps, setCallUps] = useState({});
+
+  React.useEffect(() => {
+    if (match) setCallUps({ ...(match.callUps || {}) });
+  }, [match]);
+
+  if (!match) return null;
+
+  // Jucătorii din grupa meciului; dacă niciunul nu se potrivește, îi arătăm pe toți.
+  const groupPlayers = players.filter((p) => p.group === match.group);
+  const list = groupPlayers.length ? groupPlayers : players;
+
+  const statusOf = (id) => callUps[String(id)] || "none";
+  const cycle = (id) => {
+    const key = String(id);
+    const next = CALLUP_CYCLE[statusOf(id)];
+    setCallUps((prev) => {
+      const copy = { ...prev };
+      if (next === "none") delete copy[key];
+      else copy[key] = next;
+      return copy;
+    });
+  };
+
+  const titulari = Object.values(callUps).filter((v) => v === "titular").length;
+  const rezerve = Object.values(callUps).filter((v) => v === "rezerva").length;
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalCard, { maxHeight: "85%" }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Lot: vs {match.opponent}</Text>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+          </View>
+
+          <Text style={styles.callSummary}>
+            {titulari} titulari • {rezerve} rezerve • grupa {match.group}
+          </Text>
+
+          {list.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <LucideIcons.Users size={24} color={TEXT_TH} />
+              <Text style={styles.emptyText}>Niciun jucător disponibil. Adaugă jucători în tab-ul Echipă.</Text>
+            </View>
+          ) : (
+            <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
+              {list.map((p) => {
+                const st = statusOf(p.id);
+                return (
+                  <Pressable key={p.id} onPress={() => cycle(p.id)} style={styles.callRow}>
+                    <View style={styles.callNo}><Text style={styles.callNoText}>{p.no || "—"}</Text></View>
+                    <Text style={styles.callName} numberOfLines={1}>{p.name}</Text>
+                    <View style={[styles.callBadge, { backgroundColor: CALLUP_COLOR[st] + "18", borderColor: CALLUP_COLOR[st] + "40" }]}>
+                      <Text style={[styles.callBadgeText, { color: CALLUP_COLOR[st] }]}>{CALLUP_LABEL[st]}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          <Text style={styles.callHint}>Apasă un jucător pentru a comuta: Titular → Rezervă → Neconvocat.</Text>
+
+          <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, callUps)}>
+            <LucideIcons.ClipboardCheck size={16} color="white" />
+            <Text style={styles.modalSaveText}>Salvează lotul</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -347,7 +430,7 @@ function AddMatchModal({ visible, onClose, onSave }) {
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>DATA</Text>
-              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="2 august 2026" placeholderTextColor={TEXT_TH} />
+              <RoDateField value={form.date} onChange={(v) => update("date", v)} placeholder="Alege data" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>ORA</Text>
@@ -603,6 +686,19 @@ const styles = StyleSheet.create({
   seasonLabel: { color: TEXT_DIM, fontSize: 10, fontWeight: '700' },
   seasonValue: { color: 'white', fontSize: 11, fontWeight: '900' },
   tapHint: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600', marginTop: 10 },
+
+  matchActions: { flexDirection: 'row', gap: 8, paddingVertical: 8, paddingLeft: 30, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  matchActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, height: 28, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  matchActionText: { color: TEXT_DIM, fontSize: 9.5, fontWeight: '800' },
+
+  callSummary: { color: TEXT_DIM, fontSize: 10.5, fontWeight: '700', marginBottom: 12 },
+  callRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  callNo: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", alignItems: 'center', justifyContent: 'center' },
+  callNoText: { color: TEXT_DIM, fontSize: 10, fontWeight: '900' },
+  callName: { flex: 1, marginLeft: 10, color: 'white', fontSize: 12, fontWeight: '700' },
+  callBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, minWidth: 68, alignItems: 'center' },
+  callBadgeText: { fontSize: 9.5, fontWeight: '900' },
+  callHint: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600', marginTop: 10, marginBottom: 12 },
 
   modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: 'center', justifyContent: 'center', padding: 20 },
   modalCard: { width: '100%', maxWidth: 460, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },

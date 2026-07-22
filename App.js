@@ -22,6 +22,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 
 import { isSupabaseConfigured, supabase, supabaseConfigError } from "./src/config/supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
+import { resolveEffectiveRole } from "./src/utils/roles";
 import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
@@ -50,6 +51,11 @@ import CalendarSaaS from "./src/screens/CalendarSaaS";
 import FinancesSaaS from "./src/screens/FinancesSaaS";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
 import MyProfileScreen from "./src/screens/MyProfileScreen";
+import DocumentsScreen from "./src/screens/DocumentsScreen";
+import EquipmentScreen from "./src/screens/EquipmentScreen";
+import DisciplineScreen from "./src/screens/DisciplineScreen";
+import ScoutingScreen from "./src/screens/ScoutingScreen";
+import MediaScreen from "./src/screens/MediaScreen";
 import MoreScreen from "./src/screens/MoreScreen";
 import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen";
 import AdminClubsScreen from "./src/screens/admin/AdminClubsScreen";
@@ -93,34 +99,19 @@ const defaultSubscription = {
   createdAt: "29 iunie 2026",
 };
 
-
-function normalizeMembershipRole(role) {
-  if (role === "owner") return "club_owner";
-  return role;
-}
-
-function resolveEffectiveRole(profile, membership) {
-  if (profile?.platform_role === "super_admin") return "super_admin";
-  if (profile?.role === "super_admin") return "super_admin";
-  if (membership?.role) return normalizeMembershipRole(membership.role);
-  if (profile?.role === "admin") return "admin";
-  if (profile?.platform_role) return profile.platform_role;
-  return "viewer";
-}
-
 // Taburile de administrare a platformei (super-admin în mod platformă).
 const ADMIN_PLATFORM_TABS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori", "Mai mult"];
 // Când super-adminul intră în gestiunea unui club, vede și paginile lui
 // operaționale; „Panou SaaS” îl readuce în modul platformă.
-const ADMIN_CLUB_TABS = ["Panou SaaS", "Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Mai mult"];
+const ADMIN_CLUB_TABS = ["Panou SaaS", "Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"];
 
 const roleTabs = {
   super_admin: ADMIN_PLATFORM_TABS,
-  club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
-  admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
-  coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
-  player: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Mai mult"],
-  parent: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Mai mult"],
+  club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  player: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Documente", "Galerie", "Mai mult"],
+  parent: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Documente", "Galerie", "Mai mult"],
   viewer: ["Dashboard", "Calendar", "Mai mult"],
   guest: ["Dashboard", "Calendar", "Mai mult"],
 };
@@ -549,6 +540,8 @@ function MainApp() {
 
     const tableToKey = {
       players: "players",
+      clubs: "clubs",
+      subscriptions: "subscriptions",
       chat_messages: "announcements",
       matches: "matches",
       trainings: "trainings",
@@ -574,10 +567,11 @@ function MainApp() {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, (payload) => {
         const key = tableToKey[payload.table];
         if (!key) return;
-        // Cheile pentru memberships nu sunt indexate după club_id, ci după user_id —
-        // invalidăm întreaga familie ca să nu ratăm actualizări.
-        if (key === "memberships") {
-          queryClient.invalidateQueries({ queryKey: ["memberships"] });
+        // Aceste chei sunt interogate global (fără club_id în cheie): memberships
+        // e indexat după user_id, iar clubs/subscriptions sunt liste de platformă.
+        // Invalidăm întreaga familie ca să nu ratăm actualizări.
+        if (key === "memberships" || key === "clubs" || key === "subscriptions") {
+          queryClient.invalidateQueries({ queryKey: [key] });
           return;
         }
         const clubId = payload.new?.club_id || payload.old?.club_id;
@@ -710,6 +704,47 @@ function MainApp() {
     "Notif.": (
       <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} openNotifications={() => setTab("Notif.")} />
     ),
+    "Documente": (
+      <DocumentsScreen
+        clubId={selectedClubId}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
+    "Echipament": (
+      <EquipmentScreen
+        clubId={selectedClubId}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
+    "Disciplină": (
+      <DisciplineScreen
+        clubId={selectedClubId}
+        players={players}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
+    "Scouting": (
+      <ScoutingScreen
+        clubId={selectedClubId}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
+    "Galerie": (
+      <MediaScreen
+        clubId={selectedClubId}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
     "Profil": (
       <MyProfileScreen
         currentUser={effectiveUser}
@@ -837,30 +872,6 @@ function MainApp() {
       </SafeAreaView>
     );
   }
-
-  const tabIconsMapping = {
-    Dashboard: "LayoutGrid",
-    "Echipă": "Users",
-    "Antren.": "Dumbbell",
-    Meciuri: "Trophy",
-    Calendar: "CalendarDays",
-    Sarcini: "ListChecks",
-    Staff: "UserCog",
-    "Finanțe": "Wallet",
-    AI: "Sparkles",
-    Abonamente: "CreditCard",
-    "Panou SaaS": "LayoutDashboard",
-    "Cluburi": "Building2",
-    "Abonamente SaaS": "CreditCard",
-    "Utilizatori": "Users",
-    "Profil": "User",
-    "Mai mult": "Menu",
-  };
-
-  const navTabs = activeTabs.map((label) => ({
-    title: label,
-    icon: tabIconsMapping[label] || "Circle",
-  }));
 
   return (
     <SafeAreaView style={styles.safe}>

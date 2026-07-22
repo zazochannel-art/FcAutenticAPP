@@ -1197,25 +1197,3 @@ export const supabaseService = {
     return data;
   },
 };
-
-export const adminService = {
-  async listProfiles() {
-    const { data, error } = await requireSupabase()
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return data || [];
-  },
-
-  async updateProfileRole(id, role, assignedGroups = []) {
-    const { data, error } = await requireSupabase()
-      .from("profiles")
-      .update({ role, assigned_groups: assignedGroups })
-      .eq("id", id)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
-  },
-};

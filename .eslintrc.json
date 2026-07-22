@@ -1,0 +1,24 @@
+{
+  "root": true,
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false,
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "ecmaFeatures": { "jsx": true },
+    "babelOptions": { "presets": ["babel-preset-expo"] }
+  },
+  "env": { "browser": true, "node": true, "es2021": true, "jest": true },
+  "globals": { "__DEV__": "readonly" },
+  "plugins": ["react"],
+  "extends": ["eslint:recommended"],
+  "settings": { "react": { "version": "detect" } },
+  "rules": {
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-empty": ["warn", { "allowEmptyCatch": true }],
+    "no-constant-condition": ["error", { "checkLoops": false }]
+  },
+  "ignorePatterns": ["node_modules/", "dist/", ".expo/", "web-build/", "scripts/"]
+}
