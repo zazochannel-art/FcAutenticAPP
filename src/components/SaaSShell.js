@@ -4,34 +4,43 @@ import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
 import { BlurView } from "expo-blur";
 
-const PRIMARY_ITEMS = [
-  { label: "Dashboard", icon: "LayoutDashboard" },
-  { label: "Echipă", icon: "Users" },
-  { label: "Antren.", icon: "Dumbbell" },
-  { label: "Meciuri", icon: "Trophy" },
-  { label: "Calendar", icon: "CalendarDays" },
-  { label: "Sarcini", icon: "ListChecks" },
-  { label: "Staff", icon: "UserCog" },
-  { label: "Finanțe", icon: "Wallet" },
-  { label: "AI", icon: "Bot" },
-  { label: "Mai mult", icon: "Settings" },
-];
+// Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
+// lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
+const TAB_ICONS = {
+  Dashboard: "LayoutDashboard",
+  "Echipă": "Users",
+  "Antren.": "Dumbbell",
+  Meciuri: "Trophy",
+  Calendar: "CalendarDays",
+  Sarcini: "ListChecks",
+  Staff: "UserCog",
+  "Finanțe": "Wallet",
+  AI: "Bot",
+  Abonamente: "CreditCard",
+  Profil: "User",
+  "Mai mult": "Settings",
+  // Administrare platformă
+  "Panou SaaS": "LayoutDashboard",
+  Cluburi: "Building2",
+  "Abonamente SaaS": "CreditCard",
+  Utilizatori: "Users",
+};
 
-const ADMIN_ITEMS = [
-  { label: "Abonamente", icon: "CreditCard" },
-  { label: "Admin SaaS", icon: "ShieldCheck" },
-];
+// Taburile care aparțin secțiunii de administrare a platformei.
+const ADMIN_LABELS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori"];
 
 export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub }) {
-  const canUse = (label) => tabs.includes(label) || ["Admin SaaS", "Abonamente", "Sarcini", "Staff"].includes(label);
+  const toItem = (label) => ({ label, icon: TAB_ICONS[label] || "Circle" });
+  const primaryItems = tabs.filter((label) => !ADMIN_LABELS.includes(label)).map(toItem);
+  const adminItems = tabs.filter((label) => ADMIN_LABELS.includes(label)).map(toItem);
 
   return (
     <View style={styles.shell}>
       <SaaSSidebar
         activeTab={activeTab}
         setTab={setTab}
-        primaryItems={PRIMARY_ITEMS.filter((item) => canUse(item.label))}
-        adminItems={["super_admin", "club_owner", "admin"].includes(user?.role) ? ADMIN_ITEMS : []}
+        primaryItems={primaryItems}
+        adminItems={adminItems}
         selectedClub={selectedClub}
       />
       <View style={styles.main}>

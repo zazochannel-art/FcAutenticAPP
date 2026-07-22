@@ -51,7 +51,10 @@ import FinancesSaaS from "./src/screens/FinancesSaaS";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
 import MyProfileScreen from "./src/screens/MyProfileScreen";
 import MoreScreen from "./src/screens/MoreScreen";
-import SaasAdminScreen from "./src/screens/SaasAdminScreen";
+import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen";
+import AdminClubsScreen from "./src/screens/admin/AdminClubsScreen";
+import AdminSubscriptionsScreen from "./src/screens/admin/AdminSubscriptionsScreen";
+import AdminUsersScreen from "./src/screens/admin/AdminUsersScreen";
 import AISaaSReport from "./src/screens/AISaaSReport";
 import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
@@ -105,8 +108,14 @@ function resolveEffectiveRole(profile, membership) {
   return "viewer";
 }
 
+// Taburile de administrare a platformei (super-admin în mod platformă).
+const ADMIN_PLATFORM_TABS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori", "Mai mult"];
+// Când super-adminul intră în gestiunea unui club, vede și paginile lui
+// operaționale; „Panou SaaS” îl readuce în modul platformă.
+const ADMIN_CLUB_TABS = ["Panou SaaS", "Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Mai mult"];
+
 const roleTabs = {
-  super_admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Admin SaaS", "Mai mult"],
+  super_admin: ADMIN_PLATFORM_TABS,
   club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
   admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Mai mult"],
   coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Mai mult"],
@@ -142,6 +151,8 @@ function MainApp() {
   const [tab, setTab] = useState("Dashboard");
   const [clubSettings] = useState({ clubName: "FC Autentic" });
   const [selectedClubId, setSelectedClubId] = useState(null);
+  // Când super-adminul intră în gestiunea unui club anume (null = mod platformă).
+  const [managingClubId, setManagingClubId] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
   const [registerError, setRegisterError] = useState("");
@@ -263,8 +274,29 @@ function MainApp() {
       }
     : null;
 
-  const baseTabs = roleTabs[effectiveUser?.role] || roleTabs.guest;
-  const activeTabs = baseTabs;
+  const isSuperAdmin = effectiveUser?.role === "super_admin";
+  const managingClub = isSuperAdmin && managingClubId ? clubs.find((c) => c.id === managingClubId) : null;
+
+  // Super-adminul vede taburile de platformă; când intră în gestiunea unui
+  // club, primește și paginile operaționale ale acelui club.
+  const activeTabs = isSuperAdmin
+    ? (managingClub ? ADMIN_CLUB_TABS : ADMIN_PLATFORM_TABS)
+    : (roleTabs[effectiveUser?.role] || roleTabs.guest);
+
+  // Intră în gestiunea unui club (pentru super-admin) și încarcă datele lui.
+  const enterClubManagement = (targetClubId, targetTab) => {
+    setManagingClubId(targetClubId);
+    setSelectedClubId(targetClubId);
+    queryClient.invalidateQueries();
+    setTab(targetTab || "Dashboard");
+  };
+
+  // Navigare care iese automat din modul „gestiune club” la revenirea în
+  // paginile de platformă.
+  const navigateTab = (label) => {
+    if (isSuperAdmin && ADMIN_PLATFORM_TABS.includes(label)) setManagingClubId(null);
+    setTab(label);
+  };
 
   const playerMutation = useMutation({
     mutationFn: async ({ type, payload }) => {
@@ -663,8 +695,17 @@ function MainApp() {
         players={players}
       />
     ),
-    "Admin SaaS": (
-      <SaasAdminScreen clubs={clubs} players={players} memberships={memberships} onCreateClub={() => setAuthView("create-club")} openNotifications={() => setTab("Notif.")} />
+    "Panou SaaS": (
+      <AdminDashboardScreen clubs={clubs} onCreateClub={() => setAuthView("create-club")} goTo={navigateTab} />
+    ),
+    "Cluburi": (
+      <AdminClubsScreen clubs={clubs} onCreateClub={() => setAuthView("create-club")} onManageClub={enterClubManagement} />
+    ),
+    "Abonamente SaaS": (
+      <AdminSubscriptionsScreen clubs={clubs} />
+    ),
+    "Utilizatori": (
+      <AdminUsersScreen clubs={clubs} onManageClub={enterClubManagement} />
     ),
     "Notif.": (
       <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} openNotifications={() => setTab("Notif.")} />
@@ -691,7 +732,7 @@ function MainApp() {
         onCreateClub={() => setAuthView("create-club")}
         openNotifications={() => setTab("Notif.")}
         tabs={activeTabs}
-        setTab={setTab}
+        setTab={navigateTab}
       />
     ),
   };
@@ -808,7 +849,10 @@ function MainApp() {
     "Finanțe": "Wallet",
     AI: "Sparkles",
     Abonamente: "CreditCard",
-    "Admin SaaS": "ShieldCheck",
+    "Panou SaaS": "LayoutDashboard",
+    "Cluburi": "Building2",
+    "Abonamente SaaS": "CreditCard",
+    "Utilizatori": "Users",
     "Profil": "User",
     "Mai mult": "Menu",
   };
@@ -825,19 +869,19 @@ function MainApp() {
         <SaaSAppShell
           tabs={activeTabs}
           activeTab={tab}
-          setTab={setTab}
+          setTab={navigateTab}
           user={effectiveUser}
-          selectedClub={selectedClub}
+          selectedClub={managingClub || selectedClub}
         >
-          {pages[tab] || pages.Dashboard}
+          {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
         </SaaSAppShell>
       ) : (
         <>
-          <View style={styles.app}>{pages[tab] || pages.Dashboard}</View>
+          <View style={styles.app}>{pages[tab] || pages[activeTabs[0]] || pages.Dashboard}</View>
           <MobileBottomNav
             tabs={activeTabs}
             activeTab={tab}
-            onTabPress={(label) => setTab(label)}
+            onTabPress={navigateTab}
           />
         </>
       )}

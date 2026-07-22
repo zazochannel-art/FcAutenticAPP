@@ -16,7 +16,11 @@ const TAB_ICONS = {
   "Finanțe": "Wallet",
   AI: "Sparkles",
   Abonamente: "CreditCard",
-  "Admin SaaS": "ShieldCheck",
+  Profil: "User",
+  "Panou SaaS": "LayoutDashboard",
+  Cluburi: "Building2",
+  "Abonamente SaaS": "CreditCard",
+  Utilizatori: "Users",
 };
 
 export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [], tabs = [], setTab }) {

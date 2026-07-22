@@ -1130,6 +1130,18 @@ export const supabaseService = {
     return mapSubscription(data);
   },
 
+  // Blochează/deblochează un club (doar super-admin, prin RLS).
+  async setClubBlocked(clubId, blocked) {
+    const { data, error } = await requireSupabase()
+      .from("clubs")
+      .update({ blocked })
+      .eq("id", clubId)
+      .select()
+      .single();
+    if (error) throw error;
+    return mapClub(data);
+  },
+
   async runAiAnalysis({ clubId, analysisType, question }) {
     const { data, error } = await requireSupabase().functions.invoke("club-ai-analysis", {
       body: { clubId, analysisType, question },
