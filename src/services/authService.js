@@ -40,6 +40,23 @@ export const authService = {
     return data;
   },
 
+  async updatePassword(newPassword) {
+    const { error } = await requireSupabase().auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    return true;
+  },
+
+  async updateProfileName(fullName) {
+    const sb = requireSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error("Autentificare necesară.");
+    const { error } = await sb.from("profiles").update({ full_name: fullName }).eq("id", user.id);
+    if (error) throw error;
+    // Ținem și metadata din auth sincronizată, pentru afișare.
+    await sb.auth.updateUser({ data: { full_name: fullName } });
+    return true;
+  },
+
   async signOut() {
     const { error } = await requireSupabase().auth.signOut();
     if (error) throw error;
