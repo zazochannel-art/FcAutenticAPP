@@ -6,11 +6,12 @@
 --   * funcții SECURITY DEFINER de acțiune apelabile de rolul anon
 -- ============================================================================
 
--- 1) Un utilizator poate crea doar cluburi atribuite lui însuși.
---    created_by are default auth.uid(), deci inserția normală trece.
+-- 1) Un utilizator nu poate atribui clubul altui utilizator. Acceptăm created_by
+--    NULL (compatibil cu clientul care nu-l trimite explicit) sau egal cu
+--    utilizatorul curent — dar nu id-ul altcuiva.
 drop policy if exists "Utilizatorii pot crea cluburi" on public.clubs;
 create policy "Utilizatorii pot crea cluburi" on public.clubs
-  for insert to authenticated with check (created_by = auth.uid());
+  for insert to authenticated with check (created_by is null or created_by = auth.uid());
 
 -- 2) Funcțiile de acțiune se apelează doar autentificat — le scoatem din anon.
 --    ATENȚIE: nu atinge helper-ele current_user_* (sunt folosite în RLS și

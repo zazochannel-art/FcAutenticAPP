@@ -700,10 +700,11 @@ create policy profiles_super_admin_saas on public.profiles
 -- clubs
 drop policy if exists "Utilizatorii pot crea cluburi" on public.clubs;
 create policy "Utilizatorii pot crea cluburi" on public.clubs
-  -- Un utilizator poate crea doar cluburi atribuite lui însuși. Coloana
-  -- created_by are default auth.uid(), deci inserția normală trece, dar nu se
-  -- poate falsifica proprietarul (evită politica permisivă WITH CHECK (true)).
-  for insert to authenticated with check (created_by = auth.uid());
+  -- Un utilizator nu poate atribui clubul altui utilizator. Acceptăm created_by
+  -- NULL (clientul îl completează, dar coloana poate rămâne pe default) sau egal
+  -- cu utilizatorul curent. Evită atât politica permisivă WITH CHECK (true), cât
+  -- și blocarea inserțiilor fără created_by explicit.
+  for insert to authenticated with check (created_by is null or created_by = auth.uid());
 
 drop policy if exists "Utilizatorii pot vedea cluburile proprii" on public.clubs;
 create policy "Utilizatorii pot vedea cluburile proprii" on public.clubs

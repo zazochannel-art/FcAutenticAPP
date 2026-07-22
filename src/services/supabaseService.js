@@ -950,8 +950,19 @@ export const supabaseService = {
   },
 
   async createClub(userId, clubData) {
+    const sb = requireSupabase();
     const groups = clubData.ageGroups || clubData.groups || DEFAULT_GROUPS;
-    const { data, error } = await requireSupabase()
+
+    // Politica RLS de INSERT pe clubs cere created_by = auth.uid(). Îl setăm
+    // explicit (nu ne bazăm pe default-ul coloanei, care poate lipsi în DB),
+    // rezolvând id-ul din sesiune dacă nu a fost transmis.
+    let ownerId = userId;
+    if (!ownerId) {
+      const { data: authData } = await sb.auth.getUser();
+      ownerId = authData?.user?.id || null;
+    }
+
+    const { data, error } = await sb
       .from("clubs")
       .insert({
         name: clubData.name,
@@ -967,6 +978,7 @@ export const supabaseService = {
         status: "active",
         blocked: false,
         plan: "Free",
+        created_by: ownerId,
       })
       .select()
       .single();
