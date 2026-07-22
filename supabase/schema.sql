@@ -716,6 +716,13 @@ drop policy if exists clubs_select_saas on public.clubs;
 create policy clubs_select_saas on public.clubs
   for select to authenticated using (public.current_user_can_read_club(id));
 
+-- Creatorul își poate citi propriul club imediat după creare, înainte ca
+-- membership-ul de owner să existe. Necesar pentru insert().select() din
+-- createClub (RETURNING cere o politică de SELECT care să vadă rândul nou).
+drop policy if exists clubs_select_own_created on public.clubs;
+create policy clubs_select_own_created on public.clubs
+  for select to authenticated using (created_by = auth.uid());
+
 drop policy if exists clubs_update_saas on public.clubs;
 create policy clubs_update_saas on public.clubs
   for update to authenticated
