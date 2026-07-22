@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
 import { BeUIButton } from "./ui/be-ui-button";
+import { useProfile } from "../context/ProfileContext";
+import ProfileSheet from "./ProfileSheet";
 
 export function Badge({ size = 48 }) {
   return <Image source={require("../../assets/icon.png")} style={{ width: size, height: size, resizeMode: "contain" }} />;
@@ -11,6 +13,11 @@ export function Badge({ size = 48 }) {
 export function TopBar({ title, eyebrow = "FC AUTENTIC • MANAGER", openNotifications }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+  const profile = useProfile();
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const btnSize = isMobile ? 44 : 52;
+  const initial = (profile?.user?.name || "U").slice(0, 1).toUpperCase();
 
   return (
     <View style={styles.topBar}>
@@ -24,9 +31,28 @@ export function TopBar({ title, eyebrow = "FC AUTENTIC • MANAGER", openNotific
         size="icon"
         icon="Bell"
         onPress={openNotifications}
-        style={{ width: isMobile ? 44 : 52, height: isMobile ? 44 : 52, borderRadius: 12 }}
+        style={{ width: btnSize, height: btnSize, borderRadius: 12 }}
         aria-label="Notificări"
       />
+      {isMobile && profile?.user && (
+        <Pressable
+          onPress={() => setProfileOpen(true)}
+          style={[styles.avatarBtn, { width: btnSize, height: btnSize }]}
+          aria-label="Profil"
+        >
+          <Text style={styles.avatarBtnText}>{initial}</Text>
+        </Pressable>
+      )}
+      {profile?.user && (
+        <ProfileSheet
+          visible={profileOpen}
+          user={profile.user}
+          selectedClub={profile.selectedClub}
+          onClose={() => setProfileOpen(false)}
+          onLogout={profile.onLogout}
+          onNavigate={profile.onNavigate}
+        />
+      )}
     </View>
   );
 }
@@ -83,6 +109,8 @@ const styles = StyleSheet.create({
   eyebrow: { color: C.cyan, fontSize: 9, fontWeight: "900", letterSpacing: 1.5, textAlign: "center", textTransform: 'uppercase' },
   pageTitle: { color: "white", fontSize: 26, fontWeight: "900", marginTop: 4, textAlign: "center" },
   logoWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(15,23,42,0.6)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  avatarBtn: { borderRadius: 12, backgroundColor: "rgba(0,212,255,0.14)", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", alignItems: "center", justifyContent: "center" },
+  avatarBtnText: { color: C.cyan, fontSize: 16, fontWeight: "900" },
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 24, marginBottom: 12 },
   sectionTitle: { color: "white", fontSize: 16, fontWeight: "800", textTransform: 'uppercase', letterSpacing: 0.5 },
   metric: { flex: 1, alignItems: "center" },

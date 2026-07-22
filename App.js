@@ -23,6 +23,7 @@ import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persi
 import { isSupabaseConfigured, supabase, supabaseConfigError } from "./src/config/supabaseClient";
 import { supabaseService, DEFAULT_CLUB_ID } from "./src/services/supabaseService";
 import { resolveEffectiveRole } from "./src/utils/roles";
+import { ProfileContext } from "./src/context/ProfileContext";
 import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
@@ -875,30 +876,39 @@ function MainApp() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
-      {isDesktopLayout ? (
-        <SaaSAppShell
-          tabs={activeTabs}
-          activeTab={tab}
-          setTab={navigateTab}
-          user={effectiveUser}
-          selectedClub={managingClub || selectedClub}
-          onLogout={logout}
-        >
-          {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
-        </SaaSAppShell>
-      ) : (
-        <>
-          <View style={styles.app}>{pages[tab] || pages[activeTabs[0]] || pages.Dashboard}</View>
-          <MobileBottomNav
+    <ProfileContext.Provider
+      value={{
+        user: effectiveUser,
+        selectedClub: managingClub || selectedClub,
+        onLogout: logout,
+        onNavigate: navigateTab,
+      }}
+    >
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="light-content" />
+        {isDesktopLayout ? (
+          <SaaSAppShell
             tabs={activeTabs}
             activeTab={tab}
-            onTabPress={navigateTab}
-          />
-        </>
-      )}
-    </SafeAreaView>
+            setTab={navigateTab}
+            user={effectiveUser}
+            selectedClub={managingClub || selectedClub}
+            onLogout={logout}
+          >
+            {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
+          </SaaSAppShell>
+        ) : (
+          <>
+            <View style={styles.app}>{pages[tab] || pages[activeTabs[0]] || pages.Dashboard}</View>
+            <MobileBottomNav
+              tabs={activeTabs}
+              activeTab={tab}
+              onTabPress={navigateTab}
+            />
+          </>
+        )}
+      </SafeAreaView>
+    </ProfileContext.Provider>
   );
 }
 
