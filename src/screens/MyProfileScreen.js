@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
   statusPill: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, marginTop: 8 },
   statusPillText: { fontSize: 9, fontWeight: "900" },
 
-  statsRow: { flexDirection: "row", gap: 10, marginBottom: 8 },
-  statBox: { flex: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 8 },
+  statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   statVal: { color: "white", fontSize: 18, fontWeight: "900", marginTop: 8 },
   statLabel: { color: C.dim, fontSize: 9, fontWeight: "800", marginTop: 2, textTransform: "uppercase" },
 
