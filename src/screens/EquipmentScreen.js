@@ -154,8 +154,8 @@ function EquipmentModal({ visible, item, clubId, onClose, onSaved }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 18, paddingBottom: 120 },
-  statsRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  statBox: { flex: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 16 },
+  statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   statVal: { color: "white", fontSize: 20, fontWeight: "900" },
   statLabel: { color: C.dim, fontSize: 9, fontWeight: "800", marginTop: 2, textTransform: "uppercase" },
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 14, backgroundColor: C.blue, marginBottom: 18 },
