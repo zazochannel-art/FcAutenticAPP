@@ -13,13 +13,18 @@ export const authService = {
     return data;
   },
 
-  async signUp({ email, password, fullName, groupName, playerNo, playerPosition, joinCode }) {
+  async signUp({ email, password, fullName, groupName, playerNo, playerPosition, joinCode, role = "player" }) {
     // Datele de jucător + codul de club intră în metadata; trigger-ul din DB
-    // (handle_new_player_signup) creează jucătorul și membership-ul direct în
-    // clubul identificat prin cod. Fără cod se creează doar un profil.
-    const metadata = { full_name: fullName };
-    if (groupName || playerPosition || playerNo) {
-      metadata.group_name = groupName || "U19";
+    // (handle_new_player_signup) creează membership-ul pending în clubul
+    // identificat prin cod, cu rolul dorit (jucător sau părinte). Fără cod se
+    // creează doar un profil.
+    const desiredRole = role === "parent" ? "parent" : "player";
+    const metadata = { full_name: fullName, desired_role: desiredRole };
+    if (groupName) {
+      // Pentru părinte, grupa reprezintă grupa copilului (opțional).
+      metadata.group_name = groupName;
+    }
+    if (desiredRole === "player" && (playerPosition || playerNo)) {
       metadata.player_no = String(playerNo || 0);
       metadata.player_position = playerPosition || "Jucător";
     }

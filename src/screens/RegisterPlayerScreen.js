@@ -12,6 +12,7 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
   const isMobile = width < 768;
 
   const [form, setForm] = useState({
+    accountType: "player",
     name: "",
     email: "",
     password: "",
@@ -23,6 +24,8 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
   });
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
+
+  const isParent = form.accountType === "parent";
 
   const submit = () => {
     const email = form.email.trim().toLowerCase();
@@ -64,11 +67,24 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
 
         <View style={styles.loginHero}>
           <Badge size={isMobile ? 60 : 82} />
-          <Text style={[styles.loginTitle, isMobile && { fontSize: 24 }]}>Cont jucător</Text>
-          <Text style={styles.loginSubtitle}>Alătură-te clubului tău cu codul primit de la antrenor.</Text>
+          <Text style={[styles.loginTitle, isMobile && { fontSize: 24 }]}>{isParent ? "Cont părinte" : "Cont jucător"}</Text>
+          <Text style={styles.loginSubtitle}>Alătură-te clubului cu codul primit de la antrenor.</Text>
         </View>
 
         <View style={[styles.formCard, !isMobile && { maxWidth: 500, alignSelf: 'center' }]}>
+          <Text style={styles.trainingFieldLabel}>Mă înscriu ca</Text>
+          <View style={styles.typeRow}>
+            {[["player", "Jucător"], ["parent", "Părinte"]].map(([value, label]) => (
+              <Pressable
+                key={value}
+                style={[styles.typeChip, form.accountType === value && styles.typeChipActive]}
+                onPress={() => setForm({ ...form, accountType: value })}
+              >
+                <Text style={[styles.typeChipText, form.accountType === value && styles.typeChipTextActive]}>{label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           <TrainingField
             label="Cod club"
             value={form.clubCode}
@@ -77,19 +93,21 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
           />
           <Text style={styles.codeHint}>Primești codul de la antrenorul sau administratorul clubului.</Text>
 
-          <TrainingField label="Nume complet" value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Andrei Popescu" />
-          <TrainingField label="Email" value={form.email} onChange={(email) => setForm({ ...form, email })} placeholder="andrei@email.com" />
+          <TrainingField label={isParent ? "Numele tău" : "Nume complet"} value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder={isParent ? "Maria Popescu" : "Andrei Popescu"} />
+          <TrainingField label="Email" value={form.email} onChange={(email) => setForm({ ...form, email })} placeholder={isParent ? "maria@email.com" : "andrei@email.com"} />
 
-          <View style={styles.formRow}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <TrainingField label="Număr" value={form.no} onChange={(no) => setForm({ ...form, no })} placeholder="10" />
+          {!isParent && (
+            <View style={styles.formRow}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <TrainingField label="Număr" value={form.no} onChange={(no) => setForm({ ...form, no })} placeholder="10" />
+              </View>
+              <View style={{ flex: 1.5 }}>
+                <TrainingField label="Post" value={form.role} onChange={(role) => setForm({ ...form, role })} placeholder="Atacant" />
+              </View>
             </View>
-            <View style={{ flex: 1.5 }}>
-              <TrainingField label="Post" value={form.role} onChange={(role) => setForm({ ...form, role })} placeholder="Atacant" />
-            </View>
-          </View>
+          )}
 
-          <Text style={styles.trainingFieldLabel}>Grupa</Text>
+          <Text style={styles.trainingFieldLabel}>{isParent ? "Grupa copilului" : "Grupa"}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupRow} contentContainerStyle={{ gap: 6 }}>
             {clubGroups.map((group) => (
               <Pressable key={group} style={[styles.groupChip, form.group === group && styles.groupChipActive]} onPress={() => setForm({ ...form, group })}>
@@ -159,4 +177,9 @@ const styles = StyleSheet.create({
   passwordInput: { flex: 1, color: 'white', fontSize: 13, fontWeight: '600' },
   authError: { color: C.red, fontSize: 11, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
   codeHint: { color: C.dim, fontSize: 10, fontWeight: '600', marginTop: -8, marginBottom: 16, lineHeight: 14 },
+  typeRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
+  typeChip: { flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: '#1e293b', backgroundColor: "rgba(255,255,255,0.02)", alignItems: 'center', justifyContent: 'center' },
+  typeChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + '15' },
+  typeChipText: { color: C.muted, fontWeight: "900", fontSize: 12 },
+  typeChipTextActive: { color: C.cyan },
 });

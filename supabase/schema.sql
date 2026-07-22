@@ -465,15 +465,24 @@ $$;
 create or replace function public.handle_new_player_signup()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare
-  new_player_id bigint;
   player_group text;
   display_name text;
   target_club uuid;
   join_code_input text;
+  desired_role text;
+  profile_role public.app_role;
 begin
   display_name := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   player_group := coalesce(nullif(new.raw_user_meta_data->>'group_name', ''), 'U19');
   join_code_input := nullif(trim(new.raw_user_meta_data->>'join_code'), '');
+
+  -- Rolul cerut la înregistrare: doar jucător sau părinte se pot auto-înscrie
+  -- prin cod; orice altceva devine 'player' din prudență.
+  desired_role := lower(coalesce(nullif(new.raw_user_meta_data->>'desired_role', ''), 'player'));
+  if desired_role not in ('player', 'parent') then
+    desired_role := 'player';
+  end if;
+  profile_role := desired_role::public.app_role;
 
   if join_code_input is not null then
     select id into target_club from public.clubs
@@ -482,17 +491,18 @@ begin
   end if;
 
   if target_club is not null then
-    -- Cerere în așteptare: profil + membership PENDING. Jucătorul se creează
-    -- în lot doar la aprobarea owner-ului (vezi approve_club_member).
+    -- Cerere în așteptare: profil + membership PENDING cu rolul dorit. Pentru
+    -- jucători, rândul din lot se creează la aprobarea owner-ului
+    -- (approve_club_member); pentru părinți nu se creează jucător.
     insert into public.profiles (id, full_name, role, assigned_groups, email)
-    values (new.id, display_name, 'player', array[player_group], new.email);
+    values (new.id, display_name, profile_role, array[player_group], new.email);
 
     insert into public.club_memberships (user_id, club_id, role, assigned_groups, status)
-    values (new.id, target_club, 'player', array[player_group], 'pending')
+    values (new.id, target_club, desired_role, array[player_group], 'pending')
     on conflict (user_id, club_id) do nothing;
   else
     insert into public.profiles (id, full_name, role, assigned_groups, email)
-    values (new.id, display_name, 'player', '{}', new.email);
+    values (new.id, display_name, profile_role, '{}', new.email);
   end if;
 
   return new;
@@ -715,6 +725,13 @@ create policy "Utilizatorii pot vedea cluburile proprii" on public.clubs
 drop policy if exists clubs_select_saas on public.clubs;
 create policy clubs_select_saas on public.clubs
   for select to authenticated using (public.current_user_can_read_club(id));
+
+-- Creatorul își poate citi propriul club imediat după creare, înainte ca
+-- membership-ul de owner să existe. Necesar pentru insert().select() din
+-- createClub (RETURNING cere o politică de SELECT care să vadă rândul nou).
+drop policy if exists clubs_select_own_created on public.clubs;
+create policy clubs_select_own_created on public.clubs
+  for select to authenticated using (created_by = auth.uid());
 
 drop policy if exists clubs_update_saas on public.clubs;
 create policy clubs_update_saas on public.clubs
