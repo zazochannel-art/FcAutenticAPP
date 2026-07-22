@@ -460,10 +460,11 @@ function MainApp() {
         playerNo: form.no,
         playerPosition: form.role,
         joinCode: form.clubCode,
+        role: form.accountType === "parent" ? "parent" : "player",
       });
       Alert.alert(
         "Cont creat",
-        "Cererea ta de alăturare a fost trimisă. Un administrator al clubului trebuie să o aprobe. Dacă e nevoie, confirmă emailul, apoi autentifică-te."
+        `Cererea ta de alăturare ca ${form.accountType === "parent" ? "părinte" : "jucător"} a fost trimisă. Un administrator al clubului trebuie să o aprobe. Dacă e nevoie, confirmă emailul, apoi autentifică-te.`
       );
       setAuthView("login");
     } catch (e) {
