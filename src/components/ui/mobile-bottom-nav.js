@@ -15,6 +15,7 @@ const tabIcons = {
   Finanțe: "Wallet",
   AI: "Bot",
   Abonamente: "CreditCard",
+  Documente: "FolderOpen",
   Profil: "User",
   "Panou SaaS": "LayoutDashboard",
   Cluburi: "Building2",

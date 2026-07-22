@@ -17,6 +17,7 @@ const TAB_ICONS = {
   "Finanțe": "Wallet",
   AI: "Bot",
   Abonamente: "CreditCard",
+  Documente: "FolderOpen",
   Profil: "User",
   "Mai mult": "Settings",
   // Administrare platformă

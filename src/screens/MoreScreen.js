@@ -16,6 +16,7 @@ const TAB_ICONS = {
   "Finanțe": "Wallet",
   AI: "Sparkles",
   Abonamente: "CreditCard",
+  Documente: "FolderOpen",
   Profil: "User",
   "Panou SaaS": "LayoutDashboard",
   Cluburi: "Building2",

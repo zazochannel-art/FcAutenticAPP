@@ -8,6 +8,12 @@ import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { parseRoDate } from "../utils/dates";
 
+// Eticheta de convocare pentru portalul jucătorului.
+const CALLUP = {
+  titular: { label: "Titular", color: C.green },
+  rezerva: { label: "Rezervă", color: C.amber },
+};
+
 const METRICS = [
   ["technique", "Tehnică"],
   ["speed", "Viteză"],
@@ -63,8 +69,10 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
     const items = [];
     trainings.filter((t) => t.group === myPlayer.group).forEach((t) =>
       items.push({ kind: "Antrenament", title: t.theme || "Antrenament", date: t.date, time: t.time, location: t.location, color: C.purple }));
-    matches.filter((m) => m.group === myPlayer.group).forEach((m) =>
-      items.push({ kind: "Meci", title: `vs ${m.opponent}`, date: m.date, time: m.time, location: m.location, color: C.blue }));
+    matches.filter((m) => m.group === myPlayer.group).forEach((m) => {
+      const callUp = (m.callUps || {})[String(myPlayer.id)] || null;
+      items.push({ kind: "Meci", title: `vs ${m.opponent}`, date: m.date, time: m.time, location: m.location, color: C.blue, callUp });
+    });
     return items
       .map((i) => ({ ...i, d: parseRoDate(i.date) }))
       .filter((i) => i.d && i.d >= new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()))
@@ -128,15 +136,23 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
           {upcoming.length === 0 ? (
             <View style={styles.plainCard}><Text style={styles.plainText}>Nicio activitate programată pentru grupa {myPlayer.group}.</Text></View>
           ) : (
-            upcoming.map((item, i) => (
-              <View key={i} style={styles.activityRow}>
-                <View style={[styles.activityDot, { backgroundColor: item.color }]} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.activityTitle}>{item.kind}: {item.title}</Text>
-                  <Text style={styles.activityMeta}>{item.date} • {item.time} • {item.location}</Text>
+            upcoming.map((item, i) => {
+              const call = item.callUp ? (CALLUP[item.callUp] || null) : null;
+              return (
+                <View key={i} style={styles.activityRow}>
+                  <View style={[styles.activityDot, { backgroundColor: item.color }]} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.activityTitle}>{item.kind}: {item.title}</Text>
+                    <Text style={styles.activityMeta}>{item.date} • {item.time} • {item.location}</Text>
+                  </View>
+                  {call && (
+                    <View style={[styles.callTag, { backgroundColor: call.color + "18", borderColor: call.color + "40" }]}>
+                      <Text style={[styles.callTagText, { color: call.color }]}>{call.label}</Text>
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </>
       )}
@@ -209,4 +225,6 @@ const styles = StyleSheet.create({
   activityDot: { width: 8, height: 8, borderRadius: 4 },
   activityTitle: { color: "white", fontSize: 12.5, fontWeight: "800" },
   activityMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },
+  callTag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  callTagText: { fontSize: 9.5, fontWeight: "900" },
 });
