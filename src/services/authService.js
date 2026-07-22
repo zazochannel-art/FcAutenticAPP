@@ -57,6 +57,16 @@ export const authService = {
     return true;
   },
 
+  async deleteAccount() {
+    const sb = requireSupabase();
+    // Funcție SECURITY DEFINER care șterge contul curent (cascade pe profil,
+    // apartenențe etc.). Vezi supabase/delete-account.sql.
+    const { error } = await sb.rpc("delete_my_account");
+    if (error) throw error;
+    await sb.auth.signOut();
+    return true;
+  },
+
   async signOut() {
     const { error } = await requireSupabase().auth.signOut();
     if (error) throw error;
