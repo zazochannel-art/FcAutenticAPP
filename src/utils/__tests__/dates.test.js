@@ -1,4 +1,4 @@
-import { parseRoDate, MONTH_PREFIXES } from "../dates";
+import { parseRoDate, MONTH_PREFIXES, formatRoDate } from "../dates";
 
 describe("parseRoDate", () => {
   test("parsează o dată românească completă", () => {
@@ -31,5 +31,20 @@ describe("parseRoDate", () => {
   test("MONTH_PREFIXES acoperă toate cele 12 luni", () => {
     const distinctMonths = new Set(Object.values(MONTH_PREFIXES));
     expect(distinctMonths.size).toBe(12);
+  });
+});
+
+describe("formatRoDate", () => {
+  test("formatează ziua/luna/anul în etichetă românească", () => {
+    expect(formatRoDate(29, 6, 2026)).toBe("29 iulie 2026");
+    expect(formatRoDate(1, 0, 2027)).toBe("1 ianuarie 2027");
+  });
+
+  test("round-trip: format apoi parse dă aceeași dată", () => {
+    const label = formatRoDate(15, 8, 2026); // 15 septembrie 2026
+    const d = parseRoDate(label);
+    expect(d.getDate()).toBe(15);
+    expect(d.getMonth()).toBe(8);
+    expect(d.getFullYear()).toBe(2026);
   });
 });

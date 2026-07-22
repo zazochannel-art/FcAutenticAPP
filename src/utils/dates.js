@@ -6,6 +6,17 @@ export const MONTH_PREFIXES = {
   iul: 6, aug: 7, sep: 8, oct: 9, noi: 10, nov: 10, dec: 11,
 };
 
+export const MONTHS_RO = [
+  "ianuarie", "februarie", "martie", "aprilie", "mai", "iunie",
+  "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie",
+];
+
+// Produce eticheta text folosită în aplicație („29 iulie 2026”), compatibilă
+// cu parseRoDate.
+export function formatRoDate(day, monthIndex, year) {
+  return `${day} ${MONTHS_RO[monthIndex]} ${year}`;
+}
+
 export function parseRoDate(label) {
   if (!label) return null;
   const m = String(label).toLowerCase().match(/(\d{1,2})\s*([a-zăâîșț]+)\.?\s*(\d{4})?/);

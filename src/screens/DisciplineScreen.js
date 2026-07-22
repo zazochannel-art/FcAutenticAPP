@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import RoDateField from "../components/RoDateField";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -138,7 +139,7 @@ function AddDisciplineModal({ visible, players, onClose, onSaved }) {
           <Text style={styles.modalLabel}>MOTIV (opțional)</Text>
           <TextInput style={[styles.modalInput, { height: 60, textAlignVertical: "top", paddingTop: 10 }]} value={note} onChangeText={setNote} placeholder="Detalii..." placeholderTextColor={C.dim} multiline />
           <Text style={styles.modalLabel}>DATA (opțional)</Text>
-          <TextInput style={styles.modalInput} value={date} onChangeText={setDate} placeholder="2 august 2026" placeholderTextColor={C.dim} />
+          <RoDateField value={date} onChange={setDate} placeholder="Alege data" />
 
           <Pressable style={[styles.modalSaveBtn, saving && { opacity: 0.7 }]} onPress={save} disabled={saving}>
             <LucideIcons.Check size={16} color="white" /><Text style={styles.modalSaveText}>Înregistrează</Text>

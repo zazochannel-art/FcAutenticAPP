@@ -6,6 +6,7 @@ import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { storageService } from "../services/storageService";
+import RoDateField from "../components/RoDateField";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -181,7 +182,7 @@ function AddDocModal({ visible, clubId, onClose, onSaved }) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>EXPIRĂ (opțional)</Text>
-              <TextInput style={styles.modalInput} value={expires} onChangeText={setExpires} placeholder="1 iunie 2027" placeholderTextColor={C.dim} />
+              <RoDateField value={expires} onChange={setExpires} placeholder="Alege data" />
             </View>
           </View>
 

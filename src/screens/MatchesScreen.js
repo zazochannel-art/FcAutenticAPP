@@ -15,6 +15,7 @@ import Svg, { Circle, Rect, Line } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
+import RoDateField from "../components/RoDateField";
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -429,7 +430,7 @@ function AddMatchModal({ visible, onClose, onSave }) {
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>DATA</Text>
-              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="2 august 2026" placeholderTextColor={TEXT_TH} />
+              <RoDateField value={form.date} onChange={(v) => update("date", v)} placeholder="Alege data" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>ORA</Text>
