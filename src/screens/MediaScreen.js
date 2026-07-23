@@ -37,7 +37,7 @@ export default function MediaScreen({ clubId, selectedClub, currentUser, openNot
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Galerie" eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
+      <TopBar title="Galerie" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>

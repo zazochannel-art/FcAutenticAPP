@@ -35,7 +35,7 @@ export default function SplashScreen({ onDone }) {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.title}>FC Autentic</Text>
+        <Text style={styles.title}>Footbal Manager 99</Text>
         <Text style={styles.subtitle}>Administrare club sportiv</Text>
       </Animated.View>
     </Animated.View>

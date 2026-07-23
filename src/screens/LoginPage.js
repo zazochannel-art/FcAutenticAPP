@@ -323,7 +323,7 @@ export default function LoginPage({ onLogin, onBack, onRegister, onSignup, onGoo
                    <Shield size={20} color={CYAN} />
                 </View>
                 <View>
-                  <Text style={styles.logoText}>FC AUTENTIC</Text>
+                  <Text style={styles.logoText}>FOOTBAL MANAGER 99</Text>
                   <Text style={styles.adminBadge}>ADMIN</Text>
                 </View>
               </View>

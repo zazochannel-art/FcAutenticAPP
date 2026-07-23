@@ -19,7 +19,7 @@ export default function OnboardingScreen({ currentUser, onCreateClub, onJoinClub
           <View style={styles.header}>
             <View style={styles.brand}>
               <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
-              <Text style={styles.brandText}>FC Autentic <Text style={styles.brandAdmin}>Admin</Text></Text>
+              <Text style={styles.brandText}>Footbal Manager <Text style={styles.brandAdmin}>99</Text></Text>
             </View>
             <View style={styles.headerRight}>
               <Pressable onPress={onLogout} style={styles.ghostSmall}><Text style={styles.ghostText}>Ieșire</Text></Pressable>
@@ -32,7 +32,7 @@ export default function OnboardingScreen({ currentUser, onCreateClub, onJoinClub
               <Image source={require("../../assets/icon-square.png")} style={styles.heroLogo} />
               <Text style={styles.heroTitle}>Alege cum vrei să{"\n"}<Text style={styles.cyan}>continui</Text></Text>
               <Text style={styles.heroSubtitle}>
-                Creează propriul tău club sau alătură-te unui club existent din platforma FC Autentic.
+                Creează propriul tău club sau alătură-te unui club existent din platforma Footbal Manager 99.
               </Text>
               <View style={styles.featureStack}>
                 <Feature icon={ShieldPlus} color={C.cyan} title="Creează și administrează" text="Construiește clubul tău și gestionează jucători, staff și evenimente." />

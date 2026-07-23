@@ -38,7 +38,7 @@ export default function ScoutingScreen({ clubId, selectedClub, currentUser, open
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Scouting" eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
+      <TopBar title="Scouting" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>

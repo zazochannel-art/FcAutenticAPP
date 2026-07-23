@@ -61,7 +61,7 @@ export default function JoinClubScreen({ onBack, onSuccess }) {
               </Pressable>
               <View style={styles.brand}>
                 <Shield size={26} color={C.cyan} />
-                <Text style={styles.brandText}>FC Autentic <Text style={styles.brandAdmin}>Admin</Text></Text>
+                <Text style={styles.brandText}>Footbal Manager <Text style={styles.brandAdmin}>99</Text></Text>
               </View>
               <View style={styles.lang}><Globe size={14} color={C.muted} /><Text style={styles.langText}>Română</Text></View>
             </View>
