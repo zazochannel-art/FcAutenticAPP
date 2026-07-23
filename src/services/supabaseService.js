@@ -65,6 +65,24 @@ function mapSubscription(row) {
   };
 }
 
+function mapTactic(row) {
+  return {
+    id: row.id,
+    name: row.name || "Tactică",
+    formation: row.formation || "4-3-3",
+    isPublished: !!row.is_published,
+    assignments: row.assignments || {},
+    subs: Array.isArray(row.subs) ? row.subs : [],
+    captainId: row.captain_id ?? null,
+    setPieces: row.set_pieces || {},
+    teamInstructions: row.team_instructions || {},
+    playerInstructions: row.player_instructions || {},
+    clubId: row.club_id,
+    createdAt: row.created_at || "",
+    updatedAt: row.updated_at || "",
+  };
+}
+
 function mapPlayer(p) {
   return {
     id: Number(p.id),
@@ -945,6 +963,54 @@ export const supabaseService = {
 
   async deleteScouting(id) {
     const { error } = await requireSupabase().from("scouting_players").delete().eq("id", id);
+    if (error) throw error;
+    return true;
+  },
+
+  async getTactics(clubId) {
+    const { data, error } = await requireSupabase()
+      .from("tactics")
+      .select("*")
+      .eq("club_id", activeClubId(clubId))
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapTactic);
+  },
+
+  async saveTactic(t) {
+    const payload = {
+      name: t.name,
+      formation: t.formation || "4-3-3",
+      is_published: !!t.isPublished,
+      assignments: t.assignments || {},
+      subs: t.subs || [],
+      captain_id: t.captainId ?? null,
+      set_pieces: t.setPieces || {},
+      team_instructions: t.teamInstructions || {},
+      player_instructions: t.playerInstructions || {},
+    };
+    const sb = requireSupabase();
+    if (t.id) {
+      const { data, error } = await sb
+        .from("tactics")
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq("id", t.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapTactic(data);
+    }
+    const { data, error } = await sb
+      .from("tactics")
+      .insert({ ...payload, club_id: activeClubId(t.clubId || t.club_id) })
+      .select()
+      .single();
+    if (error) throw error;
+    return mapTactic(data);
+  },
+
+  async deleteTactic(id) {
+    const { error } = await requireSupabase().from("tactics").delete().eq("id", id);
     if (error) throw error;
     return true;
   },

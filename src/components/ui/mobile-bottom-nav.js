@@ -19,6 +19,7 @@ const tabIcons = {
   Echipament: "Package",
   "Disciplină": "ShieldAlert",
   Scouting: "Binoculars",
+  Tactici: "ClipboardList",
   Galerie: "Images",
   Profil: "User",
   "Panou SaaS": "LayoutDashboard",

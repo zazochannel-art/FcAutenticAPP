@@ -56,6 +56,7 @@ import DocumentsScreen from "./src/screens/DocumentsScreen";
 import EquipmentScreen from "./src/screens/EquipmentScreen";
 import DisciplineScreen from "./src/screens/DisciplineScreen";
 import ScoutingScreen from "./src/screens/ScoutingScreen";
+import TacticsScreen from "./src/screens/TacticsScreen";
 import MediaScreen from "./src/screens/MediaScreen";
 import MoreScreen from "./src/screens/MoreScreen";
 import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen";
@@ -104,15 +105,15 @@ const defaultSubscription = {
 const ADMIN_PLATFORM_TABS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori", "Mai mult"];
 // Când super-adminul intră în gestiunea unui club, vede și paginile lui
 // operaționale; „Panou SaaS” îl readuce în modul platformă.
-const ADMIN_CLUB_TABS = ["Panou SaaS", "Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"];
+const ADMIN_CLUB_TABS = ["Panou SaaS", "Dashboard", "Echipă", "Antren.", "Meciuri", "Tactici", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"];
 
 const roleTabs = {
   super_admin: ADMIN_PLATFORM_TABS,
-  club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
-  admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
-  coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Calendar", "Sarcini", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
-  player: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Documente", "Galerie", "Mai mult"],
-  parent: ["Dashboard", "Profil", "Antren.", "Meciuri", "Calendar", "Documente", "Galerie", "Mai mult"],
+  club_owner: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Tactici", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  admin: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Tactici", "Calendar", "Sarcini", "Staff", "Finanțe", "AI", "Abonamente", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  coach: ["Dashboard", "Echipă", "Antren.", "Meciuri", "Tactici", "Calendar", "Sarcini", "AI", "Documente", "Echipament", "Disciplină", "Scouting", "Galerie", "Mai mult"],
+  player: ["Dashboard", "Profil", "Antren.", "Meciuri", "Tactici", "Calendar", "Documente", "Galerie", "Mai mult"],
+  parent: ["Dashboard", "Profil", "Antren.", "Meciuri", "Tactici", "Calendar", "Documente", "Galerie", "Mai mult"],
   viewer: ["Dashboard", "Calendar", "Mai mult"],
   guest: ["Dashboard", "Calendar", "Mai mult"],
 };
@@ -558,6 +559,7 @@ function MainApp() {
       discipline_records: "discipline",
       media_gallery: "mediaGallery",
       scouting_players: "scouting",
+      tactics: "tactics",
       club_tasks: "tasks",
       training_payments: "payments",
       monthly_payments: "monthlyPayments",
@@ -734,6 +736,15 @@ function MainApp() {
     "Scouting": (
       <ScoutingScreen
         clubId={selectedClubId}
+        selectedClub={managingClub || selectedClub}
+        currentUser={effectiveUser}
+        openNotifications={() => setTab("Notif.")}
+      />
+    ),
+    "Tactici": (
+      <TacticsScreen
+        clubId={selectedClubId}
+        players={players}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
         openNotifications={() => setTab("Notif.")}
