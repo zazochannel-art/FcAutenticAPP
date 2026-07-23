@@ -1152,3 +1152,45 @@ end;
 $$;
 revoke execute on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 14) Tactici (tactics board)
+-- ----------------------------------------------------------------------------
+create table if not exists public.tactics (
+  id bigint generated always as identity primary key,
+  name text not null,
+  formation text not null default '4-3-3',
+  is_published boolean not null default false,
+  assignments jsonb not null default '{}'::jsonb,
+  subs jsonb not null default '[]'::jsonb,
+  captain_id bigint,
+  set_pieces jsonb not null default '{}'::jsonb,
+  team_instructions jsonb not null default '{}'::jsonb,
+  player_instructions jsonb not null default '{}'::jsonb,
+  created_by uuid references auth.users(id),
+  club_id uuid references public.clubs(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_tactics_club_id on public.tactics(club_id);
+
+alter table public.tactics enable row level security;
+
+drop policy if exists tactics_select_saas on public.tactics;
+create policy tactics_select_saas on public.tactics
+  for select to authenticated using (
+    public.current_user_has_club_role(club_id, array['club_owner','admin','coach'])
+    or (is_published and public.current_user_can_read_club(club_id))
+  );
+
+drop policy if exists tactics_write_saas on public.tactics;
+create policy tactics_write_saas on public.tactics
+  for all to authenticated
+  using (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']))
+  with check (public.current_user_has_club_role(club_id, array['club_owner','admin','coach']));
+
+drop trigger if exists realtime_broadcast_tactics on public.tactics;
+create trigger realtime_broadcast_tactics
+  after insert or update or delete on public.tactics
+  for each row execute function public.realtime_broadcast_all_changes();

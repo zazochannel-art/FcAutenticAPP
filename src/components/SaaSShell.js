@@ -22,6 +22,7 @@ const TAB_ICONS = {
   Echipament: "Package",
   "Disciplină": "ShieldAlert",
   Scouting: "Binoculars",
+  Tactici: "ClipboardList",
   Galerie: "Images",
   Profil: "User",
   "Mai mult": "Settings",
