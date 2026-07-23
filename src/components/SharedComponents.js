@@ -10,7 +10,7 @@ export function Badge({ size = 48 }) {
   return <Image source={require("../../assets/icon.png")} style={{ width: size, height: size, resizeMode: "contain" }} />;
 }
 
-export function TopBar({ title, eyebrow = "FC AUTENTIC • MANAGER", openNotifications }) {
+export function TopBar({ title, eyebrow = "FOOTBAL MANAGER 99", openNotifications }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const profile = useProfile();

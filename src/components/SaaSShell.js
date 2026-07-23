@@ -65,7 +65,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
       <View style={styles.sidebarHeader}>
         <Image source={require("../../assets/icon-square.png")} style={styles.sidebarLogoImage} />
         <View>
-          <Text style={styles.sidebarBrand}>FC Autentic <Text style={styles.inlineAdmin}>Admin</Text></Text>
+          <Text style={styles.sidebarBrand}>Footbal Manager <Text style={styles.inlineAdmin}>99</Text></Text>
           <Text style={styles.sidebarAdmin}>Platformă cluburi sportive</Text>
         </View>
       </View>

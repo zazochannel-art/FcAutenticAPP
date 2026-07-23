@@ -39,7 +39,7 @@ export default function EquipmentScreen({ clubId, selectedClub, currentUser, ope
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Echipament" eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
+      <TopBar title="Echipament" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
       <View style={styles.statsRow}>
         <View style={styles.statBox}><Text style={styles.statVal}>{items.length}</Text><Text style={styles.statLabel}>Articole</Text></View>

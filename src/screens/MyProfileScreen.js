@@ -88,7 +88,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
 
   const enableReminders = async () => {
     if (Platform.OS === "web") {
-      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația mobilă FC Autentic (iOS/Android).");
+      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația Footbal Manager 99 (iOS/Android).");
       return;
     }
     if (upcoming.length === 0) {
@@ -113,7 +113,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
+      <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
       {!myPlayer ? (
         <View style={styles.emptyState}>

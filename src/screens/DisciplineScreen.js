@@ -40,7 +40,7 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Disciplină" eyebrow={selectedClub?.name || "FC AUTENTIC"} openNotifications={openNotifications} />
+      <TopBar title="Disciplină" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>

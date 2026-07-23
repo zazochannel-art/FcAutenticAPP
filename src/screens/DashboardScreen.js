@@ -33,7 +33,7 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar
         title={`Salut, ${currentUser?.name?.split(' ')[0] || "Manager"}!`}
-        eyebrow="FC AUTENTIC • DASHBOARD"
+        eyebrow="FOOTBAL MANAGER • DASHBOARD"
         openNotifications={openNotifications}
       />
 

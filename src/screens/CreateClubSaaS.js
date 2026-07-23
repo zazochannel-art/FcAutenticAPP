@@ -180,7 +180,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
            <View style={styles.headerBrand}>
               <View style={styles.logoBadge}><LucideIcons.Shield size={22} color={CYAN} /></View>
               <View>
-                 <Text style={styles.brandTitle}>FC AUTENTIC</Text>
+                 <Text style={styles.brandTitle}>FOOTBAL MANAGER 99</Text>
                  <Text style={styles.brandSub}>ADMIN</Text>
               </View>
            </View>
@@ -211,7 +211,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
            <View style={styles.accentLine} />
            <View style={{ flex: 1 }}>
               <Text style={styles.mainTitle}>Creează clubul tău</Text>
-              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în FC Autentic.</Text>
+              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în Footbal Manager 99.</Text>
            </View>
         </View>
 
