@@ -23,6 +23,7 @@ const TAB_ICONS = {
   "Disciplină": "ShieldAlert",
   Scouting: "Binoculars",
   Tactici: "ClipboardList",
+  Statistici: "ChartColumn",
   Galerie: "Images",
   Profil: "User",
   "Mai mult": "Settings",

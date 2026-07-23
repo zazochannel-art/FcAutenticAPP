@@ -21,6 +21,7 @@ const METRICS = [
   ["physical", "Fizic"],
 ];
 const OBS_TYPES = ["Pozitiv", "De îmbunătățit", "Medical", "Disciplină"];
+const POSITION_CODES = ["GK", "CB", "LB", "RB", "LWB", "RWB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST"];
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -36,12 +37,16 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
   const [scores, setScores] = useState({});
   const [plan, setPlan] = useState({ focus: "", objective: "", exercises: "", status: "Activ" });
   const [obsForm, setObsForm] = useState({ type: "Pozitiv", text: "" });
+  const [rating, setRating] = useState("");
+  const [secPos, setSecPos] = useState([]);
 
   useEffect(() => {
     if (!player) return;
     const initial = {};
     METRICS.forEach(([k]) => { initial[k] = Number(evalRow[k]) || 0; });
     setScores(initial);
+    setRating(player.rating != null ? String(player.rating) : "");
+    setSecPos(Array.isArray(player.secondaryPositions) ? player.secondaryPositions : []);
   }, [player?.id]);
 
   if (!player) return null;
@@ -92,6 +97,25 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
     } catch (e) { notify("Eroare", e.message); }
   };
 
+  const bumpRating = (delta) => {
+    setRating((r) => {
+      const base = r === "" ? 60 : Number(r) || 0;
+      return String(Math.max(1, Math.min(99, base + delta)));
+    });
+  };
+  const toggleSecPos = (code) => {
+    setSecPos((list) => (list.includes(code) ? list.filter((c) => c !== code) : [...list, code]));
+  };
+  const saveProfile = async () => {
+    setSaving(true);
+    try {
+      const parsed = rating === "" ? null : Math.max(1, Math.min(99, Math.round(Number(rating)) || 0));
+      await supabaseService.updatePlayer({ ...player, rating: parsed, secondaryPositions: secPos });
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      notify("Salvat", "Atributele jucătorului au fost salvate.");
+    } catch (e) { notify("Eroare", e.message); } finally { setSaving(false); }
+  };
+
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -101,14 +125,14 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
             <View style={styles.avatar}><LucideIcons.User size={20} color="white" /></View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.name}>{player.name}</Text>
-              <Text style={styles.meta}>#{player.no || "—"} • {player.role || "—"} • {player.group} • {player.status || "Activ"}</Text>
+              <Text style={styles.meta}>#{player.no || "—"} • {player.role || "—"} • {player.group} • {player.status || "Activ"}{player.rating != null ? ` • ★ ${player.rating}` : ""}</Text>
             </View>
             <Pressable onPress={onClose} style={styles.closeBtn}><LucideIcons.X size={18} color={DIM} /></Pressable>
           </View>
 
           {/* Tabs */}
           <View style={styles.tabs}>
-            {[["eval", "Evaluare"], ["obs", "Observații"], ["dev", "Dezvoltare"]].map(([k, l]) => (
+            {[["profil", "Atribute"], ["eval", "Evaluare"], ["obs", "Observații"], ["dev", "Dezvoltare"]].map(([k, l]) => (
               <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && styles.tabActive]}>
                 <Text style={[styles.tabText, tab === k && { color: CYAN }]}>{l}</Text>
               </Pressable>
@@ -116,6 +140,57 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
           </View>
 
           <ScrollView style={{ maxHeight: 460 }} contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+            {tab === "profil" && (
+              <>
+                <Text style={styles.fieldLabel}>RATING GENERAL (1–99)</Text>
+                <View style={styles.ratingRow}>
+                  {canManage && (
+                    <Pressable onPress={() => bumpRating(-1)} style={styles.stepBtn}><Text style={styles.stepTxt}>−</Text></Pressable>
+                  )}
+                  <View style={styles.ratingBadge}>
+                    <Text style={styles.ratingBadgeText}>{rating === "" ? "—" : rating}</Text>
+                  </View>
+                  {canManage && (
+                    <Pressable onPress={() => bumpRating(1)} style={styles.stepBtn}><Text style={styles.stepTxt}>+</Text></Pressable>
+                  )}
+                  {canManage && (
+                    <TextInput
+                      style={styles.ratingInput}
+                      value={rating}
+                      onChangeText={(v) => setRating(v.replace(/[^0-9]/g, "").slice(0, 2))}
+                      placeholder="60"
+                      placeholderTextColor={TH}
+                      keyboardType="number-pad"
+                    />
+                  )}
+                </View>
+
+                <Text style={[styles.fieldLabel, { marginTop: 18 }]}>POZIȚIE PRINCIPALĂ</Text>
+                <Text style={styles.primaryPos}>{player.role || "—"}</Text>
+
+                <Text style={[styles.fieldLabel, { marginTop: 18 }]}>POZIȚII SECUNDARE</Text>
+                <View style={styles.posGrid}>
+                  {POSITION_CODES.map((code) => {
+                    const on = secPos.includes(code);
+                    return (
+                      <Pressable key={code} disabled={!canManage} onPress={() => toggleSecPos(code)}
+                        style={[styles.posChip, on && styles.posChipOn, !canManage && !on && { opacity: 0.5 }]}>
+                        <Text style={[styles.posChipText, on && { color: CYAN }]}>{code}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {!canManage && secPos.length === 0 && <Text style={styles.empty}>Nicio poziție secundară setată.</Text>}
+
+                {canManage && (
+                  <Pressable onPress={saveProfile} disabled={saving} style={styles.saveBtn}>
+                    <LucideIcons.Save size={15} color="white" />
+                    <Text style={styles.saveBtnText}>Salvează atributele</Text>
+                  </Pressable>
+                )}
+              </>
+            )}
+
             {tab === "eval" && (
               <>
                 <RadarChart scores={scores} />
@@ -288,6 +363,16 @@ const styles = StyleSheet.create({
   obsItem: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
   obsItemType: { color: CYAN, fontSize: 9.5, fontWeight: "900", letterSpacing: 0.4 },
   obsItemText: { color: "white", fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
+
+  ratingRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  ratingBadge: { minWidth: 66, height: 52, borderRadius: 14, backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "40", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
+  ratingBadgeText: { color: CYAN, fontSize: 24, fontWeight: "900" },
+  ratingInput: { flex: 1, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, height: 44, color: "white", fontSize: 14, fontWeight: "800", textAlign: "center" },
+  primaryPos: { color: BLUE, fontSize: 14, fontWeight: "900" },
+  posGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
+  posChip: { width: 52, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
+  posChipOn: { borderColor: CYAN, backgroundColor: CYAN + "12" },
+  posChipText: { color: DIM, fontSize: 11, fontWeight: "800" },
 
   fieldLabel: { color: DIM, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
   fieldInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, height: 42, color: "white", fontSize: 12, fontWeight: "600" },

@@ -83,6 +83,18 @@ function mapTactic(row) {
   };
 }
 
+function normalizeRating(v) {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Math.round(Number(v));
+  if (Number.isNaN(n)) return null;
+  return Math.max(1, Math.min(99, n));
+}
+function normalizePositions(v) {
+  if (Array.isArray(v)) return v.filter(Boolean);
+  if (typeof v === "string") return v.split(",").map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+
 function mapPlayer(p) {
   return {
     id: Number(p.id),
@@ -98,6 +110,8 @@ function mapPlayer(p) {
     allergies: p.allergies || "",
     emergencyContact: p.emergency_contact || "",
     medicalExpires: p.medical_expires || "",
+    rating: p.rating ?? null,
+    secondaryPositions: Array.isArray(p.secondary_positions) ? p.secondary_positions : [],
     clubId: p.club_id,
     present: true,
   };
@@ -209,6 +223,8 @@ export const supabaseService = {
         allergies: player.allergies || null,
         emergency_contact: player.emergencyContact || null,
         medical_expires: player.medicalExpires || null,
+        rating: normalizeRating(player.rating),
+        secondary_positions: normalizePositions(player.secondaryPositions),
         club_id: activeClubId(player.clubId || player.club_id),
       })
       .select()
@@ -233,6 +249,8 @@ export const supabaseService = {
         allergies: player.allergies || null,
         emergency_contact: player.emergencyContact || null,
         medical_expires: player.medicalExpires || null,
+        rating: normalizeRating(player.rating),
+        secondary_positions: normalizePositions(player.secondaryPositions),
       })
       .eq("id", player.id)
       .select()
