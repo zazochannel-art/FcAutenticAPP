@@ -148,6 +148,8 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
         role: form.role.trim() || "Jucător",
         group: form.group,
         status: "Activ",
+        rating: form.rating === "" ? null : Number(form.rating),
+        secondaryPositions: [],
         present: true,
       },
     ]);
@@ -393,7 +395,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 // --- Add Player Modal ---
 
 function AddPlayerModal({ visible, onClose, onSave, groups }) {
-  const [form, setForm] = useState({ name: "", no: "", role: "Mijlocaș", group: groups[0] || "U19" });
+  const [form, setForm] = useState({ name: "", no: "", role: "Mijlocaș", group: groups[0] || "U19", rating: "" });
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -420,13 +422,21 @@ function AddPlayerModal({ visible, onClose, onSave, groups }) {
             </View>
           </View>
 
-          <Text style={styles.modalLabel}>GRUPA</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-            {groups.map((g) => (
-              <Pressable key={g} onPress={() => update("group", g)} style={[styles.groupChip, form.group === g && styles.groupChipActive]}>
-                <Text style={[styles.groupChipText, form.group === g && { color: CYAN }]}>{g}</Text>
-              </Pressable>
-            ))}
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalLabel}>GRUPA</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                {groups.map((g) => (
+                  <Pressable key={g} onPress={() => update("group", g)} style={[styles.groupChip, form.group === g && styles.groupChipActive]}>
+                    <Text style={[styles.groupChipText, form.group === g && { color: CYAN }]}>{g}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+            <View style={{ width: 96 }}>
+              <Text style={styles.modalLabel}>RATING</Text>
+              <TextInput style={styles.modalInput} value={form.rating} onChangeText={(v) => update("rating", v.replace(/[^0-9]/g, "").slice(0, 2))} placeholder="60" placeholderTextColor={TEXT_TH} keyboardType="number-pad" />
+            </View>
           </View>
 
           <Pressable style={styles.modalSaveBtn} onPress={() => onSave(form)}>

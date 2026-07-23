@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Pressable, Modal, TextInput,
-  Platform, Alert, PanResponder,
+  Platform, Alert, PanResponder, Share,
 } from "react-native";
 import Svg, { Rect, Line, Circle } from "react-native-svg";
 import * as LucideIcons from "lucide-react-native";
@@ -150,6 +150,89 @@ function defaultTeamInstructions() {
 }
 
 // ---------------------------------------------------------------------------
+// Export / printare tactică (web: fereastră printabilă; nativ: Share text)
+// ---------------------------------------------------------------------------
+function buildTacticText(t, slots, playersById) {
+  const L = [];
+  L.push(`TACTICĂ: ${t.name || "Fără nume"} (${t.formation})`);
+  L.push("");
+  L.push("PRIMUL 11:");
+  slots.forEach((s) => {
+    const p = playersById[t.assignments[s.id]];
+    const cap = p && p.id === t.captainId ? " (C)" : "";
+    L.push(`  ${s.code}: ${p ? `#${p.no || "-"} ${p.name}${cap}` : "—"}`);
+  });
+  const subs = (t.subs || []).map((id) => playersById[id]).filter(Boolean);
+  if (subs.length) { L.push(""); L.push("REZERVE:"); subs.forEach((p) => L.push(`  #${p.no || "-"} ${p.name}`)); }
+  const sp = t.setPieces || {};
+  const spL = [];
+  if (playersById[sp.penalty]) spL.push(`  Penalty: ${playersById[sp.penalty].name}`);
+  if (playersById[sp.freekick]) spL.push(`  Lovituri libere: ${playersById[sp.freekick].name}`);
+  if (playersById[sp.corner]) spL.push(`  Cornere: ${playersById[sp.corner].name}`);
+  if (spL.length) { L.push(""); L.push("FAZE FIXE:"); spL.forEach((l) => L.push(l)); }
+  const ti = t.teamInstructions || {};
+  L.push(""); L.push("INSTRUCȚIUNI ECHIPĂ:");
+  L.push(`  Mentalitate: ${ti.mentality || "-"} · Stil: ${ti.style || "-"}`);
+  L.push(`  Lățime ${ti.width ?? 50} · Linie def. ${ti.defensiveLine ?? 50} · Presing ${ti.pressing ?? 50} · Ritm ${ti.tempo ?? 50}`);
+  return L.join("\n");
+}
+
+function buildTacticHtml(t, slots, playersById) {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const rows = slots.map((s) => {
+    const p = playersById[t.assignments[s.id]];
+    const cap = p && p.id === t.captainId ? ' <b style="color:#b45309">(C)</b>' : "";
+    return `<tr><td class="code">${s.code}</td><td>${p ? `#${esc(p.no || "-")} ${esc(p.name)}${cap}` : "—"}</td><td class="rt">${p && p.rating != null ? esc(p.rating) : ""}</td></tr>`;
+  }).join("");
+  const subs = (t.subs || []).map((id) => playersById[id]).filter(Boolean);
+  const subsHtml = subs.length ? `<h3>Rezerve</h3><ul>${subs.map((p) => `<li>#${esc(p.no || "-")} ${esc(p.name)}</li>`).join("")}</ul>` : "";
+  const sp = t.setPieces || {};
+  const spItems = [
+    playersById[sp.penalty] && `Penalty: ${esc(playersById[sp.penalty].name)}`,
+    playersById[sp.freekick] && `Lovituri libere: ${esc(playersById[sp.freekick].name)}`,
+    playersById[sp.corner] && `Cornere: ${esc(playersById[sp.corner].name)}`,
+  ].filter(Boolean);
+  const spHtml = spItems.length ? `<h3>Faze fixe</h3><ul>${spItems.map((x) => `<li>${x}</li>`).join("")}</ul>` : "";
+  const ti = t.teamInstructions || {};
+  return `<!doctype html><html lang="ro"><head><meta charset="utf-8"><title>${esc(t.name || "Tactică")}</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;margin:32px;}
+  h1{font-size:22px;margin:0 0 2px;} .sub{color:#64748b;font-weight:700;margin-bottom:18px;}
+  h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#0891b2;margin:20px 0 6px;}
+  table{border-collapse:collapse;width:100%;max-width:460px;} td{padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:14px;}
+  td.code{font-weight:800;color:#0891b2;width:56px;} td.rt{text-align:right;color:#64748b;font-weight:700;width:40px;}
+  ul{margin:4px 0;padding-left:18px;} li{font-size:14px;margin:2px 0;}
+  .ti{font-size:14px;line-height:1.6;}
+  @media print{body{margin:12px;}}
+</style></head><body>
+  <h1>${esc(t.name || "Tactică")}</h1>
+  <div class="sub">Formație ${esc(t.formation)}</div>
+  <h3>Primul 11</h3>
+  <table>${rows}</table>
+  ${subsHtml}
+  ${spHtml}
+  <h3>Instrucțiuni de echipă</h3>
+  <div class="ti">Mentalitate: <b>${esc(ti.mentality || "-")}</b> · Stil: <b>${esc(ti.style || "-")}</b><br>
+  Lățime ${esc(ti.width ?? 50)} · Linie defensivă ${esc(ti.defensiveLine ?? 50)} · Presing ${esc(ti.pressing ?? 50)} · Ritm ${esc(ti.tempo ?? 50)}</div>
+</body></html>`;
+}
+
+function exportTactic(t, slots, playersById) {
+  if (Platform.OS === "web") {
+    try {
+      const w = window.open("", "_blank");
+      if (!w) { notify("Blocat", "Permite ferestrele pop-up ca să printezi tactica."); return; }
+      w.document.write(buildTacticHtml(t, slots, playersById));
+      w.document.close();
+      w.focus();
+      setTimeout(() => { try { w.print(); } catch (_) {} }, 350);
+    } catch (e) { notify("Eroare", e.message); }
+  } else {
+    Share.share({ message: buildTacticText(t, slots, playersById) }).catch(() => {});
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Slider fără dependențe (PanResponder)
 // ---------------------------------------------------------------------------
 function Slider({ value = 50, onChange, disabled, color = C.cyan }) {
@@ -294,6 +377,13 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
   React.useEffect(() => { if (visible) { setQ(""); setLineFilter("Toate"); setOnlyAvailable(false); setSortBy("Nume"); } }, [visible]);
 
   const slotLine = targetSlot ? LINE_OF_CODE[targetSlot.code] : null;
+  const suitabilityOf = (p) => {
+    if (!targetSlot) return 2;
+    if (playerLine(p.role) === slotLine && (p.secondaryPositions || []).includes(targetSlot.code)) return 0;
+    if (playerLine(p.role) === slotLine) return 0;
+    if ((p.secondaryPositions || []).includes(targetSlot.code)) return 1;
+    return 2;
+  };
 
   const list = useMemo(() => {
     let arr = players.filter((p) => !usedIds.has(p.id) || p.id === currentId);
@@ -304,19 +394,16 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
     if (lineFilter !== "Toate") arr = arr.filter((p) => playerLine(p.role) === lineFilter);
     if (onlyAvailable) arr = arr.filter((p) => isAvailable(p.status));
     arr = [...arr].sort((a, b) => {
+      if (sortBy === "Rating") return (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name);
       if (sortBy === "Poziție") return playerLine(a.role).localeCompare(playerLine(b.role)) || a.name.localeCompare(b.name);
       if (sortBy === "Disponibilitate") return (isAvailable(b.status) - isAvailable(a.status)) || a.name.localeCompare(b.name);
       return a.name.localeCompare(b.name);
     });
-    if (slotLine) {
-      arr = [...arr].sort((a, b) => {
-        const sa = playerLine(a.role) === slotLine ? 0 : 1;
-        const sb = playerLine(b.role) === slotLine ? 0 : 1;
-        return sa - sb;
-      });
+    if (targetSlot) {
+      arr = [...arr].sort((a, b) => suitabilityOf(a) - suitabilityOf(b));
     }
     return arr;
-  }, [players, usedIds, currentId, q, lineFilter, onlyAvailable, sortBy, slotLine]);
+  }, [players, usedIds, currentId, q, lineFilter, onlyAvailable, sortBy, targetSlot, slotLine]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -345,7 +432,7 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
               <LucideIcons.Check size={12} color={onlyAvailable ? C.bg : C.dim} />
               <Text style={[styles.miniChipText, onlyAvailable && styles.miniChipTextOn]}>Doar disponibili</Text>
             </Pressable>
-            {["Nume", "Poziție", "Disponibilitate"].map((s) => (
+            {["Rating", "Nume", "Poziție", "Disponibilitate"].map((s) => (
               <Pressable key={s} onPress={() => setSortBy(s)} style={[styles.miniChip, sortBy === s && styles.miniChipOn]}>
                 <Text style={[styles.miniChipText, sortBy === s && styles.miniChipTextOn]}>{s}</Text>
               </Pressable>
@@ -356,8 +443,9 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
             {list.length === 0 && <Text style={styles.emptyRow}>Niciun jucător găsit.</Text>}
             {list.map((p) => {
               const line = playerLine(p.role);
-              const suitable = slotLine && line === slotLine;
+              const suit = suitabilityOf(p);
               const avail = isAvailable(p.status);
+              const secLabel = (p.secondaryPositions || []).length ? ` · ${p.secondaryPositions.join("/")}` : "";
               return (
                 <Pressable key={p.id} onPress={() => onPick(p.id)} style={styles.playerCard}>
                   <View style={[styles.playerNo, { backgroundColor: (LINE_COLOR[line] || C.cyan) + "22" }]}>
@@ -366,10 +454,14 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={styles.playerCardName} numberOfLines={1}>{p.name}</Text>
                     <Text style={styles.playerCardMeta} numberOfLines={1}>
-                      {[p.role || LINE_LABEL[line], p.group].filter(Boolean).join(" · ")}
+                      {[p.role || LINE_LABEL[line], p.group].filter(Boolean).join(" · ")}{secLabel}
                     </Text>
                   </View>
-                  {suitable && <View style={styles.fitBadge}><Text style={styles.fitBadgeText}>Potrivit</Text></View>}
+                  {p.rating != null && (
+                    <View style={styles.ratingChip}><Text style={styles.ratingChipText}>{p.rating}</Text></View>
+                  )}
+                  {targetSlot && suit === 0 && <View style={styles.fitBadge}><Text style={styles.fitBadgeText}>Potrivit</Text></View>}
+                  {targetSlot && suit === 1 && <View style={styles.fitBadgeAlt}><Text style={styles.fitBadgeAltText}>Poz. 2</Text></View>}
                   <View style={[styles.availPill, { backgroundColor: (avail ? C.green : C.red) + "18" }]}>
                     <Text style={[styles.availPillText, { color: avail ? C.green : C.red }]}>{avail ? "Apt" : "Indispon."}</Text>
                   </View>
@@ -504,8 +596,10 @@ function SubstitutesBench({ subs, playersById, onAdd, onRemove, canEdit }) {
             <View key={id} style={styles.benchItem}>
               <View style={[styles.benchAvatar, { borderColor: LINE_COLOR[line] || C.cyan }]}>
                 <Text style={styles.benchNo}>{p.no ? `#${p.no}` : initials(p.name)}</Text>
+                {p.rating != null && <View style={styles.benchRating}><Text style={styles.benchRatingText}>{p.rating}</Text></View>}
               </View>
               <Text style={styles.benchName} numberOfLines={1}>{shortName(p.name)}</Text>
+              <Text style={styles.benchPos} numberOfLines={1}>{p.role || LINE_LABEL[line]}</Text>
               {canEdit && (
                 <Pressable onPress={() => onRemove(id)} style={styles.benchRemove}>
                   <LucideIcons.X size={12} color={C.red} />
@@ -681,7 +775,12 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
             </ScrollView>
             {active && (
               <>
-                <Text style={styles.viewFormation}>{active.formation}</Text>
+                <View style={styles.viewHeadRow}>
+                  <Text style={styles.viewFormation}>{active.formation}</Text>
+                  <Pressable style={styles.exportBtn} onPress={() => exportTactic(active, vSlots, playersById)}>
+                    <LucideIcons.Printer size={15} color={C.purple} /><Text style={styles.exportBtnText}>Exportă</Text>
+                  </Pressable>
+                </View>
                 <FootballPitch slots={vSlots} assignments={active.assignments} playersById={playersById}
                   captainId={active.captainId} moveSource={null} onSlotPress={() => {}} />
                 <SubstitutesBench subs={active.subs} playersById={playersById} canEdit={false} onAdd={() => {}} onRemove={() => {}} />
@@ -792,6 +891,9 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
       <View style={styles.topActions}>
         <Pressable style={styles.newBtn} onPress={startNew}>
           <LucideIcons.Plus size={15} color={C.cyan} /><Text style={styles.newBtnText}>Tactică nouă</Text>
+        </Pressable>
+        <Pressable style={styles.exportBtn} onPress={() => exportTactic(draft, slots, playersById)}>
+          <LucideIcons.Printer size={15} color={C.purple} /><Text style={styles.exportBtnText}>Exportă</Text>
         </Pressable>
         <View style={styles.countPill}>
           <Text style={styles.countPillText}>{filledCount}/11</Text>
@@ -954,7 +1056,10 @@ const styles = StyleSheet.create({
   benchItem: { width: 64, alignItems: "center" },
   benchAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center" },
   benchNo: { color: "white", fontSize: 11, fontWeight: "900" },
+  benchRating: { position: "absolute", bottom: -3, right: -3, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.cyan, alignItems: "center", justifyContent: "center", paddingHorizontal: 3, borderWidth: 1.5, borderColor: C.bg },
+  benchRatingText: { color: C.bg, fontSize: 8, fontWeight: "900" },
   benchName: { color: C.muted, fontSize: 9.5, fontWeight: "700", marginTop: 4, textAlign: "center" },
+  benchPos: { color: C.dim, fontSize: 8.5, fontWeight: "700", marginTop: 1, textAlign: "center" },
   benchRemove: { position: "absolute", top: -4, right: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: C.red + "22", alignItems: "center", justifyContent: "center" },
   benchAdd: { width: 64, height: 64, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: C.cyan + "55", alignItems: "center", justifyContent: "center" },
   benchAddText: { color: C.cyan, fontSize: 9, fontWeight: "800", marginTop: 2 },
@@ -984,7 +1089,10 @@ const styles = StyleSheet.create({
   pubBadgeText: { color: C.green, fontSize: 8, fontWeight: "900" },
   iconBtn: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", marginLeft: 2 },
 
-  viewFormation: { color: C.cyan, fontSize: 13, fontWeight: "900", marginBottom: 8, textAlign: "center", letterSpacing: 1 },
+  viewFormation: { color: C.cyan, fontSize: 13, fontWeight: "900", letterSpacing: 1 },
+  viewHeadRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  exportBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 12, borderWidth: 1, borderColor: C.purple + "40", backgroundColor: C.purple + "12" },
+  exportBtnText: { color: C.purple, fontSize: 12, fontWeight: "900" },
 
   emptyRow: { color: C.dim, fontSize: 11.5, fontWeight: "600", paddingVertical: 14, textAlign: "center" },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
@@ -1014,6 +1122,10 @@ const styles = StyleSheet.create({
   playerCardMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },
   fitBadge: { backgroundColor: C.green + "18", borderColor: C.green + "40", borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, marginRight: 6 },
   fitBadgeText: { color: C.green, fontSize: 8.5, fontWeight: "900" },
+  fitBadgeAlt: { backgroundColor: C.amber + "18", borderColor: C.amber + "40", borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, marginRight: 6 },
+  fitBadgeAltText: { color: C.amber, fontSize: 8.5, fontWeight: "900" },
+  ratingChip: { minWidth: 26, height: 22, borderRadius: 7, backgroundColor: C.cyan + "18", alignItems: "center", justifyContent: "center", paddingHorizontal: 6, marginRight: 6 },
+  ratingChipText: { color: C.cyan, fontSize: 11, fontWeight: "900" },
   availPill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7 },
   availPillText: { fontSize: 8.5, fontWeight: "900" },
 

@@ -107,9 +107,15 @@ create table if not exists public.players (
   allergies text,
   emergency_contact text,
   medical_expires text,
+  rating integer,
+  secondary_positions text[] not null default '{}',
   club_id uuid references public.clubs(id) on delete cascade,
   created_at timestamptz not null default now()
 );
+
+-- Coloane adăugate ulterior (pentru baze deja create)
+alter table public.players add column if not exists rating integer;
+alter table public.players add column if not exists secondary_positions text[] not null default '{}';
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,

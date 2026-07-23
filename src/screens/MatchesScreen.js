@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle, Rect, Line } from "react-native-svg";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
 import RoDateField from "../components/RoDateField";
@@ -44,6 +44,12 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
   const [callUpFor, setCallUpFor] = useState(null);
 
   const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
+
+  const { data: tactics = [] } = useQuery({
+    queryKey: ["tactics", clubId],
+    queryFn: () => supabaseService.getTactics(clubId),
+    enabled: !!clubId && canManage,
+  });
 
   const saveCallUps = async (match, callUps) => {
     try {
@@ -325,7 +331,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
       <AddMatchModal visible={addOpen} onClose={() => setAddOpen(false)} onSave={saveMatch} />
       <ScoreModal match={scoreFor} onClose={() => setScoreFor(null)} onSave={saveScore} />
-      <CallUpModal match={callUpFor} players={players} onClose={() => setCallUpFor(null)} onSave={saveCallUps} />
+      <CallUpModal match={callUpFor} players={players} tactics={tactics} onClose={() => setCallUpFor(null)} onSave={saveCallUps} />
     </View>
   );
 }
@@ -336,11 +342,12 @@ const CALLUP_CYCLE = { none: "titular", titular: "rezerva", rezerva: "none" };
 const CALLUP_LABEL = { titular: "Titular", rezerva: "Rezervă", none: "—" };
 const CALLUP_COLOR = { titular: GREEN, rezerva: AMBER, none: TEXT_TH };
 
-function CallUpModal({ match, players, onClose, onSave }) {
+function CallUpModal({ match, players, tactics = [], onClose, onSave }) {
   const [callUps, setCallUps] = useState({});
+  const [tacticsOpen, setTacticsOpen] = useState(false);
 
   React.useEffect(() => {
-    if (match) setCallUps({ ...(match.callUps || {}) });
+    if (match) { setCallUps({ ...(match.callUps || {}) }); setTacticsOpen(false); }
   }, [match]);
 
   if (!match) return null;
@@ -348,6 +355,15 @@ function CallUpModal({ match, players, onClose, onSave }) {
   // Jucătorii din grupa meciului; dacă niciunul nu se potrivește, îi arătăm pe toți.
   const groupPlayers = players.filter((p) => p.group === match.group);
   const list = groupPlayers.length ? groupPlayers : players;
+
+  // Preia lotul dintr-o tactică salvată: titularii din primul 11 + rezervele.
+  const applyTactic = (t) => {
+    const next = {};
+    Object.values(t.assignments || {}).forEach((pid) => { if (pid != null) next[String(pid)] = "titular"; });
+    (t.subs || []).forEach((pid) => { if (pid != null && !next[String(pid)]) next[String(pid)] = "rezerva"; });
+    setCallUps(next);
+    setTacticsOpen(false);
+  };
 
   const statusOf = (id) => callUps[String(id)] || "none";
   const cycle = (id) => {
@@ -376,6 +392,27 @@ function CallUpModal({ match, players, onClose, onSave }) {
           <Text style={styles.callSummary}>
             {titulari} titulari • {rezerve} rezerve • grupa {match.group}
           </Text>
+
+          {tactics.length > 0 && (
+            <Pressable style={styles.importTacticBtn} onPress={() => setTacticsOpen((v) => !v)}>
+              <LucideIcons.ClipboardList size={15} color={CYAN} />
+              <Text style={styles.importTacticText}>Importă lotul dintr-o tactică</Text>
+              <LucideIcons.ChevronDown size={15} color={CYAN} style={{ transform: [{ rotate: tacticsOpen ? "180deg" : "0deg" }] }} />
+            </Pressable>
+          )}
+          {tacticsOpen && (
+            <View style={styles.tacticsList}>
+              {tactics.map((t) => (
+                <Pressable key={t.id} style={styles.tacticRow} onPress={() => applyTactic(t)}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.tacticName} numberOfLines={1}>{t.name}</Text>
+                    <Text style={styles.tacticMeta}>{t.formation} • {Object.keys(t.assignments || {}).length} titulari • {(t.subs || []).length} rezerve</Text>
+                  </View>
+                  <LucideIcons.Download size={15} color={CYAN} />
+                </Pressable>
+              ))}
+            </View>
+          )}
 
           {list.length === 0 ? (
             <View style={styles.emptyBox}>
@@ -692,6 +729,12 @@ const styles = StyleSheet.create({
   matchActionText: { color: TEXT_DIM, fontSize: 9.5, fontWeight: '800' },
 
   callSummary: { color: TEXT_DIM, fontSize: 10.5, fontWeight: '700', marginBottom: 12 },
+  importTacticBtn: { flexDirection: "row", alignItems: "center", gap: 8, height: 42, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: CYAN + "35", backgroundColor: CYAN + "0E", marginBottom: 10 },
+  importTacticText: { color: CYAN, fontSize: 12, fontWeight: "900", flex: 1 },
+  tacticsList: { marginBottom: 12, gap: 6 },
+  tacticRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(2,6,23,0.4)" },
+  tacticName: { color: "white", fontSize: 12.5, fontWeight: "800" },
+  tacticMeta: { color: TEXT_DIM, fontSize: 10, fontWeight: "700", marginTop: 2 },
   callRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   callNo: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", alignItems: 'center', justifyContent: 'center' },
   callNoText: { color: TEXT_DIM, fontSize: 10, fontWeight: '900' },
