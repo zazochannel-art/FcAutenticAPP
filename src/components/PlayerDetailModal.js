@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, TextInput, Modal, Platform, Alert } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Pressable, TextInput, Modal, Platform, Alert, Share } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line, Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
@@ -26,6 +26,82 @@ const POSITION_CODES = ["GK", "CB", "LB", "RB", "LWB", "RWB", "CDM", "CM", "CAM"
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
   else Alert.alert(title, msg);
+}
+
+// --- Raport jucător (export / printare) ------------------------------------
+function buildReportText(player, scores, obs, plan) {
+  const L = [];
+  L.push(`RAPORT JUCĂTOR: ${player.name}`);
+  L.push(`#${player.no || "-"} · ${player.role || "-"} · ${player.group || "-"} · ${player.status || "Activ"}${player.rating != null ? ` · Rating ${player.rating}` : ""}`);
+  if ((player.secondaryPositions || []).length) L.push(`Poziții secundare: ${player.secondaryPositions.join(", ")}`);
+  L.push("");
+  L.push("EVALUARE:");
+  METRICS.forEach(([k, label]) => L.push(`  ${label}: ${Number(scores[k]) || 0}/10`));
+  if ((obs || []).length) {
+    L.push("");
+    L.push("OBSERVAȚII:");
+    obs.forEach((o) => L.push(`  [${o.type}${o.date ? ` · ${o.date}` : ""}] ${o.text}`));
+  }
+  if (plan && (plan.focus || plan.objective || plan.exercises)) {
+    L.push("");
+    L.push("PLAN DE DEZVOLTARE:");
+    if (plan.focus) L.push(`  Focus: ${plan.focus}`);
+    if (plan.objective) L.push(`  Obiectiv: ${plan.objective}`);
+    if (plan.exercises) L.push(`  Exerciții: ${plan.exercises}`);
+  }
+  return L.join("\n");
+}
+
+function buildReportHtml(player, scores, obs, plan) {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const metricRows = METRICS.map(([k, label]) => {
+    const v = Number(scores[k]) || 0;
+    return `<tr><td>${esc(label)}</td><td class="bar"><span style="width:${v * 10}%"></span></td><td class="v">${v}/10</td></tr>`;
+  }).join("");
+  const obsHtml = (obs || []).length
+    ? `<h3>Observații</h3><ul>${obs.map((o) => `<li><b>${esc(o.type)}</b>${o.date ? ` · ${esc(o.date)}` : ""}: ${esc(o.text)}</li>`).join("")}</ul>`
+    : "";
+  const hasPlan = plan && (plan.focus || plan.objective || plan.exercises);
+  const planHtml = hasPlan
+    ? `<h3>Plan de dezvoltare</h3><ul>${[
+        plan.focus && `<li><b>Focus:</b> ${esc(plan.focus)}</li>`,
+        plan.objective && `<li><b>Obiectiv:</b> ${esc(plan.objective)}</li>`,
+        plan.exercises && `<li><b>Exerciții:</b> ${esc(plan.exercises)}</li>`,
+      ].filter(Boolean).join("")}</ul>`
+    : "";
+  const sec = (player.secondaryPositions || []).length ? ` · Poziții secundare: ${esc(player.secondaryPositions.join(", "))}` : "";
+  return `<!doctype html><html lang="ro"><head><meta charset="utf-8"><title>Raport ${esc(player.name)}</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;margin:32px;}
+  h1{font-size:22px;margin:0 0 2px;} .sub{color:#64748b;font-weight:700;margin-bottom:18px;}
+  h3{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#0891b2;margin:20px 0 6px;}
+  table{border-collapse:collapse;width:100%;max-width:460px;} td{padding:7px 8px;border-bottom:1px solid #e2e8f0;font-size:14px;}
+  td.v{text-align:right;font-weight:800;width:52px;} td.bar{width:180px;} td.bar span{display:block;height:8px;border-radius:4px;background:#06b6d4;}
+  ul{margin:4px 0;padding-left:18px;} li{font-size:14px;margin:3px 0;line-height:1.5;}
+  @media print{body{margin:12px;}}
+</style></head><body>
+  <h1>${esc(player.name)}</h1>
+  <div class="sub">#${esc(player.no || "-")} · ${esc(player.role || "-")} · ${esc(player.group || "-")} · ${esc(player.status || "Activ")}${player.rating != null ? ` · Rating ${esc(player.rating)}` : ""}${sec}</div>
+  <h3>Evaluare</h3>
+  <table>${metricRows}</table>
+  ${obsHtml}
+  ${planHtml}
+</body></html>`;
+}
+
+function exportReport(player, scores, obs, plan) {
+  if (Platform.OS === "web") {
+    try {
+      const w = window.open("", "_blank");
+      if (!w) { notify("Blocat", "Permite ferestrele pop-up ca să printezi raportul."); return; }
+      w.document.write(buildReportHtml(player, scores, obs, plan));
+      w.document.close();
+      w.focus();
+      setTimeout(() => { try { w.print(); } catch (_) {} }, 350);
+    } catch (e) { notify("Eroare", e.message); }
+  } else {
+    Share.share({ message: buildReportText(player, scores, obs, plan) }).catch(() => {});
+  }
 }
 
 export default function PlayerDetailModal({ player, canManage, evaluations = {}, observations = {}, onClose }) {
@@ -127,6 +203,9 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
               <Text style={styles.name}>{player.name}</Text>
               <Text style={styles.meta}>#{player.no || "—"} • {player.role || "—"} • {player.group} • {player.status || "Activ"}{player.rating != null ? ` • ★ ${player.rating}` : ""}</Text>
             </View>
+            <Pressable onPress={() => exportReport(player, scores, playerObs, plan)} style={styles.exportBtn} aria-label="Exportă raport">
+              <LucideIcons.Printer size={17} color={CYAN} />
+            </Pressable>
             <Pressable onPress={onClose} style={styles.closeBtn}><LucideIcons.X size={18} color={DIM} /></Pressable>
           </View>
 
@@ -335,6 +414,7 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
   name: { color: "white", fontSize: 16, fontWeight: "900" },
   meta: { color: TH, fontSize: 10.5, fontWeight: "700", marginTop: 2 },
+  exportBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "35", alignItems: "center", justifyContent: "center", marginRight: 8 },
   closeBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
   tabs: { flexDirection: "row", padding: 8, gap: 6 },
   tab: { flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center" },
