@@ -79,7 +79,9 @@ export const authService = {
     const userId = userData.user?.id;
     if (!userId) return null;
 
-    const { data, error } = await requireSupabase().from("profiles").select("*").eq("id", userId).single();
+    // maybeSingle: dacă profilul nu există încă (cursă cu trigger-ul de signup),
+    // întoarcem null în loc să aruncăm eroarea „0 rows".
+    const { data, error } = await requireSupabase().from("profiles").select("*").eq("id", userId).maybeSingle();
     if (error) throw error;
     return data;
   },

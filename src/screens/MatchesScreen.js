@@ -15,18 +15,8 @@ import Svg, { Circle, Rect, Line } from "react-native-svg";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
-import { parseRoDate } from "../utils/dates";
+import { suspendedPlayerIds } from "../utils/tactics";
 import RoDateField from "../components/RoDateField";
-
-// Suspendare activă: cartonaș roșu / suspendare cu dată de expirare în viitor.
-function isActiveSuspension(rec) {
-  if (!/suspend|roșu|rosu/i.test(rec.type || "")) return false;
-  if (!rec.suspended_until) return false;
-  const until = parseRoDate(rec.suspended_until);
-  if (!until) return false;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  return until >= today;
-}
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -67,10 +57,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
     queryFn: () => supabaseService.getDiscipline(clubId),
     enabled: !!clubId && canManage,
   });
-  const suspendedIds = useMemo(
-    () => new Set(discipline.filter(isActiveSuspension).map((r) => Number(r.player_id))),
-    [discipline]
-  );
+  const suspendedIds = useMemo(() => suspendedPlayerIds(discipline), [discipline]);
 
   const saveCallUps = async (match, callUps) => {
     try {

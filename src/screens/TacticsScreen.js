@@ -9,7 +9,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
-import { parseRoDate } from "../utils/dates";
+import {
+  POSITION_LINE as LINE_OF_CODE,
+  playerLine,
+  isAvailable,
+  suspendedPlayerIds,
+  slotSuitability,
+} from "../utils/tactics";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -84,12 +90,6 @@ const FORMATIONS = {
 };
 const FORMATION_NAMES = Object.keys(FORMATIONS);
 
-const LINE_OF_CODE = {
-  GK: "GK",
-  CB: "DEF", LB: "DEF", RB: "DEF", LWB: "DEF", RWB: "DEF",
-  CDM: "MID", CM: "MID", CAM: "MID", LM: "MID", RM: "MID",
-  LW: "ATT", RW: "ATT", ST: "ATT",
-};
 const LINE_LABEL = { GK: "Portari", DEF: "Fundași", MID: "Mijlocași", ATT: "Atacanți" };
 const LINE_COLOR = { GK: C.amber, DEF: C.blue, MID: C.cyan, ATT: C.purple };
 
@@ -114,28 +114,6 @@ const IND_TOGGLES = [
   { key: "press", label: "Presează agresiv" },
 ];
 
-function playerLine(role = "") {
-  const r = role.toLowerCase();
-  if (/portar|goalkeeper|\bgk\b/.test(r)) return "GK";
-  if (/funda|apăr|apar|stoper|defen|back/.test(r)) return "DEF";
-  if (/atacant|vârf|varf|extrem|arip|winger|forward|striker/.test(r)) return "ATT";
-  if (/mijloc|mid|regista|central/.test(r)) return "MID";
-  return "MID";
-}
-function isAvailable(status = "") {
-  const s = status.toLowerCase();
-  if (/accident|suspend|indisponibil|inactiv|lesion|recuper/.test(s)) return false;
-  return true;
-}
-// Suspendare activă: cartonaș roșu / suspendare cu dată de expirare în viitor.
-function isActiveSuspension(rec) {
-  if (!/suspend|roșu|rosu/i.test(rec.type || "")) return false;
-  if (!rec.suspended_until) return false;
-  const until = parseRoDate(rec.suspended_until);
-  if (!until) return false;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  return until >= today;
-}
 function initials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "?";
@@ -390,13 +368,7 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
   React.useEffect(() => { if (visible) { setQ(""); setLineFilter("Toate"); setOnlyAvailable(false); setSortBy("Nume"); } }, [visible]);
 
   const slotLine = targetSlot ? LINE_OF_CODE[targetSlot.code] : null;
-  const suitabilityOf = (p) => {
-    if (!targetSlot) return 2;
-    if (playerLine(p.role) === slotLine && (p.secondaryPositions || []).includes(targetSlot.code)) return 0;
-    if (playerLine(p.role) === slotLine) return 0;
-    if ((p.secondaryPositions || []).includes(targetSlot.code)) return 1;
-    return 2;
-  };
+  const suitabilityOf = (p) => slotSuitability(p, targetSlot?.code);
 
   const list = useMemo(() => {
     let arr = players.filter((p) => !usedIds.has(p.id) || p.id === currentId);
@@ -735,10 +707,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     queryFn: () => supabaseService.getDiscipline(clubId),
     enabled: !!clubId,
   });
-  const suspendedIds = useMemo(
-    () => new Set(discipline.filter(isActiveSuspension).map((r) => Number(r.player_id))),
-    [discipline]
-  );
+  const suspendedIds = useMemo(() => suspendedPlayerIds(discipline), [discipline]);
 
   const [draft, setDraft] = useState(() => emptyDraft());
   const [selectTarget, setSelectTarget] = useState(null); // { type: 'slot'|'bench', slot? }

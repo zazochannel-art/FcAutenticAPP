@@ -19,7 +19,22 @@ export function formatRoDate(day, monthIndex, year) {
 
 export function parseRoDate(label) {
   if (!label) return null;
-  const m = String(label).toLowerCase().match(/(\d{1,2})\s*([a-zăâîșț]+)\.?\s*(\d{4})?/);
+  const raw = String(label).trim();
+
+  // Format ISO: 2026-07-29 (eventual cu componentă de timp).
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  }
+
+  // Format numeric: 29.07.2026 sau 29/07/2026 (zi.lună.an).
+  const numeric = raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+  if (numeric) {
+    return new Date(Number(numeric[3]), Number(numeric[2]) - 1, Number(numeric[1]));
+  }
+
+  // Etichetă în română: „29 iulie 2026”.
+  const m = raw.toLowerCase().match(/(\d{1,2})\s*([a-zăâîșț]+)\.?\s*(\d{4})?/);
   if (!m) return null;
   const month = MONTH_PREFIXES[m[2].slice(0, 3)];
   if (month === undefined) return null;

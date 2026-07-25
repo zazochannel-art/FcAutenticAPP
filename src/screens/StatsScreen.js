@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
+import { computePlayerStats } from "../utils/stats";
 
 const SORTS = [
   { key: "goals", label: "Goluri", icon: "Goal" },
@@ -11,41 +12,15 @@ const SORTS = [
   { key: "rating", label: "Rating", icon: "Star" },
 ];
 
-function presenceMap(attendance) {
-  const stats = {};
-  Object.values(attendance || {}).forEach((byPlayer) => {
-    Object.entries(byPlayer || {}).forEach(([pId, status]) => {
-      if (!stats[pId]) stats[pId] = { total: 0, present: 0 };
-      stats[pId].total += 1;
-      if (status === "present" || status === "late") stats[pId].present += 1;
-    });
-  });
-  return stats;
-}
-
 export default function StatsScreen({ players = [], matches = [], attendance = {}, selectedClub, openNotifications }) {
   const [sortBy, setSortBy] = useState("goals");
   const [groupFilter, setGroupFilter] = useState("Toate");
 
   const groups = useMemo(() => Array.from(new Set(players.map((p) => p.group).filter(Boolean))), [players]);
-  const presence = useMemo(() => presenceMap(attendance), [attendance]);
 
   const rows = useMemo(() => {
-    const list = players
-      .filter((p) => groupFilter === "Toate" || p.group === groupFilter)
-      .map((p) => {
-        let convocat = 0, titular = 0, goals = 0;
-        matches.forEach((m) => {
-          const st = (m.callUps || {})[String(p.id)];
-          if (st === "titular") { convocat++; titular++; }
-          else if (st === "rezerva") { convocat++; }
-          const sc = m.scorers || {};
-          goals += Number(sc[String(p.id)] ?? sc[p.id] ?? 0);
-        });
-        const pres = presence[p.id] || { total: 0, present: 0 };
-        const att = pres.total ? Math.round((pres.present / pres.total) * 100) : null;
-        return { ...p, convocat, titular, goals, att, presTotal: pres.total };
-      });
+    const scoped = players.filter((p) => groupFilter === "Toate" || p.group === groupFilter);
+    const list = computePlayerStats(scoped, matches, attendance);
     list.sort((a, b) => {
       if (sortBy === "matches") return b.convocat - a.convocat || b.titular - a.titular;
       if (sortBy === "attendance") return (b.att ?? -1) - (a.att ?? -1);
@@ -53,7 +28,7 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
       return b.goals - a.goals || b.convocat - a.convocat; // goals
     });
     return list;
-  }, [players, matches, presence, sortBy, groupFilter]);
+  }, [players, matches, attendance, sortBy, groupFilter]);
 
   const totalGoals = rows.reduce((s, r) => s + r.goals, 0);
   const avgAtt = (() => {
