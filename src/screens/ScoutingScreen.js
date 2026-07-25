@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { SkeletonRow, EmptyState } from "../components/ui/visuals";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -46,12 +47,15 @@ export default function ScoutingScreen({ clubId, selectedClub, currentUser, open
         </Pressable>
       )}
 
-      {isLoading && <Text style={styles.empty}>Se încarcă...</Text>}
+      {isLoading && <View>{[0, 1, 2, 3].map((i) => <SkeletonRow key={i} />)}</View>}
       {!isLoading && prospects.length === 0 && (
-        <View style={styles.emptyState}>
-          <LucideIcons.Binoculars size={38} color={C.muted} />
-          <Text style={styles.emptyText}>Niciun jucător urmărit. Adaugă prima recomandare.</Text>
-        </View>
+        <EmptyState
+          icon="Binoculars"
+          title="Niciun jucător urmărit"
+          subtitle="Adaugă prima recomandare de scouting pentru clubul tău."
+          actionLabel={canManage ? "Adaugă jucător" : undefined}
+          onAction={() => setAddOpen(true)}
+        />
       )}
 
       {prospects.map((p) => {

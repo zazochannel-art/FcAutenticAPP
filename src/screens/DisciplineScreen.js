@@ -6,6 +6,7 @@ import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
+import { SkeletonRow, EmptyState } from "../components/ui/visuals";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -48,12 +49,13 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
         </Pressable>
       )}
 
-      {isLoading && <Text style={styles.empty}>Se încarcă...</Text>}
+      {isLoading && <View>{[0, 1, 2, 3].map((i) => <SkeletonRow key={i} />)}</View>}
       {!isLoading && records.length === 0 && (
-        <View style={styles.emptyState}>
-          <LucideIcons.ShieldAlert size={38} color={C.muted} />
-          <Text style={styles.emptyText}>Nicio sancțiune înregistrată. Un club disciplinat!</Text>
-        </View>
+        <EmptyState
+          icon="ShieldCheck"
+          title="Niciun incident"
+          subtitle="Nicio sancțiune înregistrată. Un club disciplinat!"
+        />
       )}
 
       {records.map((r) => {
