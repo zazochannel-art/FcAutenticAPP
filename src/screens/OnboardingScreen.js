@@ -18,7 +18,9 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.header}>
             <View style={styles.brand}>
-              <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
+              <View style={styles.logoTile}>
+                <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
+              </View>
               <Text style={styles.brandText}>Footbal Manager <Text style={styles.brandAdmin}>99</Text></Text>
             </View>
             <View style={styles.headerRight}>
@@ -119,7 +121,8 @@ const styles = StyleSheet.create({
   bg: { flex: 1 },
   header: { minHeight: 86, paddingHorizontal: 28, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "rgba(148,163,184,0.1)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 12 },
-  logo: { width: 44, height: 44, resizeMode: "contain" },
+  logoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
+  logo: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
   brandText: { color: "white", fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
   brandAdmin: { color: C.cyan, fontSize: 17 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
