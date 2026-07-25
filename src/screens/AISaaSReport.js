@@ -18,9 +18,7 @@ const BG_DARK = "#020812";
 const CARD_BG = "rgba(4, 18, 32, 0.78)";
 const BORDER_COLOR = "rgba(0, 212, 255, 0.12)";
 const CYAN = "#00D4FF";
-const VIOLET = "#7C3AED";
 const AMBER = "#FACC15";
-const GREEN = "#22C55E";
 const RED = "#EF4444";
 const BLUE_ACCENT = "#0D8BFF";
 const TEXT_DIM = "#94A3B8";
@@ -38,7 +36,7 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
-export default function AISaaSReport({ currentUser, selectedClub, openNotifications }) {
+export default function AISaaSReport({ currentUser, selectedClub }) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

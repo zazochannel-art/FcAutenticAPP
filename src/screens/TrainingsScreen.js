@@ -91,7 +91,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
             <View key={player.id} style={styles.attendanceCard}>
               <Text style={{color: 'white', fontWeight: '700'}}>{player.name}</Text>
               <View style={styles.statusRow}>
-                {attendanceOptions.map(([key, iconName, label, color]) => (
+                {attendanceOptions.map(([key, iconName]) => (
                   <BeUIButton
                     key={key}
                     variant={currentStatus === key ? (key === "present" ? "success" : key === "absent" ? "danger" : "secondary") : "ghost"}

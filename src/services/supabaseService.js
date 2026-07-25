@@ -863,6 +863,7 @@ export const supabaseService = {
         type: d.type,
         note: d.note,
         date_label: d.date || d.date_label || null,
+        suspended_until: d.suspendedUntil || d.suspended_until || null,
         club_id: player.club_id,
       })
       .select()

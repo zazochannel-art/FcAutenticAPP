@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
-import { BlurView } from "expo-blur";
 import ProfileSheet from "./ProfileSheet";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Image, StyleSheet, Text, View } from "react-native";
+import { Animated, Image, StyleSheet, Text } from "react-native";
 import { colors as C } from "../constants/theme";
 
 const HOLD_MS = 1400;

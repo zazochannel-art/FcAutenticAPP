@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing } from "../constants/theme";
+import { colors as C, spacing } from "../constants/theme";
 import { Badge, TrainingField } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 

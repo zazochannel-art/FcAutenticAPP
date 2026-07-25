@@ -148,7 +148,7 @@ function BenefitItem({ icon, color, title }) {
   );
 }
 
-export default function LoginPage({ onLogin, onBack, onRegister, onSignup, onGoogle, onForgot, loading, error }) {
+export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onForgot, loading, error }) {
   const { width } = useWindowDimensions();
   const isDesktop = width > 768;
 

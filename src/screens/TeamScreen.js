@@ -63,7 +63,7 @@ function statusInfo(status) {
   return { label: status || "Activ", color: GREEN };
 }
 
-export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, openNotifications, setTab }) {
+export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, setTab }) {
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
   const [addOpen, setAddOpen] = useState(false);

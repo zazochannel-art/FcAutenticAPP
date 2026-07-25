@@ -298,17 +298,17 @@ function MainApp() {
       if (type === "update") return supabaseService.updatePlayer(payload);
       throw new Error("Tip mutation necunoscut pentru jucător.");
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players"] });
     },
-    onError: (err, variables) => {
+    onError: (err) => {
       Alert.alert("Eroare", err.message);
     },
   });
 
   const attendanceMutation = useMutation({
     mutationFn: async ({ tId, pId, status }) => supabaseService.saveAttendance(tId, pId, status),
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
     },
     onError: (err) => Alert.alert("Eroare prezență", err.message),

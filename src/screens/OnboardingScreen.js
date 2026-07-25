@@ -7,7 +7,7 @@ import { colors as C } from "../constants/theme";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2200" };
 
-export default function OnboardingScreen({ currentUser, onCreateClub, onJoinClub, onLogout }) {
+export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
 
