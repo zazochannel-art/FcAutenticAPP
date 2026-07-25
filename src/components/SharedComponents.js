@@ -7,7 +7,7 @@ import { useProfile } from "../context/ProfileContext";
 import ProfileSheet from "./ProfileSheet";
 
 export function Badge({ size = 48 }) {
-  return <Image source={require("../../assets/icon.png")} style={{ width: size, height: size, resizeMode: "contain" }} />;
+  return <Image source={require("../../assets/icon.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
 }
 
 export function TopBar({ title, eyebrow = "FOOTBAL MANAGER 99", openNotifications }) {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   topTitleWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   eyebrow: { color: C.cyan, fontSize: 9, fontWeight: "900", letterSpacing: 1.5, textAlign: "center", textTransform: 'uppercase' },
   pageTitle: { color: "white", fontSize: 26, fontWeight: "900", marginTop: 4, textAlign: "center" },
-  logoWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(15,23,42,0.6)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  logoWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
   avatarBtn: { borderRadius: 12, backgroundColor: "rgba(0,212,255,0.14)", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", alignItems: "center", justifyContent: "center" },
   avatarBtnText: { color: C.cyan, fontSize: 16, fontWeight: "900" },
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 24, marginBottom: 12 },

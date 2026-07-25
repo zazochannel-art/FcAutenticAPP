@@ -64,7 +64,9 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
   return (
     <View style={styles.sidebar}>
       <View style={styles.sidebarHeader}>
-        <Image source={require("../../assets/icon-square.png")} style={styles.sidebarLogoImage} />
+        <View style={styles.sidebarLogoTile}>
+          <Image source={require("../../assets/icon-square.png")} style={styles.sidebarLogoImage} />
+        </View>
         <View>
           <Text style={styles.sidebarBrand}>Footbal Manager <Text style={styles.inlineAdmin}>99</Text></Text>
           <Text style={styles.sidebarAdmin}>Platformă cluburi sportive</Text>
@@ -84,7 +86,9 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
 
       <View style={styles.sidebarFooter}>
         <View style={styles.clubCard}>
-          <Image source={require("../../assets/icon-square.png")} style={styles.clubLogoSmall} />
+          <View style={styles.clubLogoTile}>
+            <Image source={require("../../assets/icon-square.png")} style={styles.clubLogoSmall} />
+          </View>
           <View style={{ flex: 1, marginLeft: 10 }}>
             <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || "FC Autentic"}</Text>
             <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : "Club"}</Text>
@@ -173,7 +177,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     gap: 10
   },
-  sidebarLogoImage: { width: 40, height: 40, resizeMode: "contain" },
+  sidebarLogoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", overflow: "hidden" },
+  sidebarLogoImage: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
   sidebarBrand: { color: "white", fontSize: 16, fontWeight: "900", letterSpacing: -0.3 },
   inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
@@ -246,7 +251,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.05)"
   },
-  clubLogoSmall: { width: 30, height: 30, resizeMode: "contain" },
+  clubLogoTile: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  clubLogoSmall: { width: 34, height: 34, borderRadius: 8, resizeMode: "cover" },
   clubName: { color: "white", fontSize: 11, fontWeight: "800" },
   clubSeason: { color: C.dim, fontSize: 8.5, fontWeight: "700", marginTop: 1 },
   seasonButton: { marginTop: 8, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
