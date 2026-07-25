@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react-native";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { computePlayerStats } from "../utils/stats";
+import { AreaChart, FadeInView } from "../components/ui/visuals";
 
 const SORTS = [
   { key: "goals", label: "Goluri", icon: "Goal" },
@@ -46,15 +47,26 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
   };
   const metricColor = sortBy === "attendance" ? C.green : sortBy === "rating" ? C.cyan : sortBy === "matches" ? C.blue : C.amber;
 
+  // Goluri marcate de echipă pe meci (cronologic), pentru graficul de evoluție.
+  const goalsSeries = [...matches].reverse()
+    .map((m) => Object.values(m.scorers || {}).reduce((s, v) => s + Number(v || 0), 0));
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title="Statistici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
 
-      <View style={styles.summaryRow}>
+      <FadeInView style={styles.summaryRow}>
         <SummaryCard icon="Trophy" color={C.blue} value={String(matches.length)} label="Meciuri" />
         <SummaryCard icon="Goal" color={C.amber} value={String(totalGoals)} label="Goluri" />
         <SummaryCard icon="CalendarCheck" color={C.green} value={avgAtt == null ? "—" : `${avgAtt}%`} label="Prezență" />
-      </View>
+      </FadeInView>
+
+      {goalsSeries.filter((g) => g > 0).length >= 2 && (
+        <FadeInView delay={80} style={styles.chartCard}>
+          <Text style={styles.chartTitle}>Goluri pe meci</Text>
+          <AreaChart data={goalsSeries} color={C.amber} height={90} />
+        </FadeInView>
+      )}
 
       {topScorer && topScorer.goals > 0 && (
         <View style={styles.topScorer}>
@@ -135,6 +147,8 @@ const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 120 },
 
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  chartCard: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  chartTitle: { color: "white", fontSize: 12, fontWeight: "900", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 },
   summaryCard: { flex: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", alignItems: "flex-start" },
   summaryIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 8 },
   summaryValue: { color: "white", fontSize: 20, fontWeight: "900" },

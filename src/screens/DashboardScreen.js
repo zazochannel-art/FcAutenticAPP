@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, useWindowDimensions } from "react-native";
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, spacing, radius } from "../constants/theme";
 import { GlassCard, StatCard } from "../components/DesignSystem";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { presenceMap } from "../utils/stats";
+import { parseScore, resultOf } from "../utils/matches";
+import { FadeInView, PressableScale } from "../components/ui/visuals";
 
 export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications, selectedClub, subscription, memberships = [], attendance = {} }) {
   const { width } = useWindowDimensions();
@@ -23,18 +25,27 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
     return total ? Math.round((present / total) * 100) : null;
   })();
 
+  // Serii reale pentru sparkline-uri (tendințe).
+  const matchesSpark = [...matches].filter((m) => parseScore(m.score)).reverse().slice(-10)
+    .map((m) => { const r = resultOf(m.score); return r === "V" ? 3 : r === "E" ? 1 : 0; });
+  let run = 0;
+  const balanceSpark = [...transactions].reverse().slice(-12)
+    .map((t) => { run += t.positive ? Number(t.value || 0) : -Number(t.value || 0); return run; });
+  const attSpark = Object.keys(attendance).sort((a, b) => Number(a) - Number(b)).slice(-10)
+    .map((tid) => { const bp = attendance[tid] || {}; const vals = Object.values(bp); const pres = vals.filter((s) => s === "present" || s === "late").length; return vals.length ? Math.round((pres / vals.length) * 100) : 0; });
+
   const stats = [
     { icon: "Users", label: "Jucători", value: players.length, color: C.cyan },
     { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, color: C.purple },
-    { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue },
-    { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red },
+    { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue, spark: matchesSpark },
+    { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red, spark: balanceSpark },
   ];
 
   // Cartonașe suplimentare cu starea clubului, doar pentru staff.
   const clubStateStats = canSeeClubState ? [
     { icon: "CreditCard", label: "Abonament", value: subscription?.planName || selectedClub?.plan || "Free", color: C.amber },
     { icon: "UserCheck", label: "Membri", value: memberships.length, color: C.violet },
-    { icon: "CalendarCheck", label: "Prezență", value: avgAttendance == null ? "—" : `${avgAttendance}%`, color: C.green },
+    { icon: "CalendarCheck", label: "Prezență", value: avgAttendance == null ? "—" : `${avgAttendance}%`, color: C.green, spark: attSpark },
   ] : [];
 
   // Activitate recentă derivată din datele reale (cele mai noi înregistrări).
@@ -56,7 +67,9 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
       {/* Grid Statistici */}
       <View style={styles.statsGrid}>
         {stats.map((s, i) => (
-          <StatCard key={i} {...s} trendUp={s.up} />
+          <FadeInView key={i} delay={i * 60} style={styles.statCell}>
+            <StatCard {...s} trendUp={s.up} />
+          </FadeInView>
         ))}
       </View>
 
@@ -66,7 +79,9 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
           <SectionTitle title="Starea clubului" />
           <View style={styles.statsGrid}>
             {clubStateStats.map((s, i) => (
-              <StatCard key={i} {...s} />
+              <FadeInView key={i} delay={i * 60} style={styles.statCell}>
+                <StatCard {...s} />
+              </FadeInView>
             ))}
           </View>
         </>
@@ -121,12 +136,12 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
 const QuickAction = ({ icon, label, color, onPress }) => {
   const Icon = LucideIcons[icon];
   return (
-    <Pressable style={styles.quickAction} onPress={onPress}>
+    <PressableScale style={styles.quickAction} onPress={onPress}>
       <View style={[styles.actionIcon, { backgroundColor: color + "10", borderColor: color + "30" }]}>
         <Icon size={20} color={color} />
       </View>
       <Text style={styles.actionLabel} numberOfLines={1}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 };
 
@@ -162,6 +177,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: spacing.md, paddingBottom: 120 },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -spacing.xs, marginBottom: spacing.lg },
+  statCell: { flexGrow: 1, flexBasis: 160, minWidth: 160 },
   actionScroll: { marginHorizontal: -spacing.md, marginBottom: spacing.lg },
   actionContent: { paddingHorizontal: spacing.md, gap: 12 },
   quickAction: { width: 90, backgroundColor: "rgba(15, 23, 42, 0.4)", borderRadius: radius.lg, padding: 12, alignItems: "center", borderWidth: 1, borderColor: C.line },

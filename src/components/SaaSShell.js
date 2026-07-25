@@ -93,6 +93,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
             <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || "FC Autentic"}</Text>
             <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : "Club"}</Text>
           </View>
+          <View style={styles.onlineDot} />
         </View>
       </View>
     </View>
@@ -255,6 +256,7 @@ const styles = StyleSheet.create({
   clubLogoSmall: { width: 34, height: 34, borderRadius: 8, resizeMode: "cover" },
   clubName: { color: "white", fontSize: 11, fontWeight: "800" },
   clubSeason: { color: C.dim, fontSize: 8.5, fontWeight: "700", marginTop: 1 },
+  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.green, borderWidth: 1.5, borderColor: "rgba(4,11,20,0.92)" },
   seasonButton: { marginTop: 8, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   seasonText: { color: C.muted, fontSize: 10, fontWeight: "800" },
   topbar: { height: 60, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },

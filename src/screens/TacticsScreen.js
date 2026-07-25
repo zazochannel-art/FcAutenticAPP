@@ -16,6 +16,7 @@ import {
   suspendedPlayerIds,
   slotSuitability,
 } from "../utils/tactics";
+import { SkeletonRow } from "../components/ui/visuals";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -748,7 +749,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <TopBar title="Tactici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
-        {isLoading && <Text style={styles.emptyRow}>Se încarcă...</Text>}
+        {isLoading && <View>{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</View>}
         {!isLoading && published.length === 0 && (
           <View style={styles.emptyState}>
             <LucideIcons.ClipboardList size={38} color={C.muted} />

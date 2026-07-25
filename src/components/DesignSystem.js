@@ -4,6 +4,7 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
+import { Sparkline } from "./ui/visuals";
 
 // --- GlassCard: Componenta de bază pentru toate containerele ---
 export const GlassCard = ({ children, style, intensity = 20 }) => (
@@ -17,7 +18,7 @@ export const GlassCard = ({ children, style, intensity = 20 }) => (
 );
 
 // --- StatCard: Carduri statistice de sus ---
-export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan }) => {
+export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, spark }) => {
   const { width } = useWindowDimensions();
   const isSmallMobile = width < 380;
   const Icon = LucideIcons[icon] || LucideIcons.Activity;
@@ -28,12 +29,12 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan })
         <View style={[styles.statIconWrap, { backgroundColor: color + "15", borderColor: color + "30" }]}>
           <Icon size={isSmallMobile ? 16 : 20} color={color} />
         </View>
-        {trend && (
+        {trend ? (
           <View style={styles.trendWrap}>
             <LucideIcons.ArrowUpRight size={10} color={trendUp ? C.green : C.red} style={{ transform: [{ rotate: trendUp ? "0deg" : "90deg" }] }} />
             <Text style={[styles.trendText, { color: trendUp ? C.green : C.red }]}>{trend}</Text>
           </View>
-        )}
+        ) : (spark && spark.length > 1 ? <Sparkline data={spark} color={color} width={58} height={22} /> : null)}
       </View>
       <Text style={[styles.statValue, isSmallMobile && { fontSize: 20 }]}>{value}</Text>
       <Text style={[styles.statLabel, isSmallMobile && { fontSize: 9 }]} numberOfLines={1}>{label}</Text>
