@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { parseRoDate } from "../utils/dates";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -125,6 +126,15 @@ function isAvailable(status = "") {
   const s = status.toLowerCase();
   if (/accident|suspend|indisponibil|inactiv|lesion|recuper/.test(s)) return false;
   return true;
+}
+// Suspendare activă: cartonaș roșu / suspendare cu dată de expirare în viitor.
+function isActiveSuspension(rec) {
+  if (!/suspend|roșu|rosu/i.test(rec.type || "")) return false;
+  if (!rec.suspended_until) return false;
+  const until = parseRoDate(rec.suspended_until);
+  if (!until) return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return until >= today;
 }
 function initials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -289,9 +299,9 @@ function FormationSelector({ value, onChange, disabled }) {
 // ---------------------------------------------------------------------------
 // PlayerPosition — card pe teren
 // ---------------------------------------------------------------------------
-function PlayerPosition({ slot, player, isCaptain, moveActive, onPress }) {
+function PlayerPosition({ slot, player, isCaptain, moveActive, suspended, onPress }) {
   const lineColor = LINE_COLOR[LINE_OF_CODE[slot.code]] || C.cyan;
-  const available = player ? isAvailable(player.status) : true;
+  const available = player ? (isAvailable(player.status) && !suspended) : true;
   return (
     <Pressable
       onPress={onPress}
@@ -330,7 +340,7 @@ function PlayerPosition({ slot, player, isCaptain, moveActive, onPress }) {
 // ---------------------------------------------------------------------------
 // FootballPitch
 // ---------------------------------------------------------------------------
-function FootballPitch({ slots, assignments, playersById, captainId, moveSource, onSlotPress }) {
+function FootballPitch({ slots, assignments, playersById, captainId, moveSource, suspendedIds, onSlotPress }) {
   return (
     <View style={styles.pitchWrap}>
       <Svg width="100%" height="100%" viewBox="0 0 100 150" preserveAspectRatio="none">
@@ -357,6 +367,7 @@ function FootballPitch({ slots, assignments, playersById, captainId, moveSource,
             player={playersById[assignments[slot.id]]}
             isCaptain={!!assignments[slot.id] && assignments[slot.id] === captainId}
             moveActive={moveSource === slot.id}
+            suspended={suspendedIds ? suspendedIds.has(assignments[slot.id]) : false}
             onPress={() => onSlotPress(slot)}
           />
         ))}
@@ -368,11 +379,13 @@ function FootballPitch({ slots, assignments, playersById, captainId, moveSource,
 // ---------------------------------------------------------------------------
 // PlayerSelectionModal
 // ---------------------------------------------------------------------------
-function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId, onPick, onClose }) {
+function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId, suspendedIds, onPick, onClose }) {
   const [q, setQ] = useState("");
   const [lineFilter, setLineFilter] = useState("Toate");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sortBy, setSortBy] = useState("Nume");
+  const susp = suspendedIds || new Set();
+  const available = (p) => isAvailable(p.status) && !susp.has(p.id);
 
   React.useEffect(() => { if (visible) { setQ(""); setLineFilter("Toate"); setOnlyAvailable(false); setSortBy("Nume"); } }, [visible]);
 
@@ -392,11 +405,11 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
       arr = arr.filter((p) => p.name.toLowerCase().includes(s) || String(p.no || "").includes(s) || (p.role || "").toLowerCase().includes(s));
     }
     if (lineFilter !== "Toate") arr = arr.filter((p) => playerLine(p.role) === lineFilter);
-    if (onlyAvailable) arr = arr.filter((p) => isAvailable(p.status));
+    if (onlyAvailable) arr = arr.filter((p) => available(p));
     arr = [...arr].sort((a, b) => {
       if (sortBy === "Rating") return (b.rating ?? -1) - (a.rating ?? -1) || a.name.localeCompare(b.name);
       if (sortBy === "Poziție") return playerLine(a.role).localeCompare(playerLine(b.role)) || a.name.localeCompare(b.name);
-      if (sortBy === "Disponibilitate") return (isAvailable(b.status) - isAvailable(a.status)) || a.name.localeCompare(b.name);
+      if (sortBy === "Disponibilitate") return (available(b) - available(a)) || a.name.localeCompare(b.name);
       return a.name.localeCompare(b.name);
     });
     if (targetSlot) {
@@ -444,7 +457,7 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
             {list.map((p) => {
               const line = playerLine(p.role);
               const suit = suitabilityOf(p);
-              const avail = isAvailable(p.status);
+              const avail = available(p);
               const secLabel = (p.secondaryPositions || []).length ? ` · ${p.secondaryPositions.join("/")}` : "";
               return (
                 <Pressable key={p.id} onPress={() => onPick(p.id)} style={styles.playerCard}>
@@ -717,6 +730,16 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     enabled: !!clubId,
   });
 
+  const { data: discipline = [] } = useQuery({
+    queryKey: ["discipline", clubId],
+    queryFn: () => supabaseService.getDiscipline(clubId),
+    enabled: !!clubId,
+  });
+  const suspendedIds = useMemo(
+    () => new Set(discipline.filter(isActiveSuspension).map((r) => Number(r.player_id))),
+    [discipline]
+  );
+
   const [draft, setDraft] = useState(() => emptyDraft());
   const [selectTarget, setSelectTarget] = useState(null); // { type: 'slot'|'bench', slot? }
   const [menuSlot, setMenuSlot] = useState(null);
@@ -782,7 +805,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
                   </Pressable>
                 </View>
                 <FootballPitch slots={vSlots} assignments={active.assignments} playersById={playersById}
-                  captainId={active.captainId} moveSource={null} onSlotPress={() => {}} />
+                  captainId={active.captainId} moveSource={null} suspendedIds={suspendedIds} onSlotPress={() => {}} />
                 <SubstitutesBench subs={active.subs} playersById={playersById} canEdit={false} onAdd={() => {}} onRemove={() => {}} />
                 <TeamInstructions value={active.teamInstructions} onChange={() => {}} disabled />
               </>
@@ -874,9 +897,23 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     if (!draft.name.trim()) { notify("Nume lipsă", "Dă un nume tacticii înainte de a salva."); return; }
     setSaving(true);
     try {
+      const wasPublished = tactics.find((t) => t.id === draft.id)?.isPublished;
       const saved = await supabaseService.saveTactic({ ...draft, name: draft.name.trim(), clubId });
       setDraft({ ...saved, teamInstructions: { ...defaultTeamInstructions(), ...(saved.teamInstructions || {}) } });
       queryClient.invalidateQueries({ queryKey: ["tactics"] });
+      // Notificare in-app la publicare (tranziția către „publicat”).
+      if (saved.isPublished && !wasPublished) {
+        try {
+          await supabaseService.insertChatMessage({
+            audience: "club",
+            authorId: currentUser?.id,
+            authorName: currentUser?.name || "Staff",
+            text: `📋 Tactică nouă publicată: ${saved.name} (${saved.formation}).`,
+            clubId,
+          });
+          queryClient.invalidateQueries({ queryKey: ["announcements"] });
+        } catch (_) { /* anunțul e opțional */ }
+      }
       notify("Salvat", "Tactica a fost salvată cu succes.");
     } catch (e) { notify("Eroare", e.message); } finally { setSaving(false); }
   };
@@ -949,6 +986,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
         playersById={playersById}
         captainId={draft.captainId}
         moveSource={moveSource}
+        suspendedIds={suspendedIds}
         onSlotPress={onSlotPress}
       />
 
@@ -981,6 +1019,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
         targetSlot={selectTarget?.slot || null}
         usedIds={usedIds}
         currentId={selectTarget?.type === "slot" ? draft.assignments[selectTarget.slot.id] : null}
+        suspendedIds={suspendedIds}
         onPick={pickPlayer}
         onClose={() => setSelectTarget(null)}
       />

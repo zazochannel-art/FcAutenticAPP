@@ -22,7 +22,6 @@ const CYAN = "#00D4FF";
 const VIOLET = "#7C3AED";
 const AMBER = "#FACC15";
 const GREEN = "#22C55E";
-const RED = "#EF4444";
 const BLUE_ACCENT = "#0D8BFF";
 const TEXT_DIM = "#94A3B8";
 const TEXT_TH = "#475569";
@@ -63,7 +62,7 @@ const EVENT_TYPE_COLORS = {
   payment: CYAN,
 };
 
-export default function CalendarSaaS({ trainings = [], matches = [], events = [], clubId, currentUser, openNotifications }) {
+export default function CalendarSaaS({ trainings = [], matches = [], events = [], clubId, currentUser }) {
   const queryClient = useQueryClient();
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());

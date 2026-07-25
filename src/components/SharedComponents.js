@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing } from "../constants/theme";
+import { colors as C } from "../constants/theme";
 import { BeUIButton } from "./ui/be-ui-button";
 import { useProfile } from "../context/ProfileContext";
 import ProfileSheet from "./ProfileSheet";

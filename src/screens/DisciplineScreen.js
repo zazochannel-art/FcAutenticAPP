@@ -69,6 +69,7 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
                 </View>
               </View>
               {!!r.note && <Text style={styles.note}>{r.note}</Text>}
+              {!!r.suspended_until && <Text style={[styles.date, { color: C.purple }]}>Suspendat până la {r.suspended_until}</Text>}
               {!!r.date_label && <Text style={styles.date}>{r.date_label}</Text>}
             </View>
             {canManage && <Pressable onPress={() => remove(r)} style={styles.iconBtn}><LucideIcons.Trash2 size={15} color={C.red} /></Pressable>}
@@ -86,20 +87,28 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
   );
 }
 
+const SUSPENSION_TYPES = ["Cartonaș roșu", "Suspendare"];
+
 function AddDisciplineModal({ visible, players, onClose, onSaved }) {
   const [playerId, setPlayerId] = useState(null);
   const [type, setType] = useState(TYPES[0]);
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
+  const [suspendedUntil, setSuspendedUntil] = useState("");
   const [saving, setSaving] = useState(false);
 
-  React.useEffect(() => { if (visible) { setPlayerId(null); setType(TYPES[0]); setNote(""); setDate(""); } }, [visible]);
+  React.useEffect(() => { if (visible) { setPlayerId(null); setType(TYPES[0]); setNote(""); setDate(""); setSuspendedUntil(""); } }, [visible]);
+
+  const isSuspension = SUSPENSION_TYPES.includes(type);
 
   const save = async () => {
     if (!playerId) { notify("Fără jucător", "Alege jucătorul sancționat."); return; }
     setSaving(true);
     try {
-      await supabaseService.insertDiscipline({ playerId, type, note: note.trim(), date: date.trim() });
+      await supabaseService.insertDiscipline({
+        playerId, type, note: note.trim(), date: date.trim(),
+        suspendedUntil: isSuspension && suspendedUntil.trim() ? suspendedUntil.trim() : null,
+      });
       onSaved();
     } catch (e) { notify("Eroare", e.message); } finally { setSaving(false); }
   };
@@ -140,6 +149,14 @@ function AddDisciplineModal({ visible, players, onClose, onSaved }) {
           <TextInput style={[styles.modalInput, { height: 60, textAlignVertical: "top", paddingTop: 10 }]} value={note} onChangeText={setNote} placeholder="Detalii..." placeholderTextColor={C.dim} multiline />
           <Text style={styles.modalLabel}>DATA (opțional)</Text>
           <RoDateField value={date} onChange={setDate} placeholder="Alege data" />
+
+          {isSuspension && (
+            <>
+              <Text style={styles.modalLabel}>SUSPENDAT PÂNĂ LA (opțional)</Text>
+              <RoDateField value={suspendedUntil} onChange={setSuspendedUntil} placeholder="Alege data" />
+              <Text style={styles.hint}>Jucătorul apare automat indisponibil în Tactici și convocări până la această dată.</Text>
+            </>
+          )}
 
           <Pressable style={[styles.modalSaveBtn, saving && { opacity: 0.7 }]} onPress={save} disabled={saving}>
             <LucideIcons.Check size={16} color="white" /><Text style={styles.modalSaveText}>Înregistrează</Text>

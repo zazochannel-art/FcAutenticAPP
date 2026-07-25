@@ -5,7 +5,7 @@ import { colors as C, spacing, radius } from "../constants/theme";
 import { GlassCard, StatCard } from "../components/DesignSystem";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 
-export default function DashboardScreen({ tasks, toggleTask, players, trainings, matches, attendance, transactions, clubSettings, currentUser, setTab, selectedClub, subscription, memberships, invitations, openNotifications }) {
+export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
@@ -27,7 +27,6 @@ export default function DashboardScreen({ tasks, toggleTask, players, trainings,
     ...matches.slice(0, 2).map((m) => ({ icon: "Trophy", title: `Meci vs ${m.opponent}`, meta: `${m.group} • ${m.date}` })),
   ].slice(0, 5);
 
-  const canSeeClubState = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

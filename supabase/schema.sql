@@ -295,10 +295,12 @@ create table if not exists public.discipline_records (
   type text not null,
   note text,
   date_label text,
+  suspended_until text,
   created_by uuid references auth.users(id),
   club_id uuid references public.clubs(id) on delete cascade,
   created_at timestamptz not null default now()
 );
+alter table public.discipline_records add column if not exists suspended_until text;
 
 create table if not exists public.chat_messages (
   id bigint generated always as identity primary key,
@@ -1200,3 +1202,23 @@ drop trigger if exists realtime_broadcast_tactics on public.tactics;
 create trigger realtime_broadcast_tactics
   after insert or update or delete on public.tactics
   for each row execute function public.realtime_broadcast_all_changes();
+
+-- ----------------------------------------------------------------------------
+-- 15) Hardening: închide accesul RPC direct la funcțiile interne
+-- ----------------------------------------------------------------------------
+-- Funcții folosite doar în interiorul politicilor RLS / triggerelor.
+revoke execute on function public.current_user_can_read_club(uuid) from anon, authenticated;
+revoke execute on function public.current_user_can_read_player(bigint, uuid) from anon, authenticated;
+revoke execute on function public.current_user_child_player_id() from anon, authenticated;
+revoke execute on function public.current_user_has_club_role(uuid, text[]) from anon, authenticated;
+revoke execute on function public.current_user_is_super_admin() from anon, authenticated;
+revoke execute on function public.current_user_platform_role() from anon, authenticated;
+revoke execute on function public.current_user_player_id() from anon, authenticated;
+revoke execute on function public.realtime_broadcast_all_changes() from anon, authenticated;
+
+-- Funcții apelate din aplicație prin rpc(): rămân pentru authenticated, fără anon.
+revoke execute on function public.delete_my_account() from anon;
+revoke execute on function public.get_club_members(uuid) from anon;
+revoke execute on function public.approve_club_member(uuid) from anon;
+revoke execute on function public.accept_club_invitation(text) from anon;
+revoke execute on function public.request_club_membership(text, text) from anon;

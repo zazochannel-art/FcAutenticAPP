@@ -15,7 +15,18 @@ import Svg, { Circle, Rect, Line } from "react-native-svg";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
+import { parseRoDate } from "../utils/dates";
 import RoDateField from "../components/RoDateField";
+
+// Suspendare activă: cartonaș roșu / suspendare cu dată de expirare în viitor.
+function isActiveSuspension(rec) {
+  if (!/suspend|roșu|rosu/i.test(rec.type || "")) return false;
+  if (!rec.suspended_until) return false;
+  const until = parseRoDate(rec.suspended_until);
+  if (!until) return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return until >= today;
+}
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -37,7 +48,7 @@ function notify(title, msg) {
 
 const RESULT_COLORS = { V: GREEN, E: AMBER, "Î": RED };
 
-export default function MatchesScreen({ players = [], matches = [], currentUser, clubId, openNotifications }) {
+export default function MatchesScreen({ players = [], matches = [], currentUser, clubId }) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [scoreFor, setScoreFor] = useState(null);
@@ -51,11 +62,36 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
     enabled: !!clubId && canManage,
   });
 
+  const { data: discipline = [] } = useQuery({
+    queryKey: ["discipline", clubId],
+    queryFn: () => supabaseService.getDiscipline(clubId),
+    enabled: !!clubId && canManage,
+  });
+  const suspendedIds = useMemo(
+    () => new Set(discipline.filter(isActiveSuspension).map((r) => Number(r.player_id))),
+    [discipline]
+  );
+
   const saveCallUps = async (match, callUps) => {
     try {
+      const hadLot = Object.keys(match.callUps || {}).length > 0;
+      const hasLot = Object.keys(callUps || {}).length > 0;
       await supabaseService.updateMatch({ ...match, callUps });
       setCallUpFor(null);
       queryClient.invalidateQueries({ queryKey: ["matches"] });
+      // Notificare in-app când lotul e anunțat prima dată.
+      if (!hadLot && hasLot) {
+        try {
+          await supabaseService.insertChatMessage({
+            audience: "club",
+            authorId: currentUser?.id,
+            authorName: currentUser?.name || "Staff",
+            text: `📋 Lot anunțat pentru meciul cu ${match.opponent}${match.group ? ` (${match.group})` : ""}.`,
+            clubId,
+          });
+          queryClient.invalidateQueries({ queryKey: ["announcements"] });
+        } catch (_) { /* anunțul e opțional */ }
+      }
     } catch (e) {
       notify("Eroare", e.message);
     }
@@ -84,13 +120,13 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
     }
   };
 
-  const saveScore = async (match, score, postNotes) => {
+  const saveScore = async (match, score, postNotes, scorers) => {
     if (!parseScore(score)) {
       notify("Scor invalid", "Folosește formatul „2 - 1” (golurile noastre primele).");
       return;
     }
     try {
-      await supabaseService.updateMatch({ ...match, score: score.trim(), postNotes: postNotes.trim() || match.postNotes, status: "Jucat" });
+      await supabaseService.updateMatch({ ...match, score: score.trim(), postNotes: postNotes.trim() || match.postNotes, status: "Jucat", scorers: scorers || match.scorers || {} });
       setScoreFor(null);
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     } catch (e) {
@@ -330,8 +366,8 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
       </View>
 
       <AddMatchModal visible={addOpen} onClose={() => setAddOpen(false)} onSave={saveMatch} />
-      <ScoreModal match={scoreFor} onClose={() => setScoreFor(null)} onSave={saveScore} />
-      <CallUpModal match={callUpFor} players={players} tactics={tactics} onClose={() => setCallUpFor(null)} onSave={saveCallUps} />
+      <ScoreModal match={scoreFor} players={players} onClose={() => setScoreFor(null)} onSave={saveScore} />
+      <CallUpModal match={callUpFor} players={players} tactics={tactics} suspendedIds={suspendedIds} onClose={() => setCallUpFor(null)} onSave={saveCallUps} />
     </View>
   );
 }
@@ -342,9 +378,10 @@ const CALLUP_CYCLE = { none: "titular", titular: "rezerva", rezerva: "none" };
 const CALLUP_LABEL = { titular: "Titular", rezerva: "Rezervă", none: "—" };
 const CALLUP_COLOR = { titular: GREEN, rezerva: AMBER, none: TEXT_TH };
 
-function CallUpModal({ match, players, tactics = [], onClose, onSave }) {
+function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSave }) {
   const [callUps, setCallUps] = useState({});
   const [tacticsOpen, setTacticsOpen] = useState(false);
+  const susp = suspendedIds || new Set();
 
   React.useEffect(() => {
     if (match) { setCallUps({ ...(match.callUps || {}) }); setTacticsOpen(false); }
@@ -359,14 +396,15 @@ function CallUpModal({ match, players, tactics = [], onClose, onSave }) {
   // Preia lotul dintr-o tactică salvată: titularii din primul 11 + rezervele.
   const applyTactic = (t) => {
     const next = {};
-    Object.values(t.assignments || {}).forEach((pid) => { if (pid != null) next[String(pid)] = "titular"; });
-    (t.subs || []).forEach((pid) => { if (pid != null && !next[String(pid)]) next[String(pid)] = "rezerva"; });
+    Object.values(t.assignments || {}).forEach((pid) => { if (pid != null && !susp.has(Number(pid))) next[String(pid)] = "titular"; });
+    (t.subs || []).forEach((pid) => { if (pid != null && !susp.has(Number(pid)) && !next[String(pid)]) next[String(pid)] = "rezerva"; });
     setCallUps(next);
     setTacticsOpen(false);
   };
 
   const statusOf = (id) => callUps[String(id)] || "none";
   const cycle = (id) => {
+    if (susp.has(Number(id))) { notify("Jucător suspendat", "Acest jucător e suspendat și nu poate fi convocat."); return; }
     const key = String(id);
     const next = CALLUP_CYCLE[statusOf(id)];
     setCallUps((prev) => {
@@ -423,13 +461,20 @@ function CallUpModal({ match, players, tactics = [], onClose, onSave }) {
             <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
               {list.map((p) => {
                 const st = statusOf(p.id);
+                const isSusp = susp.has(Number(p.id));
                 return (
-                  <Pressable key={p.id} onPress={() => cycle(p.id)} style={styles.callRow}>
+                  <Pressable key={p.id} onPress={() => cycle(p.id)} style={[styles.callRow, isSusp && { opacity: 0.6 }]}>
                     <View style={styles.callNo}><Text style={styles.callNoText}>{p.no || "—"}</Text></View>
                     <Text style={styles.callName} numberOfLines={1}>{p.name}</Text>
-                    <View style={[styles.callBadge, { backgroundColor: CALLUP_COLOR[st] + "18", borderColor: CALLUP_COLOR[st] + "40" }]}>
-                      <Text style={[styles.callBadgeText, { color: CALLUP_COLOR[st] }]}>{CALLUP_LABEL[st]}</Text>
-                    </View>
+                    {isSusp ? (
+                      <View style={[styles.callBadge, { backgroundColor: RED + "18", borderColor: RED + "40" }]}>
+                        <Text style={[styles.callBadgeText, { color: RED }]}>Suspendat</Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.callBadge, { backgroundColor: CALLUP_COLOR[st] + "18", borderColor: CALLUP_COLOR[st] + "40" }]}>
+                        <Text style={[styles.callBadgeText, { color: CALLUP_COLOR[st] }]}>{CALLUP_LABEL[st]}</Text>
+                      </View>
+                    )}
                   </Pressable>
                 );
               })}
@@ -505,38 +550,85 @@ function AddMatchModal({ visible, onClose, onSave }) {
   );
 }
 
-function ScoreModal({ match, onClose, onSave }) {
+function ScoreModal({ match, players = [], onClose, onSave }) {
   const [score, setScore] = useState("");
   const [notes, setNotes] = useState("");
+  const [scorers, setScorers] = useState({});
+
+  React.useEffect(() => {
+    if (match) { setScore(match.score || ""); setNotes(""); setScorers({ ...(match.scorers || {}) }); }
+  }, [match]);
 
   if (!match) return null;
+
+  // Jucătorii convocați la meci (titulari + rezerve), pentru marcarea golurilor.
+  const calledUp = players.filter((p) => {
+    const st = (match.callUps || {})[String(p.id)];
+    return st === "titular" || st === "rezerva";
+  });
+  const goalsOf = (id) => Number(scorers[String(id)] || 0);
+  const bump = (id, delta) => {
+    setScorers((prev) => {
+      const key = String(id);
+      const val = Math.max(0, (Number(prev[key]) || 0) + delta);
+      const copy = { ...prev };
+      if (val === 0) delete copy[key]; else copy[key] = val;
+      return copy;
+    });
+  };
+  const totalGoals = Object.values(scorers).reduce((s, v) => s + Number(v || 0), 0);
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
+        <View style={[styles.modalCard, { maxHeight: "88%" }]}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Scor final: vs {match.opponent}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
           </View>
 
-          <Text style={styles.modalLabel}>SCOR (NOI - EI)</Text>
-          <TextInput style={styles.modalInput} value={score} onChangeText={setScore} placeholder="2 - 1" placeholderTextColor={TEXT_TH} />
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.modalLabel}>SCOR (NOI - EI)</Text>
+            <TextInput style={styles.modalInput} value={score} onChangeText={setScore} placeholder="2 - 1" placeholderTextColor={TEXT_TH} />
 
-          <Text style={styles.modalLabel}>OBSERVAȚII (OPȚIONAL)</Text>
-          <TextInput
-            style={[styles.modalInput, { height: 70, textAlignVertical: "top", paddingTop: 10 }]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Cum a decurs meciul..."
-            placeholderTextColor={TEXT_TH}
-            multiline
-          />
+            <View style={styles.scorersHead}>
+              <Text style={styles.modalLabel}>MARCATORI</Text>
+              <Text style={styles.scorersTotal}>{totalGoals} {totalGoals === 1 ? "gol" : "goluri"}</Text>
+            </View>
+            {calledUp.length === 0 ? (
+              <Text style={styles.scorersHint}>Setează întâi lotul (butonul „Lot”) ca să poți marca golurile pe jucători.</Text>
+            ) : (
+              calledUp.map((p) => {
+                const g = goalsOf(p.id);
+                return (
+                  <View key={p.id} style={styles.scorerRow}>
+                    <View style={styles.callNo}><Text style={styles.callNoText}>{p.no || "—"}</Text></View>
+                    <Text style={styles.callName} numberOfLines={1}>{p.name}</Text>
+                    <View style={styles.stepper}>
+                      <Pressable onPress={() => bump(p.id, -1)} style={styles.stepBtn}><Text style={styles.stepTxt}>−</Text></Pressable>
+                      <Text style={[styles.stepVal, g > 0 && { color: CYAN }]}>{g}</Text>
+                      <Pressable onPress={() => bump(p.id, 1)} style={styles.stepBtn}><Text style={styles.stepTxt}>+</Text></Pressable>
+                    </View>
+                  </View>
+                );
+              })
+            )}
 
-          <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, score, notes)}>
-            <LucideIcons.Trophy size={16} color="white" />
-            <Text style={styles.modalSaveText}>Înregistrează rezultatul</Text>
-          </Pressable>
+            <Text style={[styles.modalLabel, { marginTop: 12 }]}>OBSERVAȚII (OPȚIONAL)</Text>
+            <TextInput
+              style={[styles.modalInput, { height: 70, textAlignVertical: "top", paddingTop: 10 }]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Cum a decurs meciul..."
+              placeholderTextColor={TEXT_TH}
+              multiline
+            />
+
+            <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, score, notes, scorers)}>
+              <LucideIcons.Trophy size={16} color="white" />
+              <Text style={styles.modalSaveText}>Înregistrează rezultatul</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -741,6 +833,14 @@ const styles = StyleSheet.create({
   callName: { flex: 1, marginLeft: 10, color: 'white', fontSize: 12, fontWeight: '700' },
   callBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, minWidth: 68, alignItems: 'center' },
   callBadgeText: { fontSize: 9.5, fontWeight: '900' },
+  scorersHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  scorersTotal: { color: CYAN, fontSize: 10.5, fontWeight: '900' },
+  scorersHint: { color: TEXT_TH, fontSize: 11, fontWeight: '600', marginBottom: 8, lineHeight: 15 },
+  scorerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stepBtn: { width: 28, height: 28, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.06)", alignItems: 'center', justifyContent: 'center' },
+  stepTxt: { color: 'white', fontSize: 17, fontWeight: '900' },
+  stepVal: { color: TEXT_DIM, fontSize: 14, fontWeight: '900', width: 20, textAlign: 'center' },
   callHint: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600', marginTop: 10, marginBottom: 12 },
 
   modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: 'center', justifyContent: 'center', padding: 20 },

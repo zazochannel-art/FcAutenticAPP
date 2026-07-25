@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, StyleSheet, Pressable, Platform, Alert } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";

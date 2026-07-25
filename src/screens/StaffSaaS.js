@@ -47,7 +47,7 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
-export default function StaffSaaS({ selectedClub, clubId, currentUser, openNotifications }) {
+export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [busyId, setBusyId] = useState(null);

@@ -5,19 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  TextInput,
-  useWindowDimensions,
   Platform,
-  Dimensions,
-  Image,
   Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import Svg, { Path, Circle, Rect, G } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // --- Premium Palette ---
 const BG_DARK = "#020812";
@@ -27,7 +22,6 @@ const CYAN = "#00D4FF";
 const VIOLET = "#7C3AED";
 const AMBER = "#FACC15";
 const GREEN = "#22C55E";
-const RED = "#EF4444";
 const BLUE_ACCENT = "#0D8BFF";
 const TEXT_DIM = "#94A3B8";
 const TEXT_TH = "#475569";
