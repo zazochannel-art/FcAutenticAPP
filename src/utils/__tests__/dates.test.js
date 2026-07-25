@@ -28,6 +28,22 @@ describe("parseRoDate", () => {
     expect(parseRoDate("10 brumar 2026")).toBeNull(); // lună necunoscută
   });
 
+  test("acceptă format ISO (YYYY-MM-DD)", () => {
+    const d = parseRoDate("2026-07-29");
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(6);
+    expect(d.getDate()).toBe(29);
+  });
+
+  test("acceptă format numeric (DD.MM.YYYY și DD/MM/YYYY)", () => {
+    const a = parseRoDate("29.07.2026");
+    expect(a.getMonth()).toBe(6);
+    expect(a.getDate()).toBe(29);
+    const b = parseRoDate("01/12/2026");
+    expect(b.getMonth()).toBe(11);
+    expect(b.getDate()).toBe(1);
+  });
+
   test("MONTH_PREFIXES acoperă toate cele 12 luni", () => {
     const distinctMonths = new Set(Object.values(MONTH_PREFIXES));
     expect(distinctMonths.size).toBe(12);

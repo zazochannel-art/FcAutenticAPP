@@ -4,14 +4,24 @@ import * as LucideIcons from "lucide-react-native";
 import { colors as C, spacing, radius } from "../constants/theme";
 import { GlassCard, StatCard } from "../components/DesignSystem";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
+import { presenceMap } from "../utils/stats";
 
-export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications }) {
+export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications, selectedClub, subscription, memberships = [], attendance = {} }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
+  const canSeeClubState = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
   const incomeTotal = transactions.filter((row) => row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
   const expenseTotal = transactions.filter((row) => !row.positive).reduce((sum, row) => sum + Number(row.value || 0), 0);
   const balance = incomeTotal - expenseTotal;
+
+  // Prezența medie a clubului, din marcajele de la antrenamente.
+  const avgAttendance = (() => {
+    const buckets = Object.values(presenceMap(attendance));
+    const total = buckets.reduce((s, b) => s + b.total, 0);
+    const present = buckets.reduce((s, b) => s + b.present, 0);
+    return total ? Math.round((present / total) * 100) : null;
+  })();
 
   const stats = [
     { icon: "Users", label: "Jucători", value: players.length, color: C.cyan },
@@ -19,6 +29,13 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
     { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue },
     { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red },
   ];
+
+  // Cartonașe suplimentare cu starea clubului, doar pentru staff.
+  const clubStateStats = canSeeClubState ? [
+    { icon: "CreditCard", label: "Abonament", value: subscription?.planName || selectedClub?.plan || "Free", color: C.amber },
+    { icon: "UserCheck", label: "Membri", value: memberships.length, color: C.violet },
+    { icon: "CalendarCheck", label: "Prezență", value: avgAttendance == null ? "—" : `${avgAttendance}%`, color: C.green },
+  ] : [];
 
   // Activitate recentă derivată din datele reale (cele mai noi înregistrări).
   const recentActivity = [
@@ -42,6 +59,18 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
           <StatCard key={i} {...s} trendUp={s.up} />
         ))}
       </View>
+
+      {/* Starea clubului (staff) */}
+      {clubStateStats.length > 0 && (
+        <>
+          <SectionTitle title="Starea clubului" />
+          <View style={styles.statsGrid}>
+            {clubStateStats.map((s, i) => (
+              <StatCard key={i} {...s} />
+            ))}
+          </View>
+        </>
+      )}
 
       {/* Quick Actions */}
       <SectionTitle title="Acțiuni rapide" />
