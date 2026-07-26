@@ -727,7 +727,7 @@ const FootballPitchSVG = () => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 50 },
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
   lastMatchMeta: { color: TEXT_TH, fontSize: 9, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
   lastMatchNotes: { color: TEXT_DIM, fontSize: 10, fontWeight: '600', lineHeight: 15, marginTop: 4 },
 
-  resultRow: { flexDirection: 'row', alignItems: 'center', minHeight: 44, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  resultRow: { flexDirection: 'row', alignItems: 'center', minHeight: 58, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
   resultDate: { color: TEXT_TH, fontSize: 8.5, fontWeight: '700', width: 55 },
   teamsRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   teamRes: { flex: 1, color: TEXT_DIM, fontSize: 9.5, fontWeight: '800' },
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
   tacticRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", backgroundColor: C.bgSecondary },
   tacticName: { color: "white", fontSize: 12.5, fontWeight: "800" },
   tacticMeta: { color: TEXT_DIM, fontSize: 10, fontWeight: "700", marginTop: 2 },
-  callRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  callRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line },
   callNo: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", alignItems: 'center', justifyContent: 'center' },
   callNoText: { color: TEXT_DIM, fontSize: 10, fontWeight: '900' },
   callName: { flex: 1, marginLeft: 10, color: 'white', fontSize: 12, fontWeight: '700' },
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
   scorersHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scorersTotal: { color: CYAN, fontSize: 10.5, fontWeight: '900' },
   scorersHint: { color: TEXT_TH, fontSize: 11, fontWeight: '600', marginBottom: 8, lineHeight: 15 },
-  scorerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  scorerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   stepBtn: { width: 28, height: 28, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.06)", alignItems: 'center', justifyContent: 'center' },
   stepTxt: { color: 'white', fontSize: 17, fontWeight: '900' },

@@ -2,11 +2,21 @@
 // Paletă neutră (zinc) cu accente reținute — fundal aproape negru, suprafețe
 // stratificate și borduri discrete. Accentele se folosesc doar în punctele
 // focale (nu ca borduri peste tot), pentru un aspect modern, curat.
+// Accentul principal: verde-gazon, potrivit tematic cu fotbalul.
+// Cheia `cyan` rămâne ca alias istoric (e folosită în ~260 de locuri);
+// numele nou și corect este `accent`.
+const ACCENT = "#4ADE80";
+
 export const colors = {
   // Fundaluri
   bg: "#09090B",
   bgSecondary: "#0F0F12",
   bgElevated: "#131316",
+
+  // Lumini ambientale (folosite de fundalul cu gradient fin)
+  glowA: "rgba(74, 222, 128, 0.10)",
+  glowB: "rgba(139, 92, 246, 0.09)",
+  glowC: "rgba(56, 189, 248, 0.07)",
 
   // Suprafețe (carduri) — stratificare prin luminozitate, nu prin bordură colorată
   card: "#18181B",
@@ -16,10 +26,12 @@ export const colors = {
   // Borduri neutre, discrete
   line: "rgba(255, 255, 255, 0.07)",
   lineStrong: "rgba(255, 255, 255, 0.12)",
-  lineFocus: "rgba(6, 182, 212, 0.45)",
+  lineFocus: "rgba(74, 222, 128, 0.45)",
 
   // Accente
-  cyan: "#06B6D4",
+  accent: ACCENT,
+  cyan: ACCENT, // alias istoric — accentul principal (verde-gazon)
+  teal: "#06B6D4",
   blue: "#3B82F6",
   purple: "#8B5CF6",
   violet: "#A78BFA",

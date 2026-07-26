@@ -152,7 +152,7 @@ function EquipmentModal({ visible, item, clubId, onClose, onSaved }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 16 },
   statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },

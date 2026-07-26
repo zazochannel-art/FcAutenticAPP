@@ -174,7 +174,7 @@ const TaskItem = ({ title, status, color, date }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: spacing.md, paddingBottom: 120 },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -spacing.xs, marginBottom: spacing.lg },
   statCell: { flexGrow: 1, flexBasis: 160, minWidth: 160 },

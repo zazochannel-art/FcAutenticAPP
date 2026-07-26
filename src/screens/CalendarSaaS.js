@@ -16,7 +16,6 @@ import { supabaseService } from "../services/supabaseService";
 import { colors as C } from "../constants/theme";
 
 // --- Premium Palette ---
-const BG_DARK = C.bg;
 const CARD_BG = C.card;
 const BORDER_COLOR = C.line;
 const CYAN = C.cyan;
@@ -375,7 +374,7 @@ const LegendItem = ({ dot, label }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 24 },

@@ -2,10 +2,41 @@
 // skeleton, buton cu scale la apăsare, badge de tendință, empty state, fade-in.
 import React, { useEffect, useRef } from "react";
 import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
-import Svg, { Polyline, Path, Defs, LinearGradient, Stop, Circle } from "react-native-svg";
+import Svg, { Polyline, Path, Defs, LinearGradient, RadialGradient, Stop, Circle, Rect, Ellipse } from "react-native-svg";
 import { LinearGradient as ExpoGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius as R, elevation } from "../../constants/theme";
+
+// --- AmbientBackground: lumini difuze foarte fine peste fundal --------------
+// Trei pete radiale (verde / mov / albastru) la opacitate mică, care rup
+// monotonia fundalului plat fără să afecteze lizibilitatea. Se pune ca strat
+// de fundal, sub conținut, cu pointerEvents="none".
+export function AmbientBackground({ style }) {
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
+      <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <Defs>
+          <RadialGradient id="ambA" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor="#4ADE80" stopOpacity="0.16" />
+            <Stop offset="1" stopColor="#4ADE80" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="ambB" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor="#8B5CF6" stopOpacity="0.14" />
+            <Stop offset="1" stopColor="#8B5CF6" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="ambC" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor="#38BDF8" stopOpacity="0.10" />
+            <Stop offset="1" stopColor="#38BDF8" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100" height="100" fill={C.bg} />
+        <Ellipse cx="12" cy="6" rx="52" ry="42" fill="url(#ambA)" />
+        <Ellipse cx="92" cy="20" rx="46" ry="40" fill="url(#ambB)" />
+        <Ellipse cx="60" cy="98" rx="58" ry="38" fill="url(#ambC)" />
+      </Svg>
+    </View>
+  );
+}
 
 // --- Surface: suprafață cu muchie luminoasă sus + gradient subtil ----------
 // Muchia luminoasă simulează lumina venită de sus și dă senzația de material

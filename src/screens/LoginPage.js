@@ -591,7 +591,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   bgImage: { flex: 1, width: '100%', height: '100%' },
   scrollContent: { paddingBottom: 40 },
   header: {

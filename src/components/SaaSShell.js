@@ -3,6 +3,7 @@ import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from 
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing } from "../constants/theme";
 import ProfileSheet from "./ProfileSheet";
+import { AmbientBackground } from "./ui/visuals";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
 // lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
@@ -45,6 +46,7 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
 
   return (
     <View style={styles.shell}>
+      <AmbientBackground />
       <SaaSSidebar
         activeTab={activeTab}
         setTab={setTab}
@@ -162,7 +164,7 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
 const styles = StyleSheet.create({
   shell: { flex: 1, flexDirection: "row", backgroundColor: C.bg },
   main: { flex: 1, padding: 12, gap: 10 },
-  pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, borderWidth: 1, borderColor: C.line, backgroundColor: C.bgSecondary },
+  pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, borderWidth: 1, borderColor: C.line, backgroundColor: "rgba(15,15,18,0.55)" },
   sidebar: {
     width: 260,
     margin: 6,

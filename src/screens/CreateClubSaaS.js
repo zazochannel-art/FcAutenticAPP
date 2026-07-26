@@ -560,7 +560,7 @@ function SummaryCard({ icon, val, label }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   bgDecor: { ...StyleSheet.absoluteFillObject },
   glowTop: { position: 'absolute', top: -150, right: -150, width: 400, height: 400, borderRadius: 200, backgroundColor: CYAN + '10' },
   glowBottom: { position: 'absolute', bottom: -150, left: -150, width: 400, height: 400, borderRadius: 200, backgroundColor: VIOLET + '10' },

@@ -70,6 +70,7 @@ import StaffSaaS from "./src/screens/StaffSaaS";
 import TasksSaaS from "./src/screens/TasksSaaS";
 import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { SaaSAppShell } from "./src/components/SaaSShell";
+import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
@@ -921,6 +922,7 @@ function MainApp() {
           </SaaSAppShell>
         ) : (
           <>
+            <AmbientBackground />
             <View style={styles.app}>{pages[tab] || pages[activeTabs[0]] || pages.Dashboard}</View>
             <MobileBottomNav
               tabs={activeTabs}
