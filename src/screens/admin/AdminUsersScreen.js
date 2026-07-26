@@ -64,9 +64,9 @@ export default function AdminUsersScreen({ clubs = [], onManageClub }) {
   return (
     <AdminPage title="Utilizatori & cereri" subtitle="Membri pe platformă, cereri de aprobat și invitații de owner.">
       <View style={s.statsGrid}>
-        <StatCard icon="Users" label="Total conturi" val={String(overview?.usersCount ?? "—")} sub="în platformă" iColor={AD.violet} />
-        <StatCard icon="UserCheck" label="Membri activi" val={String(activeCount)} sub="în cluburi" iColor={AD.green} />
-        <StatCard icon="Clock" label="Cereri în așteptare" val={String(pendingTotal)} sub="de aprobat" iColor={pendingTotal > 0 ? AD.amber : AD.dim} />
+        <StatCard icon="Users" label="Total conturi" val={String(overview?.usersCount ?? "—")} sub="în platformă" iColor={AD.violet} delay={0} />
+        <StatCard icon="UserCheck" label="Membri activi" val={String(activeCount)} sub="în cluburi" iColor={AD.green} delay={60} />
+        <StatCard icon="Clock" label="Cereri în așteptare" val={String(pendingTotal)} sub="de aprobat" iColor={pendingTotal > 0 ? AD.amber : AD.dim} delay={120} />
       </View>
 
       <View style={s.actionsList}>
@@ -75,7 +75,7 @@ export default function AdminUsersScreen({ clubs = [], onManageClub }) {
 
       <Card title="Cereri de aprobat">
         {pendingByClub.length === 0 ? (
-          <EmptyBox icon="UserCheck" text="Nicio cerere de alăturare în așteptare." />
+          <EmptyBox icon="UserCheck" title="Totul la zi" text="Nicio cerere de alăturare în așteptare." />
         ) : (
           pendingByClub.map(([clubId, count]) => (
             <View key={clubId} style={styles.pendRow}>

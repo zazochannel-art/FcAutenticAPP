@@ -55,9 +55,9 @@ export default function AdminClubsScreen({ clubs = [], onCreateClub, onManageClu
   return (
     <AdminPage title="Cluburi" subtitle="Administrează cluburile din platformă, blochează sau intră în gestiunea unui club.">
       <View style={s.statsGrid}>
-        <StatCard icon="Building2" label="Cluburi totale" val={String(clubs.length)} iColor={AD.cyan} />
-        <StatCard icon="ShieldCheck" label="Active" val={String(clubs.filter((c) => !c.blocked).length)} iColor={AD.green} />
-        <StatCard icon="ShieldOff" label="Blocate" val={String(clubs.filter((c) => c.blocked).length)} iColor={AD.red} />
+        <StatCard icon="Building2" label="Cluburi totale" val={String(clubs.length)} iColor={AD.cyan} delay={0} />
+        <StatCard icon="ShieldCheck" label="Active" val={String(clubs.filter((c) => !c.blocked).length)} iColor={AD.green} delay={60} />
+        <StatCard icon="ShieldOff" label="Blocate" val={String(clubs.filter((c) => c.blocked).length)} iColor={AD.red} delay={120} />
       </View>
 
       <View style={s.actionsList}>
@@ -66,7 +66,7 @@ export default function AdminClubsScreen({ clubs = [], onCreateClub, onManageClu
 
       <Card title={`Cluburi în platformă (${clubs.length})`}>
         {clubs.length === 0 ? (
-          <EmptyBox icon="Building2" text="Niciun club în platformă încă." />
+          <EmptyBox icon="Building2" title="Niciun club încă" text="Creează primul club ca să începi să administrezi platforma." actionLabel="Creează club" onAction={onCreateClub} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ minWidth: 720, flexGrow: 1 }}>
