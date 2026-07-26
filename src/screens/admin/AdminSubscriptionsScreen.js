@@ -52,14 +52,14 @@ export default function AdminSubscriptionsScreen({ clubs = [] }) {
   return (
     <AdminPage title="Abonamente" subtitle="Planurile cluburilor și veniturile recurente estimate.">
       <View style={s.statsGrid}>
-        <StatCard icon="CreditCard" label="Abonamente active" val={String(activeSubs.length)} sub={`${subscriptions.length} în total`} iColor={AD.blue} />
-        <StatCard icon="Wallet" label="MRR estimat" val={`${mrr.toLocaleString("ro-RO")} lei`} sub="din prețurile de listă" iColor={AD.green} />
-        <StatCard icon="Crown" label="Planuri plătite" val={String(activeSubs.filter((sub) => (PLAN_PRICES[sub.planName] || 0) > 0).length)} sub="peste planul Free" iColor={AD.amber} />
+        <StatCard icon="CreditCard" label="Abonamente active" val={String(activeSubs.length)} sub={`${subscriptions.length} în total`} iColor={AD.blue} delay={0} />
+        <StatCard icon="Wallet" label="MRR estimat" val={`${mrr.toLocaleString("ro-RO")} lei`} sub="din prețurile de listă" iColor={AD.green} delay={60} />
+        <StatCard icon="Crown" label="Planuri plătite" val={String(activeSubs.filter((sub) => (PLAN_PRICES[sub.planName] || 0) > 0).length)} sub="peste planul Free" iColor={AD.amber} delay={120} />
       </View>
 
       <Card title={`Plan per club (${clubs.length})`}>
         {rows.length === 0 ? (
-          <EmptyBox icon="CreditCard" text="Niciun club de abonat încă." />
+          <EmptyBox icon="CreditCard" title="Fără abonamente" text="Niciun club de abonat încă." />
         ) : (
           rows.map(({ club, sub }) => {
             const planName = sub?.planName || club.plan || "Free";
