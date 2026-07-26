@@ -17,19 +17,20 @@ import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
 import { suspendedPlayerIds } from "../utils/tactics";
 import RoDateField from "../components/RoDateField";
+import { colors as C } from "../constants/theme";
 
 // --- Premium Palette ---
-const BG_DARK = "#020812";
-const CARD_BG = "rgba(4, 18, 32, 0.78)";
-const BORDER_COLOR = "rgba(0, 212, 255, 0.12)";
-const CYAN = "#00D4FF";
-const VIOLET = "#7C3AED";
-const AMBER = "#FACC15";
-const GREEN = "#22C55E";
-const RED = "#EF4444";
-const BLUE_ACCENT = "#0D8BFF";
-const TEXT_DIM = "#94A3B8";
-const TEXT_TH = "#475569";
+const BG_DARK = C.bg;
+const CARD_BG = C.card;
+const BORDER_COLOR = C.line;
+const CYAN = C.cyan;
+const VIOLET = C.purple;
+const AMBER = C.amber;
+const GREEN = C.green;
+const RED = C.red;
+const BLUE_ACCENT = C.blue;
+const TEXT_DIM = C.muted;
+const TEXT_TH = C.dim;
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);

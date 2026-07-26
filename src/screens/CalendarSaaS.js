@@ -13,18 +13,19 @@ import {
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
+import { colors as C } from "../constants/theme";
 
 // --- Premium Palette ---
-const BG_DARK = "#020812";
-const CARD_BG = "rgba(4, 18, 32, 0.78)";
-const BORDER_COLOR = "rgba(0, 212, 255, 0.12)";
-const CYAN = "#00D4FF";
-const VIOLET = "#7C3AED";
-const AMBER = "#FACC15";
-const GREEN = "#22C55E";
-const BLUE_ACCENT = "#0D8BFF";
-const TEXT_DIM = "#94A3B8";
-const TEXT_TH = "#475569";
+const BG_DARK = C.bg;
+const CARD_BG = C.card;
+const BORDER_COLOR = C.line;
+const CYAN = C.cyan;
+const VIOLET = C.purple;
+const AMBER = C.amber;
+const GREEN = C.green;
+const BLUE_ACCENT = C.blue;
+const TEXT_DIM = C.muted;
+const TEXT_TH = C.dim;
 
 const MONTH_NAMES = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
 const MONTH_PREFIXES = { ian: 0, feb: 1, mar: 2, apr: 3, mai: 4, iun: 5, iul: 6, aug: 7, sep: 8, oct: 9, noi: 10, nov: 10, dec: 11 };
