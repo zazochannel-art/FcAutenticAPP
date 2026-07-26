@@ -8,7 +8,7 @@ import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface
 // (înainte era o paletă paralelă; acum admin și club folosesc aceleași culori)
 export const AD = {
   bg: C.bg,
-  card: "rgba(15, 23, 42, 0.6)",
+  card: C.card,
   border: "rgba(255, 255, 255, 0.06)",
   cyan: C.cyan,
   violet: C.purple,
@@ -181,12 +181,12 @@ export const s = StyleSheet.create({
   rowBtnText: { fontSize: 10, fontWeight: "800" },
 
   // Modal (reutilizat de paginile care au dialoguri)
-  modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center", padding: 20 },
-  modalCard: { width: "100%", maxWidth: 420, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: AD.border },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: AD.border },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
   modalLabel: { color: AD.dim, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: "white", borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
   optionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, height: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: AD.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },

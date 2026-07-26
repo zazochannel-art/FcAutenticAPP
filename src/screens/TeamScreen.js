@@ -554,7 +554,7 @@ const PositionsDonut = ({ counts, total }) => {
   let acc = 0;
   return (
     <Svg width="120" height="120" viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="40" stroke="#1e293b" strokeWidth="10" fill="none" />
+      <Circle cx="50" cy="50" r="40" stroke={C.line} strokeWidth="10" fill="none" />
       {total > 0 && order.map(([key, color]) => {
         const fraction = counts[key] / total;
         if (!fraction) return null;
@@ -671,12 +671,12 @@ const styles = StyleSheet.create({
   activityMeta: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', marginTop: 2 },
   activityLoc: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600' },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', maxWidth: 420, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
   modalLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   modalSaveText: { color: 'white', fontSize: 12, fontWeight: '900' },
 });

@@ -168,9 +168,9 @@ const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 120 },
 
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
-  chartCard: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  chartCard: { backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   chartTitle: { color: "white", fontSize: 12, fontWeight: "900", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 },
-  summaryCard: { flex: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", alignItems: "flex-start" },
+  summaryCard: { flex: 1, backgroundColor: C.card, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", alignItems: "flex-start" },
   summaryIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 8 },
   summaryValue: { color: "white", fontSize: 20, fontWeight: "900" },
   summaryLabel: { color: C.dim, fontSize: 9.5, fontWeight: "800", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 20 },
 
-  row: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  row: { flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   rank: { color: C.dim, fontSize: 13, fontWeight: "900", width: 22, textAlign: "center" },
   rowAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(0,212,255,0.12)", alignItems: "center", justifyContent: "center", marginLeft: 4 },
   rowAvatarText: { color: C.cyan, fontSize: 12, fontWeight: "900" },

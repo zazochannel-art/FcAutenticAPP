@@ -125,7 +125,7 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
               <Switch
                 value={!!prefs[key]}
                 onValueChange={() => togglePref(key)}
-                trackColor={{ false: "#1e293b", true: C.cyan + "88" }}
+                trackColor={{ false: C.line, true: C.cyan + "88" }}
                 thumbColor={prefs[key] ? C.cyan : "#64748b"}
               />
             </View>
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#020617" },
   content: { padding: spacing.md, paddingBottom: 120 },
 
-  card: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 18, padding: 6, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  card: { backgroundColor: C.card, borderRadius: 18, padding: 6, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   row: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 14, gap: 4 },
   rowActive: { backgroundColor: "rgba(0,212,255,0.08)" },
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#030712", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line, marginRight: 12 },
@@ -402,12 +402,12 @@ const styles = StyleSheet.create({
   clubInitial: { color: C.cyan, fontWeight: "900", fontSize: 16 },
   clubPlan: { color: C.dim, fontSize: 10, fontWeight: "600", marginTop: 2 },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center", padding: 20 },
-  modalCard: { width: "100%", maxWidth: 420, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 12, fontWeight: "600", marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 12, fontWeight: "600", marginBottom: 12 },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 },
   modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },
 });

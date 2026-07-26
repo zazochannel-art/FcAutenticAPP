@@ -245,7 +245,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                         numberOfLines={4}
                         maxLength={DESCRIPTION_MAX}
                         placeholder="Viziunea clubului..."
-                        placeholderTextColor="#475569"
+                        placeholderTextColor={C.dim}
                         value={form.description}
                         onChangeText={v => handleInputChange('description', v)}
                      />
@@ -310,7 +310,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                         onChangeText={setCustomGroup}
                         onSubmitEditing={addCustomGroup}
                         placeholder="Adaugă grupă (ex: Seniori)"
-                        placeholderTextColor="#475569"
+                        placeholderTextColor={C.dim}
                       />
                       <Pressable style={styles.addPill} onPress={addCustomGroup}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
                    </View>
@@ -471,7 +471,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
 
          <View style={[styles.footerButtons, isMobile && styles.footerButtonsMobile]}>
             <Pressable style={[styles.btnSecondary, isMobile && styles.mobileFooterButton]} onPress={onBack}>
-               <LucideIcons.ArrowLeft size={18} color="#94A3B8" />
+               <LucideIcons.ArrowLeft size={18} color={C.muted} />
                <Text style={styles.btnSecondaryText}>Înapoi</Text>
             </Pressable>
 
@@ -505,7 +505,7 @@ function InputGroup({ label, placeholder, icon, value, onChange, style }) {
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor="#475569"
+          placeholderTextColor={C.dim}
           value={value}
           onChangeText={onChange}
         />

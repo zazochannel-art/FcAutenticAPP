@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   askCard: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 16 },
   cardTitle: { color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   askRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-end' },
-  askInput: { flex: 1, minHeight: 60, maxHeight: 120, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: 'white', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 12, fontWeight: '600', textAlignVertical: 'top' },
+  askInput: { flex: 1, minHeight: 60, maxHeight: 120, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 12, fontWeight: '600', textAlignVertical: 'top' },
   sendBtn: { width: 46, height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: CYAN, fontSize: 10.5, fontWeight: '700', marginTop: 10 },
   errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: RED + "10", borderWidth: 1, borderColor: RED + "30", borderRadius: 10, padding: 10, marginTop: 12 },

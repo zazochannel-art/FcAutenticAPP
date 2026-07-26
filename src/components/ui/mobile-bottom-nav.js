@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   labelActive: { color: C.cyan },
   glow: { position: "absolute", bottom: 6, width: 16, height: 2.5, borderRadius: 2, backgroundColor: C.cyan },
 
-  sheetOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.6)", justifyContent: "flex-end" },
+  sheetOverlay: { flex: 1, backgroundColor: C.bgSecondary, justifyContent: "flex-end" },
   sheet: { backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === "ios" ? 40 : 24, maxHeight: "75%" },
   sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.15)", marginBottom: 12 },
   sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },

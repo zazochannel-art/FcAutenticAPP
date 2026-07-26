@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
   metricLabel: { color: C.dim, fontSize: 9, marginTop: 2, fontWeight: '700' },
   trainingField: { marginBottom: 16 },
   trainingFieldLabel: { color: C.dim, fontSize: 9, fontWeight: "900", letterSpacing: 0.8, marginBottom: 8, textTransform: 'uppercase' },
-  trainingInput: { backgroundColor: "rgba(2,6,23,0.5)", borderWidth: 1, borderColor: "#1e293b", color: "white", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, height: 44 },
+  trainingInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, height: 44 },
   trainingInputLarge: { minHeight: 80, textAlignVertical: "top" },
 });
