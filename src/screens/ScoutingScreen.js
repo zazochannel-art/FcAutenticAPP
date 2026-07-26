@@ -158,7 +158,7 @@ function ScoutingModal({ visible, item, clubId, onClose, onSaved }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 14, backgroundColor: C.blue, marginBottom: 18 },
   addBtnText: { color: "white", fontSize: 12.5, fontWeight: "900" },

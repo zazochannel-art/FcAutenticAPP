@@ -164,7 +164,7 @@ function SummaryCard({ icon, color, value, label }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
 
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },

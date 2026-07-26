@@ -18,7 +18,6 @@ import PlayerDetailModal from "../components/PlayerDetailModal";
 import { colors as C } from "../constants/theme";
 
 // --- Premium Palette ---
-const BG_DARK = C.bg;
 const CARD_BG = C.card;
 const BORDER_COLOR = C.line;
 const CYAN = C.cyan;
@@ -577,7 +576,7 @@ const PositionsDonut = ({ counts, total }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 50 },
@@ -617,11 +616,11 @@ const styles = StyleSheet.create({
   groupChipActive: { borderColor: CYAN, backgroundColor: CYAN + "10" },
   groupChipText: { color: TEXT_DIM, fontSize: 10, fontWeight: '800' },
 
-  tableHeader: { flexDirection: 'row', paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
-  th: { color: TEXT_TH, fontSize: 8, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
-  tableRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
-  rowNum: { color: TEXT_TH, fontSize: 9.5, fontWeight: '800', width: 30 },
-  miniAvatar: { width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.08)", alignItems: 'center', justifyContent: 'center' },
+  tableHeader: { flexDirection: 'row', paddingBottom: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 10 },
+  th: { color: TEXT_TH, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
+  tableRow: { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
+  rowNum: { color: TEXT_DIM, fontSize: 11, fontWeight: '900', width: 30 },
+  miniAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.07)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
   rowMainText: { color: 'white', fontSize: 11, fontWeight: '800' },
   rowSubText: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600' },
   posLabel: { fontSize: 10, fontWeight: '900' },
@@ -633,7 +632,7 @@ const styles = StyleSheet.create({
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 26, paddingHorizontal: 12 },
   emptyText: { color: TEXT_DIM, fontSize: 11, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
-  groupItem: { flexDirection: 'row', alignItems: 'center', height: 44, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  groupItem: { flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 10, marginBottom: 5, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.02)" },
   groupIndicator: { width: 3, height: 18, borderRadius: 2 },
   groupCount: { minWidth: 24, height: 18, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   countText: { fontSize: 9, fontWeight: '900' },

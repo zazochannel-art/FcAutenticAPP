@@ -262,7 +262,7 @@ const StatCard = ({ icon, label, val, iColor }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 24 },

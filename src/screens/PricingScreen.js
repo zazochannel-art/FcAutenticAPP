@@ -445,7 +445,7 @@ const UsageBar = ({ label, val, per, color }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG_DARK },
+  container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
   scrollContent: { padding: 18, paddingBottom: 60 },

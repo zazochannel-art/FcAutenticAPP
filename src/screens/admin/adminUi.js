@@ -132,7 +132,7 @@ export const PlanBadge = ({ plan }) => (
 );
 
 export const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: AD.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   scroll: { padding: 18, paddingBottom: 80 },
 
   pageHeader: { marginBottom: 24 },
@@ -167,9 +167,9 @@ export const s = StyleSheet.create({
   emptyText: { color: AD.dim, fontSize: 11, fontWeight: "600", lineHeight: 16, textAlign: "center" },
 
   th: { color: AD.faint, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8 },
-  tableHeader: { flexDirection: "row", paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
-  tableRow: { flexDirection: "row", alignItems: "center", minHeight: 54, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
-  miniLogo: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
+  tableHeader: { flexDirection: "row", paddingBottom: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 10 },
+  tableRow: { flexDirection: "row", alignItems: "center", minHeight: 64, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
+  miniLogo: { width: 34, height: 34, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.07)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   rowMainText: { color: "white", fontSize: 11, fontWeight: "800" },
   rowSubText: { color: AD.faint, fontSize: 9.5, fontWeight: "600" },
   statusDot: { width: 6, height: 6, borderRadius: 3 },

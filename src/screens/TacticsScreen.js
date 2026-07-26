@@ -1017,7 +1017,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 140 },
 
   topActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },

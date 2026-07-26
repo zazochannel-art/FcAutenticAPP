@@ -225,7 +225,7 @@ const RadarChart = ({ evalRow }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 24 },
