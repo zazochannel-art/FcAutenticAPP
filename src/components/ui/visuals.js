@@ -9,7 +9,23 @@ import { colors as C } from "../../constants/theme";
 // --- Sparkline: mini-grafic de tendință -------------------------------------
 export function Sparkline({ data = [], color = C.cyan, width = 64, height = 24 }) {
   const nums = (data || []).map(Number).filter((n) => !Number.isNaN(n));
-  if (nums.length < 2) return <View style={{ width, height }} />;
+  // Fără date: linie punctată plată, ca să se vadă că graficul există și încă
+  // așteaptă date (în loc să dispară complet).
+  if (nums.length < 2) {
+    return (
+      <Svg width={width} height={height} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <Polyline
+          points="0,50 100,50"
+          fill="none"
+          stroke={color}
+          strokeOpacity="0.28"
+          strokeWidth="4"
+          strokeDasharray="8,10"
+          strokeLinecap="round"
+        />
+      </Svg>
+    );
+  }
   const min = Math.min(...nums);
   const max = Math.max(...nums);
   const span = max - min || 1;
@@ -27,10 +43,18 @@ export function Sparkline({ data = [], color = C.cyan, width = 64, height = 24 }
 }
 
 // --- AreaChart: curbă cu gradient sub ea ------------------------------------
-export function AreaChart({ data = [], color = C.cyan, height = 120, style }) {
+export function AreaChart({ data = [], color = C.cyan, height = 120, style, emptyLabel = "Fără date încă" }) {
   const nums = (data || []).map(Number).filter((n) => !Number.isNaN(n));
+  // Fără date: linie de bază punctată + mesaj, ca graficul să rămână vizibil.
   if (nums.length < 2) {
-    return <View style={[{ height }, style]} />;
+    return (
+      <View style={[{ height, justifyContent: "center" }, style]}>
+        <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
+          <Path d="M0,70 L100,70" fill="none" stroke={color} strokeOpacity="0.25" strokeWidth="1.5" strokeDasharray="4,4" vectorEffect="non-scaling-stroke" />
+        </Svg>
+        <Text style={styles.chartEmptyText}>{emptyLabel}</Text>
+      </View>
+    );
   }
   const min = Math.min(...nums, 0);
   const max = Math.max(...nums);
@@ -144,6 +168,7 @@ export function FadeInView({ children, delay = 0, style }) {
 }
 
 const styles = StyleSheet.create({
+  chartEmptyText: { color: C.dim, fontSize: 11, fontWeight: "700", textAlign: "center" },
   skelRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
   trendBadge: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, height: 20, borderRadius: 7 },
   trendBadgeText: { fontSize: 10, fontWeight: "900" },

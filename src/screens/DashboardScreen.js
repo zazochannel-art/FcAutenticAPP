@@ -35,8 +35,8 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
     .map((tid) => { const bp = attendance[tid] || {}; const vals = Object.values(bp); const pres = vals.filter((s) => s === "present" || s === "late").length; return vals.length ? Math.round((pres / vals.length) * 100) : 0; });
 
   const stats = [
-    { icon: "Users", label: "Jucători", value: players.length, color: C.cyan },
-    { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, color: C.purple },
+    { icon: "Users", label: "Jucători", value: players.length, color: C.cyan, spark: [] },
+    { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, color: C.purple, spark: [] },
     { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue, spark: matchesSpark },
     { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red, spark: balanceSpark },
   ];

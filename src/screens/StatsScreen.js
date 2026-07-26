@@ -51,6 +51,14 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
   const goalsSeries = [...matches].reverse()
     .map((m) => Object.values(m.scorers || {}).reduce((s, v) => s + Number(v || 0), 0));
 
+  // Prezența pe fiecare antrenament (cronologic).
+  const attendanceSeries = Object.keys(attendance).sort((a, b) => Number(a) - Number(b))
+    .map((tid) => {
+      const vals = Object.values(attendance[tid] || {});
+      const pres = vals.filter((s) => s === "present" || s === "late").length;
+      return vals.length ? Math.round((pres / vals.length) * 100) : 0;
+    });
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar title="Statistici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
@@ -61,12 +69,25 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
         <SummaryCard icon="CalendarCheck" color={C.green} value={avgAtt == null ? "—" : `${avgAtt}%`} label="Prezență" />
       </FadeInView>
 
-      {goalsSeries.filter((g) => g > 0).length >= 2 && (
-        <FadeInView delay={80} style={styles.chartCard}>
-          <Text style={styles.chartTitle}>Goluri pe meci</Text>
-          <AreaChart data={goalsSeries} color={C.amber} height={90} />
-        </FadeInView>
-      )}
+      <FadeInView delay={80} style={styles.chartCard}>
+        <Text style={styles.chartTitle}>Goluri pe meci</Text>
+        <AreaChart
+          data={goalsSeries}
+          color={C.amber}
+          height={90}
+          emptyLabel="Încă niciun gol înregistrat — apare aici după ce completezi marcatorii la meciuri."
+        />
+      </FadeInView>
+
+      <FadeInView delay={120} style={styles.chartCard}>
+        <Text style={styles.chartTitle}>Prezență la antrenamente</Text>
+        <AreaChart
+          data={attendanceSeries}
+          color={C.green}
+          height={90}
+          emptyLabel="Marchează prezența la antrenamente ca să vezi evoluția aici."
+        />
+      </FadeInView>
 
       {topScorer && topScorer.goals > 0 && (
         <View style={styles.topScorer}>
