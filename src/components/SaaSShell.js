@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing } from "../constants/theme";
+import { colors as C, radius, spacing, themedStyles } from "../constants/theme";
 import ProfileSheet from "./ProfileSheet";
 import { AmbientBackground } from "./ui/visuals";
 
@@ -161,7 +161,7 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   shell: { flex: 1, flexDirection: "row", backgroundColor: C.bg },
   main: { flex: 1, padding: 12, gap: 10 },
   pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, borderWidth: 1, borderColor: C.line, backgroundColor: "rgba(15,15,18,0.55)" },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   sidebarLogoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", overflow: "hidden" },
   sidebarLogoImage: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
-  sidebarBrand: { color: "white", fontSize: 16, fontWeight: "900", letterSpacing: -0.3 },
+  sidebarBrand: { color: C.text, fontSize: 16, fontWeight: "900", letterSpacing: -0.3 },
   inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
 
@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
   sidebarFooter: { padding: spacing.md, gap: 12, borderTopWidth: 1, borderTopColor: C.line },
   seasonInfoWidget: { backgroundColor: "rgba(255,255,255,0.02)", padding: 12, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
   seasonInfoHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  seasonTitle: { color: 'white', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  seasonTitle: { color: C.text, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   leagueText: { color: C.muted, fontSize: 10, fontWeight: '700' },
   matchdayText: { color: C.dim, fontSize: 9, fontWeight: '600', marginBottom: 12 },
   seasonStatRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   seasonStatLabel: { color: C.dim, fontSize: 8.5, fontWeight: '800' },
-  seasonStatVal: { color: 'white', fontSize: 12, fontWeight: '900' },
+  seasonStatVal: { color: C.text, fontSize: 12, fontWeight: '900' },
   seasonProgressBar: { height: 4, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 2, marginTop: 6, overflow: 'hidden' },
   seasonProgressFill: { height: '100%', backgroundColor: C.blue, borderRadius: 2 },
   fullStandingsBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, backgroundColor: "rgba(255,255,255,0.03)", padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
@@ -253,14 +253,14 @@ const styles = StyleSheet.create({
   },
   clubLogoTile: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   clubLogoSmall: { width: 34, height: 34, borderRadius: 8, resizeMode: "cover" },
-  clubName: { color: "white", fontSize: 11, fontWeight: "800" },
+  clubName: { color: C.text, fontSize: 11, fontWeight: "800" },
   clubSeason: { color: C.dim, fontSize: 8.5, fontWeight: "700", marginTop: 1 },
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.green, borderWidth: 1.5, borderColor: C.card },
   seasonButton: { marginTop: 8, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   seasonText: { color: C.muted, fontSize: 10, fontWeight: "800" },
   topbar: { height: 62, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },
   searchBox: { width: 440, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
-  searchInput: { flex: 1, color: "white", fontSize: 12, fontWeight: "600" },
+  searchInput: { flex: 1, color: C.text, fontSize: 12, fontWeight: "600" },
   shortcut: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   shortcutText: { color: C.dim, fontSize: 9, fontWeight: "900" },
   notifyButton: { width: 46, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   profilePill: { height: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(148,163,184,0.12)", backgroundColor: "rgba(15,23,42,0.75)", paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 10 },
   profileTextWrap: { alignItems: 'flex-end' },
   avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
-  avatarText: { color: "white", fontSize: 12, fontWeight: "900" },
-  profileName: { color: "white", fontSize: 11, fontWeight: "800" },
+  avatarText: { color: C.text, fontSize: 12, fontWeight: "900" },
+  profileName: { color: C.text, fontSize: 11, fontWeight: "800" },
   profileRole: { color: C.dim, fontSize: 8.5, fontWeight: "700", textTransform: 'uppercase' },
-});
+}));

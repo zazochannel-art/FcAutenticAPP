@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Modal, TextInput, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
@@ -14,7 +14,7 @@ function notify(title, msg) {
 }
 
 const TYPES = ["Cartonaș galben", "Cartonaș roșu", "Suspendare", "Avertisment"];
-const TYPE_COLORS = { "Cartonaș galben": C.amber, "Cartonaș roșu": C.red, "Suspendare": C.purple, "Avertisment": C.dim };
+const TYPE_COLORS_ = () => ({ "Cartonaș galben": C.amber, "Cartonaș roșu": C.red, "Suspendare": C.purple, "Avertisment": C.dim });
 
 export default function DisciplineScreen({ clubId, players = [], selectedClub, currentUser, openNotifications }) {
   const queryClient = useQueryClient();
@@ -59,7 +59,7 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
       )}
 
       {records.map((r) => {
-        const color = TYPE_COLORS[r.type] || C.dim;
+        const color = TYPE_COLORS_()[r.type] || C.dim;
         return (
           <View key={r.id} style={styles.card}>
             <View style={[styles.tagIcon, { backgroundColor: color + "18" }]}><LucideIcons.Flag size={16} color={color} /></View>
@@ -141,8 +141,8 @@ function AddDisciplineModal({ visible, players, onClose, onSaved }) {
           <Text style={styles.modalLabel}>TIP</Text>
           <View style={styles.chipRow}>
             {TYPES.map((t) => (
-              <Pressable key={t} onPress={() => setType(t)} style={[styles.chip, type === t && { borderColor: TYPE_COLORS[t], backgroundColor: TYPE_COLORS[t] + "12" }]}>
-                <Text style={[styles.chipText, type === t && { color: TYPE_COLORS[t] }]}>{t}</Text>
+              <Pressable key={t} onPress={() => setType(t)} style={[styles.chip, type === t && { borderColor: TYPE_COLORS_()[t], backgroundColor: TYPE_COLORS_()[t] + "12" }]}>
+                <Text style={[styles.chipText, type === t && { color: TYPE_COLORS_()[t] }]}>{t}</Text>
               </Pressable>
             ))}
           </View>
@@ -169,35 +169,35 @@ function AddDisciplineModal({ visible, players, onClose, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 14, backgroundColor: C.blue, marginBottom: 18 },
-  addBtnText: { color: "white", fontSize: 12.5, fontWeight: "900" },
+  addBtnText: { color: C.text, fontSize: 12.5, fontWeight: "900" },
   empty: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", paddingVertical: 20 },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 20 },
   card: { flexDirection: "row", alignItems: "flex-start", backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   tagIcon: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center", marginTop: 2 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  name: { color: "white", fontSize: 13, fontWeight: "800", flex: 1 },
+  name: { color: C.text, fontSize: 13, fontWeight: "800", flex: 1 },
   typeBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 8, borderWidth: 1 },
   typeBadgeText: { fontSize: 9, fontWeight: "900" },
   note: { color: C.muted, fontSize: 11.5, fontWeight: "600", marginTop: 5, lineHeight: 16 },
   date: { color: C.dim, fontSize: 9.5, fontWeight: "700", marginTop: 4 },
   iconBtn: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", marginLeft: 2 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
   modalCard: { width: "100%", maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
   hint: { color: C.dim, fontSize: 11, fontWeight: "600", marginBottom: 12 },
   playerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, height: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 6 },
-  playerName: { color: "white", fontSize: 12, fontWeight: "700" },
+  playerName: { color: C.text, fontSize: 12, fontWeight: "700" },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 },
   chip: { paddingHorizontal: 12, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   chipText: { color: C.muted, fontSize: 10.5, fontWeight: "800" },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 },
-  modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },
-});
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: "900" },
+}));

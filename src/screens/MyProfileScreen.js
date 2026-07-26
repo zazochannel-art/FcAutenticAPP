@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Platform, Alert } from "react-nativ
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { notificationService } from "../services/notificationService";
@@ -224,7 +224,7 @@ const RadarChart = ({ evalRow }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
@@ -232,30 +232,30 @@ const styles = StyleSheet.create({
 
   heroCard: { flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 14 },
   heroAvatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: "rgba(0,212,255,0.12)", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", alignItems: "center", justifyContent: "center" },
-  heroName: { color: "white", fontSize: 18, fontWeight: "900" },
+  heroName: { color: C.text, fontSize: 18, fontWeight: "900" },
   heroMeta: { color: C.muted, fontSize: 11, fontWeight: "700", marginTop: 3 },
   statusPill: { alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8, marginTop: 8 },
   statusPillText: { fontSize: 9, fontWeight: "900" },
 
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 8 },
   statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: C.card, borderRadius: 16, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  statVal: { color: "white", fontSize: 18, fontWeight: "900", marginTop: 8 },
+  statVal: { color: C.text, fontSize: 18, fontWeight: "900", marginTop: 8 },
   statLabel: { color: C.dim, fontSize: 9, fontWeight: "800", marginTop: 2, textTransform: "uppercase" },
 
   evalCard: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   evalRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  evalLabel: { color: "white", fontSize: 10, fontWeight: "800", width: 62 },
+  evalLabel: { color: C.text, fontSize: 10, fontWeight: "800", width: 62 },
   evalBarBg: { flex: 1, height: 5, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" },
   evalBarFill: { height: "100%", backgroundColor: C.cyan, borderRadius: 3 },
-  evalVal: { color: "white", fontSize: 11, fontWeight: "900", width: 16, textAlign: "right" },
+  evalVal: { color: C.text, fontSize: 11, fontWeight: "900", width: 16, textAlign: "right" },
 
   plainCard: { backgroundColor: C.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   plainText: { color: C.muted, fontSize: 12, fontWeight: "600", lineHeight: 17 },
 
   activityRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   activityDot: { width: 8, height: 8, borderRadius: 4 },
-  activityTitle: { color: "white", fontSize: 12.5, fontWeight: "800" },
+  activityTitle: { color: C.text, fontSize: 12.5, fontWeight: "800" },
   activityMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },
   callTag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
   callTagText: { fontSize: 9.5, fontWeight: "900" },
-});
+}));

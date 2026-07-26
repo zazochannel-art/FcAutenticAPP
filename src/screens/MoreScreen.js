@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, Switch, Modal, TextInput
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { colors as C, spacing } from "../constants/theme";
+import { colors as C, spacing, themedStyles, applyTheme, themeName } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { authService } from "../services/authService";
@@ -11,6 +11,7 @@ import { supabaseService } from "../services/supabaseService";
 
 const APP_VERSION = "1.0.0";
 const NOTIF_KEY = "fc_notif_prefs";
+const THEME_KEY = "fc_theme";
 
 const NOTIF_ITEMS = [
   ["announcements", "Anunțuri club", "Megaphone"],
@@ -34,7 +35,19 @@ async function copyText(text) {
   return false;
 }
 
-export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [] }) {
+export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [], onThemeChange }) {
+  const [darkMode, setDarkMode] = useState(themeName !== "light");
+
+  // Comută tema: aplicăm paleta, salvăm preferința și cerem remontarea
+  // aplicației ca stilurile regenerate să fie preluate de toate ecranele.
+  const toggleTheme = () => {
+    const next = darkMode ? "light" : "dark";
+    setDarkMode(!darkMode);
+    applyTheme(next);
+    AsyncStorage.setItem(THEME_KEY, next).catch(() => {});
+    onThemeChange?.(next);
+  };
+
   const isStaff = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
   const queryClient = useQueryClient();
@@ -111,6 +124,26 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
           <Text style={[styles.rowLabel, { color: C.red }]}>Șterge contul</Text>
           <LucideIcons.ChevronRight size={15} color={C.dim} />
         </Pressable>
+      </View>
+
+      {/* Aspect */}
+      <SectionTitle title="Aspect" />
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <View style={styles.rowIcon}>
+            <LucideIcons.Moon size={17} color={C.cyan} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowLabel}>Temă închisă</Text>
+            <Text style={styles.rowHint}>Dezactiveaz-o pentru tema luminoasă.</Text>
+          </View>
+          <Switch
+            value={darkMode}
+            onValueChange={toggleTheme}
+            trackColor={{ false: C.line, true: C.cyan + "88" }}
+            thumbColor={darkMode ? C.cyan : C.muted}
+          />
+        </View>
       </View>
 
       {/* Notificări */}
@@ -378,7 +411,7 @@ const SaveButton = ({ saving, onPress, label }) => (
   </Pressable>
 );
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "#020617" },
   content: { padding: spacing.md, paddingBottom: 120 },
 
@@ -386,11 +419,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 14, gap: 4 },
   rowActive: { backgroundColor: "rgba(0,212,255,0.08)" },
   rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#030712", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line, marginRight: 12 },
-  rowLabel: { flex: 1, color: "white", fontWeight: "800", fontSize: 13 },
+  rowHint: { color: C.dim, fontSize: 10.5, fontWeight: "600", marginTop: 2 },
+  rowLabel: { flex: 1, color: C.text, fontWeight: "800", fontSize: 13 },
   infoValue: { color: C.muted, fontSize: 12, fontWeight: "700" },
 
   profileRow: { flexDirection: "row", alignItems: "center", padding: 12 },
-  profileName: { color: "white", fontWeight: "900", fontSize: 15 },
+  profileName: { color: C.text, fontWeight: "900", fontSize: 15 },
   profileEmail: { color: C.muted, fontSize: 11, marginTop: 2 },
 
   codeValue: { color: C.cyan, fontSize: 15, fontWeight: "900", letterSpacing: 2, marginTop: 2 },
@@ -402,12 +436,12 @@ const styles = StyleSheet.create({
   clubInitial: { color: C.cyan, fontWeight: "900", fontSize: 16 },
   clubPlan: { color: C.dim, fontSize: 10, fontWeight: "600", marginTop: 2 },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
   modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 12, fontWeight: "600", marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 12, fontWeight: "600", marginBottom: 12 },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 },
-  modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },
-});
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: "900" },
+}));

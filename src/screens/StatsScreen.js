@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { computePlayerStats } from "../utils/stats";
 import { AreaChart, FadeInView } from "../components/ui/visuals";
@@ -163,22 +163,22 @@ function SummaryCard({ icon, color, value, label }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
 
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
   chartCard: { backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  chartTitle: { color: "white", fontSize: 12, fontWeight: "900", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 },
+  chartTitle: { color: C.text, fontSize: 12, fontWeight: "900", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.5 },
   summaryCard: { flex: 1, backgroundColor: C.card, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", alignItems: "flex-start" },
   summaryIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 8 },
-  summaryValue: { color: "white", fontSize: 20, fontWeight: "900" },
+  summaryValue: { color: C.text, fontSize: 20, fontWeight: "900" },
   summaryLabel: { color: C.dim, fontSize: 9.5, fontWeight: "800", marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 },
 
   topScorer: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.amber + "10", borderColor: C.amber + "35", borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 14 },
   topScorerIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: C.amber + "18", alignItems: "center", justifyContent: "center" },
   topScorerLabel: { color: C.amber, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
-  topScorerName: { color: "white", fontSize: 14, fontWeight: "900", marginTop: 2 },
+  topScorerName: { color: C.text, fontSize: 14, fontWeight: "900", marginTop: 2 },
   topScorerVal: { color: C.amber, fontSize: 20, fontWeight: "900" },
   topScorerValSub: { color: C.dim, fontSize: 10, fontWeight: "700" },
 
@@ -201,10 +201,10 @@ const styles = StyleSheet.create({
   rank: { color: C.dim, fontSize: 13, fontWeight: "900", width: 22, textAlign: "center" },
   rowAvatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(0,212,255,0.12)", alignItems: "center", justifyContent: "center", marginLeft: 4 },
   rowAvatarText: { color: C.cyan, fontSize: 12, fontWeight: "900" },
-  rowName: { color: "white", fontSize: 13, fontWeight: "800" },
+  rowName: { color: C.text, fontSize: 13, fontWeight: "800" },
   rowMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },
   attBar: { height: 5, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.06)", marginTop: 6, overflow: "hidden" },
   attFill: { height: "100%", borderRadius: 3, backgroundColor: C.green },
   metric: { minWidth: 46, height: 38, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, marginLeft: 8 },
   metricVal: { fontSize: 16, fontWeight: "900" },
-});
+}));

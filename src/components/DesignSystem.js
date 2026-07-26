@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing, elevation } from "../constants/theme";
+import { colors as C, radius, spacing, elevation, themedStyles } from "../constants/theme";
 import { Sparkline, Surface } from "./ui/visuals";
 
 // --- GlassCard: suprafața de bază. Stratificare prin luminozitate + bordură
@@ -65,7 +65,7 @@ export const NeonButton = ({ label, icon, onPress, variant = "primary", fullWidt
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   glassWrapper: {
     borderRadius: radius.xl,
     borderWidth: 1,
@@ -88,5 +88,5 @@ const styles = StyleSheet.create({
   neonBtnContainer: { height: 52, borderRadius: radius.lg, overflow: "hidden", shadowColor: C.cyan, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 5 },
   neonBtnGradient: { flex: 1, justifyContent: "center", alignItems: "center" },
   neonBtnContent: { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.xl },
-  neonBtnText: { color: "white", fontWeight: "900", fontSize: 14, letterSpacing: 0.5, textTransform: "uppercase" }
-});
+  neonBtnText: { color: C.text, fontWeight: "900", fontSize: 14, letterSpacing: 0.5, textTransform: "uppercase" }
+}));

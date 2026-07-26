@@ -13,27 +13,17 @@ import {
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 // --- Premium Palette ---
-const CARD_BG = C.card;
-const BORDER_COLOR = C.line;
-const CYAN = C.cyan;
-const VIOLET = C.purple;
-const AMBER = C.amber;
-const GREEN = C.green;
-const RED = C.red;
-const BLUE_ACCENT = C.blue;
-const TEXT_DIM = C.muted;
-const TEXT_TH = C.dim;
 
 const ROLE_LABELS = {
-  club_owner: { label: "OWNER", color: CYAN },
-  admin: { label: "ADMIN", color: BLUE_ACCENT },
-  coach: { label: "ANTRENOR", color: GREEN },
-  staff: { label: "STAFF", color: VIOLET },
-  player: { label: "JUCĂTOR", color: TEXT_DIM },
-  parent: { label: "PĂRINTE", color: AMBER },
+  club_owner: { label: "OWNER", color: C.cyan },
+  admin: { label: "ADMIN", color: C.blue },
+  coach: { label: "ANTRENOR", color: C.green },
+  staff: { label: "STAFF", color: C.purple },
+  player: { label: "JUCĂTOR", color: C.muted },
+  parent: { label: "PĂRINTE", color: C.amber },
 };
 
 const INVITE_ROLES = [
@@ -113,7 +103,7 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
   if (!canView) {
     return (
       <View style={[styles.container, { alignItems: "center", justifyContent: "center", padding: 30 }]}>
-        <LucideIcons.Lock size={34} color={TEXT_TH} />
+        <LucideIcons.Lock size={34} color={C.dim} />
         <Text style={[styles.emptyText, { marginTop: 12 }]}>Doar administratorii clubului pot vedea echipa de staff.</Text>
       </View>
     );
@@ -130,9 +120,9 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
 
         {/* Stat Cards */}
         <View style={styles.statsGrid}>
-           <StatCard icon="Users" label="Membri activi" val={String(activeMembers.length)} iColor={BLUE_ACCENT} />
-           <StatCard icon="UserCog" label="Staff tehnic" val={String(staffMembers.length)} iColor={VIOLET} />
-           <StatCard icon="UserPlus" label="Cereri în așteptare" val={String(pendingMembers.length)} iColor={AMBER} />
+           <StatCard icon="Users" label="Membri activi" val={String(activeMembers.length)} iColor={C.blue} />
+           <StatCard icon="UserCog" label="Staff tehnic" val={String(staffMembers.length)} iColor={C.purple} />
+           <StatCard icon="UserPlus" label="Cereri în așteptare" val={String(pendingMembers.length)} iColor={C.amber} />
         </View>
 
         {/* Cod de înregistrare jucători */}
@@ -154,7 +144,7 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
               }}
               style={styles.codeCopyBtn}
             >
-              <LucideIcons.Copy size={16} color={CYAN} />
+              <LucideIcons.Copy size={16} color={C.cyan} />
             </Pressable>
           </View>
         )}
@@ -168,7 +158,7 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
 
         {/* Pending requests */}
         {pendingMembers.length > 0 && (
-          <View style={[styles.cardMain, { borderColor: AMBER + "40" }]}>
+          <View style={[styles.cardMain, { borderColor: C.amber + "40" }]}>
             <Text style={styles.cardTitle}>CERERI DE ALĂTURARE ({pendingMembers.length})</Text>
             {pendingMembers.map((member) => (
               <View key={member.membershipId} style={styles.memberRow}>
@@ -182,18 +172,18 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
                     <Pressable
                       onPress={() => approve(member)}
                       disabled={busyId === member.membershipId}
-                      style={[styles.smallBtn, { backgroundColor: GREEN + "18" }]}
+                      style={[styles.smallBtn, { backgroundColor: C.green + "18" }]}
                     >
-                      <LucideIcons.Check size={13} color={GREEN} />
-                      <Text style={[styles.smallBtnText, { color: GREEN }]}>Aprobă</Text>
+                      <LucideIcons.Check size={13} color={C.green} />
+                      <Text style={[styles.smallBtnText, { color: C.green }]}>Aprobă</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => reject(member)}
                       disabled={busyId === member.membershipId}
-                      style={[styles.smallBtn, { backgroundColor: RED + "15" }]}
+                      style={[styles.smallBtn, { backgroundColor: C.red + "15" }]}
                     >
-                      <LucideIcons.X size={13} color={RED} />
-                      <Text style={[styles.smallBtnText, { color: RED }]}>Respinge</Text>
+                      <LucideIcons.X size={13} color={C.red} />
+                      <Text style={[styles.smallBtnText, { color: C.red }]}>Respinge</Text>
                     </Pressable>
                   </View>
                 )}
@@ -210,13 +200,13 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
 
           {!isLoading && activeMembers.length === 0 && (
             <View style={styles.emptyBox}>
-              <LucideIcons.Users size={30} color={TEXT_TH} />
+              <LucideIcons.Users size={30} color={C.dim} />
               <Text style={styles.emptyText}>Niciun membru activ încă. Invită colegii cu butonul de mai sus.</Text>
             </View>
           )}
 
           {activeMembers.map((member) => {
-            const roleInfo = ROLE_LABELS[member.role] || { label: member.role?.toUpperCase() || "—", color: TEXT_DIM };
+            const roleInfo = ROLE_LABELS[member.role] || { label: member.role?.toUpperCase() || "—", color: C.muted };
             const isSelf = member.userId === currentUser?.id;
             return (
               <View key={member.membershipId} style={styles.memberRow}>
@@ -236,7 +226,7 @@ export default function StaffSaaS({ selectedClub, clubId, currentUser }) {
                     disabled={busyId === member.membershipId}
                     style={styles.deleteBtn}
                   >
-                    <LucideIcons.Trash2 size={14} color={TEXT_TH} />
+                    <LucideIcons.Trash2 size={14} color={C.dim} />
                   </Pressable>
                 )}
               </View>
@@ -261,7 +251,7 @@ function InviteModal({ visible, onClose, onSend }) {
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Invită membru</Text>
-            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           <Text style={styles.modalLabel}>EMAIL</Text>
@@ -270,7 +260,7 @@ function InviteModal({ visible, onClose, onSend }) {
             value={email}
             onChangeText={setEmail}
             placeholder="coleg@email.com"
-            placeholderTextColor={TEXT_TH}
+            placeholderTextColor={C.dim}
             autoCapitalize="none"
             keyboardType="email-address"
           />
@@ -281,9 +271,9 @@ function InviteModal({ visible, onClose, onSend }) {
               <Pressable
                 key={r.value}
                 onPress={() => setRole(r.value)}
-                style={[styles.roleChip, role === r.value && { borderColor: CYAN, backgroundColor: CYAN + "10" }]}
+                style={[styles.roleChip, role === r.value && { borderColor: C.cyan, backgroundColor: C.cyan + "10" }]}
               >
-                <Text style={[styles.roleChipText, role === r.value && { color: CYAN }]}>{r.label}</Text>
+                <Text style={[styles.roleChipText, role === r.value && { color: C.cyan }]}>{r.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -317,52 +307,52 @@ const StatCard = ({ icon, label, val, iColor }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 24 },
-  pageTitle: { color: 'white', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
-  pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
+  pageTitle: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+  pageSub: { color: C.muted, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  statCard: { flexBasis: 160, flexGrow: 1, backgroundColor: CARD_BG, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: BORDER_COLOR, flexDirection: 'row', alignItems: 'center' },
+  statCard: { flexBasis: 160, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center' },
   statIconWrap: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  statVal: { color: 'white', fontSize: 18, fontWeight: '900' },
-  statLabel: { color: TEXT_DIM, fontSize: 9.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
+  statVal: { color: C.text, fontSize: 18, fontWeight: '900' },
+  statLabel: { color: C.muted, fontSize: 9.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
 
-  inviteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: BLUE_ACCENT, height: 44, borderRadius: 12, marginBottom: 16 },
-  inviteBtnText: { color: 'white', fontSize: 12, fontWeight: '900' },
-  codeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: CYAN + "0C", borderWidth: 1, borderColor: CYAN + "30", borderRadius: 14, padding: 14, marginBottom: 16 },
-  codeCardLabel: { color: TEXT_DIM, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8 },
-  codeCardValue: { color: CYAN, fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },
-  codeCardHint: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600', marginTop: 4, lineHeight: 13 },
-  codeCopyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: CYAN + "15", alignItems: 'center', justifyContent: 'center' },
+  inviteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: C.blue, height: 44, borderRadius: 12, marginBottom: 16 },
+  inviteBtnText: { color: C.text, fontSize: 12, fontWeight: '900' },
+  codeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.cyan + "0C", borderWidth: 1, borderColor: C.cyan + "30", borderRadius: 14, padding: 14, marginBottom: 16 },
+  codeCardLabel: { color: C.muted, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8 },
+  codeCardValue: { color: C.cyan, fontSize: 22, fontWeight: '900', letterSpacing: 2, marginTop: 2 },
+  codeCardHint: { color: C.dim, fontSize: 9.5, fontWeight: '600', marginTop: 4, lineHeight: 13 },
+  codeCopyBtn: { width: 40, height: 40, borderRadius: 10, backgroundColor: C.cyan + "15", alignItems: 'center', justifyContent: 'center' },
 
-  cardMain: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR },
-  cardTitle: { color: 'white', fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  cardMain: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardTitle: { color: C.text, fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 26 },
-  emptyText: { color: TEXT_DIM, fontSize: 11.5, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
+  emptyText: { color: C.muted, fontSize: 11.5, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
   memberRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
   avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.08)", alignItems: 'center', justifyContent: 'center' },
-  memberName: { color: 'white', fontSize: 12, fontWeight: '800' },
-  memberMeta: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
+  memberName: { color: C.text, fontSize: 12, fontWeight: '800' },
+  memberMeta: { color: C.dim, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
   roleBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginLeft: 10 },
   roleBadgeText: { fontSize: 8, fontWeight: '900' },
   deleteBtn: { padding: 8, marginLeft: 4 },
   smallBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, height: 30, borderRadius: 8 },
   smallBtnText: { fontSize: 9.5, fontWeight: '900' },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.line },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
-  modalLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
-  modalHint: { color: TEXT_TH, fontSize: 10, fontWeight: '600', lineHeight: 15, marginBottom: 16 },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: '900' },
+  modalLabel: { color: C.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+  modalHint: { color: C.dim, fontSize: 10, fontWeight: '600', lineHeight: 15, marginBottom: 16 },
   roleChip: { flex: 1, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: 'center', justifyContent: 'center' },
-  roleChipText: { color: TEXT_DIM, fontSize: 10, fontWeight: '900' },
-  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  modalSaveText: { color: 'white', fontSize: 12, fontWeight: '900' },
-});
+  roleChipText: { color: C.muted, fontSize: 10, fontWeight: '900' },
+  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: '900' },
+}));

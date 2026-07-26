@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { supabaseService } from "../../services/supabaseService";
 import { AD, AdminPage, StatCard, ActionBtn, Card, EmptyBox, notify, s } from "./adminUi";
+import { colors as C } from "../../constants/theme";
 
 const ROLE_LABELS = {
   super_admin: "Super admin", club_owner: "Owner", admin: "Admin",
@@ -155,5 +156,5 @@ const styles = {
   pendIcon: { width: 32, height: 32, borderRadius: 9, backgroundColor: AD.amber + "15", alignItems: "center", justifyContent: "center" },
   roleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   roleLabel: { color: AD.dim, fontSize: 11, fontWeight: "700" },
-  roleVal: { color: "white", fontSize: 12, fontWeight: "900" },
+  roleVal: { color: C.text, fontSize: 12, fontWeight: "900" },
 };

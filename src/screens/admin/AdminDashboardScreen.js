@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";
 import { supabaseService } from "../../services/supabaseService";
 import { AD, PLAN_PRICES, PLAN_COLORS, AdminPage, StatCard, ActionBtn, Card, s } from "./adminUi";
+import { colors as C } from "../../constants/theme";
 
 export default function AdminDashboardScreen({ clubs = [], onCreateClub, goTo }) {
   const { data: overview } = useQuery({
@@ -105,5 +106,5 @@ const styles = {
   distBarFill: { height: "100%", borderRadius: 4 },
   summaryLine: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   summaryLabel: { flex: 1, color: AD.dim, fontSize: 10.5, fontWeight: "700" },
-  summaryValue: { color: "white", fontSize: 12, fontWeight: "900" },
+  summaryValue: { color: C.text, fontSize: 12, fontWeight: "900" },
 };

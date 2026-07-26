@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { supabaseService } from "../services/supabaseService";
@@ -80,8 +80,8 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
         <TopBar title={selected.theme} eyebrow={selected.group} openNotifications={openNotifications} />
 
         <View style={styles.detailHero}>
-          <Text style={{color: 'white', opacity: 0.6}}>{selected.date} • {selected.time}</Text>
-          <Text style={{color: 'white', fontWeight: '900', marginTop: 5}}><LucideIcons.MapPin size={13} color="white" /> {selected.location}</Text>
+          <Text style={{color: C.text, opacity: 0.6}}>{selected.date} • {selected.time}</Text>
+          <Text style={{color: C.text, fontWeight: '900', marginTop: 5}}><LucideIcons.MapPin size={13} color="white" /> {selected.location}</Text>
         </View>
 
         <SectionTitle title="Prezență Jucători" />
@@ -89,7 +89,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
           const currentStatus = attendance[selected.id]?.[player.id];
           return (
             <View key={player.id} style={styles.attendanceCard}>
-              <Text style={{color: 'white', fontWeight: '700'}}>{player.name}</Text>
+              <Text style={{color: C.text, fontWeight: '700'}}>{player.name}</Text>
               <View style={styles.statusRow}>
                 {attendanceOptions.map(([key, iconName]) => (
                   <BeUIButton
@@ -209,13 +209,13 @@ function AddTrainingModal({ visible, onClose, onSave, groups }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   content: { padding: 18, paddingBottom: 32 },
   filterChip: { paddingVertical: 7, paddingHorizontal: 15, borderRadius: 18, borderWidth: 1, borderColor: C.line, marginRight: 8 },
   filterChipActive: { backgroundColor: C.red, borderColor: C.red },
   filterChipText: { color: C.muted, fontSize: 11, fontWeight: "800" },
   trainingCard: { backgroundColor: C.card, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: C.line },
-  trainingTitle: { color: 'white', fontSize: 15, fontWeight: "800" },
+  trainingTitle: { color: C.text, fontSize: 15, fontWeight: "800" },
   trainingMeta: { color: C.muted, fontSize: 10, marginTop: 5 },
   detailHero: { backgroundColor: C.card, padding: 20, borderRadius: 20, marginBottom: 20 },
   attendanceCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: C.card, padding: 12, borderRadius: 15, marginBottom: 8 },
@@ -225,10 +225,10 @@ const styles = StyleSheet.create({
   backText: { color: C.blue, fontSize: 12, fontWeight: "800" },
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 34 },
   emptyText: { color: C.muted, fontSize: 12, fontWeight: '600', textAlign: 'center', lineHeight: 17, paddingHorizontal: 20 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: 'center', justifyContent: 'center', padding: 20 },
   modalCard: { width: '100%', maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.line },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: '900' },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
-});
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+}));

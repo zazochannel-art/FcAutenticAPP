@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, spacing } from "../constants/theme";
+import { colors as C, spacing, themedStyles } from "../constants/theme";
 import { Badge, TrainingField } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 
@@ -159,11 +159,11 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#020617" },
   loginContent: { padding: spacing.md, paddingBottom: 40 },
   loginHero: { alignItems: 'center', backgroundColor: C.card, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 16 },
-  loginTitle: { color: 'white', fontSize: 27, fontWeight: '900', marginTop: 10 },
+  loginTitle: { color: C.text, fontSize: 27, fontWeight: '900', marginTop: 10 },
   loginSubtitle: { color: C.muted, fontSize: 11, marginTop: 5, textTransform: 'uppercase', letterSpacing: 1 },
   formCard: { backgroundColor: C.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   formRow: { flexDirection: 'row', marginBottom: 12 },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   groupChipText: { color: C.muted, fontWeight: "800", fontSize: 10 },
   groupChipTextActive: { color: C.cyan },
   passwordWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: '#1e293b', borderRadius: 12, paddingHorizontal: 12, marginBottom: 12, height: 48 },
-  passwordInput: { flex: 1, color: 'white', fontSize: 13, fontWeight: '600' },
+  passwordInput: { flex: 1, color: C.text, fontSize: 13, fontWeight: '600' },
   authError: { color: C.red, fontSize: 11, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
   codeHint: { color: C.dim, fontSize: 10, fontWeight: '600', marginTop: -8, marginBottom: 16, lineHeight: 14 },
   typeRow: { flexDirection: "row", gap: 8, marginBottom: 16 },
@@ -182,4 +182,4 @@ const styles = StyleSheet.create({
   typeChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + '15' },
   typeChipText: { color: C.muted, fontWeight: "900", fontSize: 12 },
   typeChipTextActive: { color: C.cyan },
-});
+}));

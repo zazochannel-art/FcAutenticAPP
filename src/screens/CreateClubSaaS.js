@@ -16,9 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as LucideIcons from 'lucide-react-native';
 import { supabaseService } from '../services/supabaseService';
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
-const CYAN = C.cyan;
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.65)";
@@ -179,7 +178,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
         {/* Header Superior with Stepper */}
         <View style={styles.header}>
            <View style={styles.headerBrand}>
-              <View style={styles.logoBadge}><LucideIcons.Shield size={22} color={CYAN} /></View>
+              <View style={styles.logoBadge}><LucideIcons.Shield size={22} color={C.cyan} /></View>
               <View>
                  <Text style={styles.brandTitle}>FOOTBAL MANAGER 99</Text>
                  <Text style={styles.brandSub}>ADMIN</Text>
@@ -223,7 +222,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
             <BlurView intensity={30} tint="dark" style={styles.formCard}>
 
               <View style={styles.sectionHeader}>
-                <LucideIcons.Shield size={18} color={CYAN} />
+                <LucideIcons.Shield size={18} color={C.cyan} />
                 <Text style={styles.sectionTitle}>Informații despre club</Text>
               </View>
 
@@ -267,7 +266,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                    <Text style={styles.label}>Țara *</Text>
                    <Pressable style={styles.inputWrapper} onPress={() => setActivePicker(activePicker === 'country' ? null : 'country')}>
                       <LucideIcons.Globe size={18} color="#64748B" style={{ marginRight: 10 }} />
-                      <Text style={{ color: 'white', flex: 1 }}>{form.country}</Text>
+                      <Text style={{ color: C.text, flex: 1 }}>{form.country}</Text>
                       <LucideIcons.ChevronDown size={14} color="#64748B" />
                    </Pressable>
                    {activePicker === 'country' && (
@@ -282,7 +281,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                    <Text style={styles.label}>Sezon *</Text>
                    <Pressable style={styles.inputWrapper} onPress={() => setActivePicker(activePicker === 'season' ? null : 'season')}>
                       <LucideIcons.Calendar size={18} color="#64748B" style={{ marginRight: 10 }} />
-                      <Text style={{ color: 'white', flex: 1 }}>{form.season}</Text>
+                      <Text style={{ color: C.text, flex: 1 }}>{form.season}</Text>
                       <LucideIcons.ChevronDown size={14} color="#64748B" />
                    </Pressable>
                    {activePicker === 'season' && (
@@ -312,7 +311,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                         placeholder="Adaugă grupă (ex: Seniori)"
                         placeholderTextColor={C.dim}
                       />
-                      <Pressable style={styles.addPill} onPress={addCustomGroup}><LucideIcons.Plus size={14} color={CYAN} /></Pressable>
+                      <Pressable style={styles.addPill} onPress={addCustomGroup}><LucideIcons.Plus size={14} color={C.cyan} /></Pressable>
                    </View>
                 </View>
               </View>
@@ -340,7 +339,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                     <View style={styles.typeSelector}>
                        {CLUB_TYPES.map((type) => (
                          <Pressable key={type} onPress={() => handleInputChange("clubType", type)} style={[styles.typeBtn, form.clubType === type && styles.typeBtnActive]}>
-                           <LucideIcons.Users size={14} color={form.clubType === type ? CYAN : "#64748B"} />
+                           <LucideIcons.Users size={14} color={form.clubType === type ? C.cyan : "#64748B"} />
                            <Text style={form.clubType === type ? styles.typeBtnTextActive : styles.typeBtnText}>{type}</Text>
                          </Pressable>
                        ))}
@@ -352,7 +351,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                 <Text style={styles.label}>Încarcă logo</Text>
                 <View style={styles.uploadContainer}>
                   <Pressable style={styles.uploadBox} onPress={pickLogo}>
-                    <View style={styles.uploadIconWrap}><LucideIcons.Upload size={20} color={form.logo ? CYAN : "#64748B"} /></View>
+                    <View style={styles.uploadIconWrap}><LucideIcons.Upload size={20} color={form.logo ? C.cyan : "#64748B"} /></View>
                     <View style={{ marginLeft: 16, flex: 1 }}>
                       <Text style={styles.uploadTitle}>{form.logoName || "Alege logo-ul clubului"}</Text>
                       <Text style={styles.uploadMeta}>{form.logo ? "Logo selectat pentru club" : "PNG, JPG sau SVG, max. 2MB"}</Text>
@@ -369,7 +368,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
               <View style={styles.divider} />
 
               <View style={styles.sectionHeader}>
-                <LucideIcons.Users size={18} color={CYAN} />
+                <LucideIcons.Users size={18} color={C.cyan} />
                 <Text style={styles.sectionTitle}>Administrator principal</Text>
               </View>
 
@@ -400,7 +399,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
           {/* Column Right: Preview (40%) */}
           <View style={[styles.previewSide, !isMobile && { flex: 1 }]}>
              <View style={styles.previewHeader}>
-                <LucideIcons.Eye size={16} color={CYAN} />
+                <LucideIcons.Eye size={16} color={C.cyan} />
                 <Text style={styles.previewHeading}>Previzualizare club</Text>
              </View>
 
@@ -408,17 +407,17 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
                 <LinearGradient colors={["#0F172A", "#020617"]} style={styles.previewInner}>
                    <View style={styles.previewHero}>
                       <View style={styles.previewShield}>
-                         <LucideIcons.Shield size={42} color={CYAN} />
-                         <LucideIcons.Circle size={30} color={CYAN + "20"} style={{ position: 'absolute' }} />
+                         <LucideIcons.Shield size={42} color={C.cyan} />
+                         <LucideIcons.Circle size={30} color={C.cyan + "20"} style={{ position: 'absolute' }} />
                       </View>
                       <View style={{ marginLeft: 20 }}>
                          <Text style={styles.previewClubName}>{form.name || 'Nume Club'}</Text>
                          <View style={styles.previewMetaRow}>
-                            <LucideIcons.MapPin size={12} color={CYAN} />
+                            <LucideIcons.MapPin size={12} color={C.cyan} />
                             <Text style={styles.previewMetaText}>{form.city || 'Orașul tău'}, {form.country}</Text>
                          </View>
                          <View style={[styles.previewMetaRow, { marginTop: 4 }]}>
-                            <LucideIcons.Calendar size={12} color={CYAN} />
+                            <LucideIcons.Calendar size={12} color={C.cyan} />
                             <Text style={styles.previewMetaText}>Sezon {form.season}</Text>
                          </View>
                       </View>
@@ -480,7 +479,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
               disabled={isPublishing}
               style={[styles.primaryPressable, isMobile && styles.mobileFooterButton, isPublishing && styles.disabledButton]}
             >
-               <LinearGradient colors={[CYAN, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnPrimary}>
+               <LinearGradient colors={[C.cyan, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.btnPrimary}>
                   {isPublishing ? <ActivityIndicator color="white" size="small" /> : (
                     <>
                      <Text style={styles.btnPrimaryText}>Finalizează clubul</Text>
@@ -524,7 +523,7 @@ function OptionPanel({ options, value, onSelect }) {
           style={[styles.optionItem, value === option && styles.optionItemActive]}
         >
           <Text style={[styles.optionText, value === option && styles.optionTextActive]}>{option}</Text>
-          {value === option && <LucideIcons.Check size={14} color={CYAN} />}
+          {value === option && <LucideIcons.Check size={14} color={C.cyan} />}
         </Pressable>
       ))}
     </View>
@@ -559,10 +558,10 @@ function SummaryCard({ icon, val, label }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   bgDecor: { ...StyleSheet.absoluteFillObject },
-  glowTop: { position: 'absolute', top: -150, right: -150, width: 400, height: 400, borderRadius: 200, backgroundColor: CYAN + '10' },
+  glowTop: { position: 'absolute', top: -150, right: -150, width: 400, height: 400, borderRadius: 200, backgroundColor: C.cyan + '10' },
   glowBottom: { position: 'absolute', bottom: -150, left: -150, width: 400, height: 400, borderRadius: 200, backgroundColor: VIOLET + '10' },
 
   scrollView: { flex: 1 },
@@ -572,23 +571,23 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logoBadge: { width: 40, height: 40, backgroundColor: 'rgba(15,23,42,0.8)', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER_COLOR },
-  brandTitle: { color: 'white', fontWeight: '900', fontSize: 16 },
-  brandSub: { color: CYAN, fontSize: 8, fontWeight: '900', letterSpacing: 2, marginTop: -2 },
+  brandTitle: { color: C.text, fontWeight: '900', fontSize: 16 },
+  brandSub: { color: C.cyan, fontSize: 8, fontWeight: '900', letterSpacing: 2, marginTop: -2 },
 
   stepperContainer: { flexDirection: 'row', alignItems: 'center', gap: 24 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   stepCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#1e293b', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  stepActive: { backgroundColor: CYAN, shadowColor: CYAN, shadowRadius: 10, shadowOpacity: 0.5 },
+  stepActive: { backgroundColor: C.cyan, shadowColor: C.cyan, shadowRadius: 10, shadowOpacity: 0.5 },
   stepNum: { color: '#64748B', fontSize: 11, fontWeight: '900' },
   stepLine: { width: 30, height: 1.5, backgroundColor: '#1e293b' },
-  stepLineActive: { backgroundColor: CYAN + '40' },
+  stepLineActive: { backgroundColor: C.cyan + '40' },
   stepInfo: { alignItems: 'flex-end' },
-  stepCount: { color: CYAN, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  stepCount: { color: C.cyan, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
   stepLabel: { color: '#64748B', fontSize: 9, fontWeight: 'bold', marginTop: 2, textTransform: 'uppercase' },
 
   titleSection: { flexDirection: 'row', gap: 16, marginBottom: 32 },
-  accentLine: { width: 4, backgroundColor: CYAN, borderRadius: 2, height: 60, shadowColor: CYAN, shadowRadius: 15, shadowOpacity: 0.6 },
-  mainTitle: { color: 'white', fontSize: 32, fontWeight: '900', letterSpacing: -0.5 },
+  accentLine: { width: 4, backgroundColor: C.cyan, borderRadius: 2, height: 60, shadowColor: C.cyan, shadowRadius: 15, shadowOpacity: 0.6 },
+  mainTitle: { color: C.text, fontSize: 32, fontWeight: '900', letterSpacing: -0.5 },
   mainSub: { color: '#94A3B8', fontSize: 14, fontWeight: '600', marginTop: 6, lineHeight: 22 },
 
   layoutRow: { gap: 32 },
@@ -596,57 +595,57 @@ const styles = StyleSheet.create({
   formSide: { flex: 1 },
   previewSide: { flex: 1 },
 
-  formCard: { backgroundColor: CARD_BG, borderRadius: 24, padding: 32, borderWidth: 1, borderColor: BORDER_COLOR, shadowColor: CYAN, shadowRadius: 30, shadowOpacity: 0.05 },
+  formCard: { backgroundColor: CARD_BG, borderRadius: 24, padding: 32, borderWidth: 1, borderColor: BORDER_COLOR, shadowColor: C.cyan, shadowRadius: 30, shadowOpacity: 0.05 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
-  sectionTitle: { color: 'white', fontSize: 15, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
+  sectionTitle: { color: C.text, fontSize: 15, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
 
   gridRow: { flexDirection: 'row' },
   inputGroup: { marginBottom: 20 },
   label: { color: '#94A3B8', fontSize: 10, fontWeight: "900", letterSpacing: 1, marginBottom: 10, textTransform: "uppercase" },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 14, paddingHorizontal: 16, height: 52 },
-  input: { flex: 1, color: 'white', fontSize: 14, fontWeight: '600' },
+  input: { flex: 1, color: C.text, fontSize: 14, fontWeight: '600' },
   optionPanel: { marginTop: 8, backgroundColor: 'rgba(2,6,23,0.92)', borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 14, overflow: 'hidden' },
   optionItem: { minHeight: 42, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  optionItemActive: { backgroundColor: CYAN + '12' },
+  optionItemActive: { backgroundColor: C.cyan + '12' },
   optionText: { color: '#94A3B8', fontSize: 12, fontWeight: '800' },
-  optionTextActive: { color: 'white' },
+  optionTextActive: { color: C.text },
 
   textAreaWrap: { backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 14, padding: 16, height: 120 },
-  textArea: { flex: 1, color: 'white', fontSize: 14, fontWeight: '600', textAlignVertical: 'top' },
+  textArea: { flex: 1, color: C.text, fontSize: 14, fontWeight: '600', textAlignVertical: 'top' },
   charCounter: { color: '#475569', fontSize: 10, fontWeight: '900', alignSelf: 'flex-end', marginTop: 4 },
 
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: '#1e293b', backgroundColor: 'rgba(255,255,255,0.02)' },
-  pillActive: { borderColor: CYAN, backgroundColor: CYAN + '10' },
+  pillActive: { borderColor: C.cyan, backgroundColor: C.cyan + '10' },
   pillText: { color: '#475569', fontSize: 10, fontWeight: '900' },
-  pillTextActive: { color: CYAN },
-  addPill: { width: 38, height: 38, borderRadius: 19, borderStyle: 'dashed', borderWidth: 1, borderColor: CYAN, alignItems: 'center', justifyContent: 'center' },
+  pillTextActive: { color: C.cyan },
+  addPill: { width: 38, height: 38, borderRadius: 19, borderStyle: 'dashed', borderWidth: 1, borderColor: C.cyan, alignItems: 'center', justifyContent: 'center' },
   customGroupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
-  customGroupInput: { flex: 1, height: 40, backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 12, paddingHorizontal: 12, color: 'white', fontSize: 12, fontWeight: '600' },
+  customGroupInput: { flex: 1, height: 40, backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 12, paddingHorizontal: 12, color: C.text, fontSize: 12, fontWeight: '600' },
 
   colorRow: { flexDirection: 'row' },
   colorPicker: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: '#1e293b', borderRadius: 14, paddingHorizontal: 12, height: 52 },
   colorDot: { width: 14, height: 14, borderRadius: 7 },
-  colorHex: { color: 'white', fontSize: 11, fontWeight: '900', flex: 1, marginLeft: 10 },
+  colorHex: { color: C.text, fontSize: 11, fontWeight: '900', flex: 1, marginLeft: 10 },
   colorPanel: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, padding: 10, backgroundColor: 'rgba(2,6,23,0.7)', borderWidth: 1, borderColor: BORDER_COLOR, borderRadius: 14 },
   colorOption: { width: '31%', minHeight: 38, borderRadius: 12, borderWidth: 1, borderColor: '#1e293b', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, gap: 6 },
-  colorOptionActive: { borderColor: CYAN, backgroundColor: CYAN + '10' },
+  colorOptionActive: { borderColor: C.cyan, backgroundColor: C.cyan + '10' },
   colorOptionDot: { width: 14, height: 14, borderRadius: 7 },
   colorOptionText: { color: '#94A3B8', fontSize: 9, fontWeight: '800' },
 
   typeSelector: { flexDirection: 'row', backgroundColor: 'rgba(2,6,23,0.5)', padding: 5, borderRadius: 14, borderWidth: 1, borderColor: '#1e293b' },
   typeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 10, borderRadius: 10 },
-  typeBtnActive: { backgroundColor: CYAN + '15', borderWidth: 1, borderColor: CYAN + '30' },
+  typeBtnActive: { backgroundColor: C.cyan + '15', borderWidth: 1, borderColor: C.cyan + '30' },
   typeBtnText: { color: '#64748B', fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
-  typeBtnTextActive: { color: 'white', fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  typeBtnTextActive: { color: C.text, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
 
   uploadContainer: { marginTop: 8 },
   uploadBox: { flexDirection: 'row', alignItems: 'center', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#1e293b', borderRadius: 16, padding: 20, backgroundColor: 'rgba(255,255,255,0.02)' },
   uploadIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: BG_DARK, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#1e293b' },
-  uploadTitle: { color: 'white', fontSize: 12, fontWeight: '800' },
+  uploadTitle: { color: C.text, fontSize: 12, fontWeight: '800' },
   uploadMeta: { color: '#64748B', fontSize: 9, fontWeight: '700', marginTop: 2 },
   chooseFileBtn: { backgroundColor: '#1e293b', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 10 },
-  chooseFileText: { color: 'white', fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  chooseFileText: { color: C.text, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
   uploadInfo: { flexDirection: 'row', gap: 10, marginTop: 12, paddingHorizontal: 8 },
   infoMeta: { color: '#64748B', fontSize: 9, fontWeight: '600', lineHeight: 14, flex: 1 },
 
@@ -658,8 +657,8 @@ const styles = StyleSheet.create({
   previewCard: { borderRadius: 32, overflow: 'hidden', borderWidth: 1, borderColor: BORDER_COLOR, shadowColor: '#000', shadowRadius: 40, shadowOpacity: 0.6 },
   previewInner: { padding: 32 },
   previewHero: { flexDirection: 'row', alignItems: 'center' },
-  previewShield: { width: 100, height: 100, borderRadius: 24, backgroundColor: BG_DARK, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: CYAN, shadowColor: CYAN, shadowRadius: 30, shadowOpacity: 0.3 },
-  previewClubName: { color: 'white', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  previewShield: { width: 100, height: 100, borderRadius: 24, backgroundColor: BG_DARK, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: C.cyan, shadowColor: C.cyan, shadowRadius: 30, shadowOpacity: 0.3 },
+  previewClubName: { color: C.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
   previewMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   previewMetaText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
 
@@ -671,16 +670,16 @@ const styles = StyleSheet.create({
   previewSecTitle: { color: '#475569', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 32, marginBottom: 12 },
   previewPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   miniPill: { backgroundColor: '#1e293b', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  miniPillText: { color: CYAN, fontSize: 10, fontWeight: '900' },
+  miniPillText: { color: C.cyan, fontSize: 10, fontWeight: '900' },
 
-  typeBadge: { backgroundColor: CYAN + '10', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: 'flex-start', borderWidth: 1, borderColor: CYAN + '20' },
-  typeBadgeText: { color: CYAN, fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
+  typeBadge: { backgroundColor: C.cyan + '10', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, alignSelf: 'flex-start', borderWidth: 1, borderColor: C.cyan + '20' },
+  typeBadgeText: { color: C.cyan, fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
 
   prevDivider: { width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 32 },
 
   summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   summaryCard: { flex: 1, minWidth: '45%', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 16, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  summaryVal: { color: 'white', fontSize: 24, fontWeight: '900', marginTop: 12 },
+  summaryVal: { color: C.text, fontSize: 24, fontWeight: '900', marginTop: 12 },
   summaryLabel: { color: '#64748B', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', marginTop: 4 },
 
   liveNotice: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: VIOLET + '08', padding: 16, borderRadius: 16, marginTop: 32, borderWidth: 1, borderColor: VIOLET + '20' },
@@ -709,11 +708,11 @@ const styles = StyleSheet.create({
   btnSecondaryText: { color: '#94A3B8', fontSize: 13, fontWeight: '900', textTransform: 'uppercase' },
 
   btnOutline: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, borderWidth: 1, borderColor: '#1e293b' },
-  btnOutlineText: { color: 'white', fontSize: 13, fontWeight: '900', textTransform: 'uppercase' },
+  btnOutlineText: { color: C.text, fontSize: 13, fontWeight: '900', textTransform: 'uppercase' },
 
   primaryPressable: { borderRadius: 16, overflow: 'hidden' },
   mobileFooterButton: { width: '100%', justifyContent: 'center' },
   disabledButton: { opacity: 0.7 },
-  btnPrimary: { height: 56, paddingHorizontal: 32, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: CYAN, shadowRadius: 20, shadowOpacity: 0.4 },
-  btnPrimaryText: { color: 'white', fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5 }
-});
+  btnPrimary: { height: 56, paddingHorizontal: 32, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: C.cyan, shadowRadius: 20, shadowOpacity: 0.4 },
+  btnPrimaryText: { color: C.text, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', letterSpacing: 0.5 }
+}));

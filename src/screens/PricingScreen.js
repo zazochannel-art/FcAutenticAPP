@@ -12,42 +12,32 @@ import * as LucideIcons from "lucide-react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 
 // --- Premium Palette ---
-const BG_DARK = C.bg;
-const CARD_BG = C.card;
-const BORDER_COLOR = C.line;
-const CYAN = C.cyan;
-const VIOLET = C.purple;
-const AMBER = C.amber;
-const GREEN = C.green;
-const BLUE_ACCENT = C.blue;
-const TEXT_DIM = C.muted;
-const TEXT_TH = C.dim;
 
 const PLAN_DATA = {
   free: {
-    id: 'free', name: 'Free', price: '0 lei', color: CYAN,
+    id: 'free', name: 'Free', price: '0 lei', color: C.cyan,
     desc: 'Tot ce ai nevoie pentru a începe organizarea clubului tău.',
     limits: [
-      { icon: 'Users', label: 'Max. jucători', val: '20', color: BLUE_ACCENT },
-      { icon: 'UserCog', label: 'Owner / Admini', val: '1', color: VIOLET },
-      { icon: 'Zap', label: 'Rapoarte AI', val: 'Nu este inclus', color: TEXT_TH },
-      { icon: 'Box', label: 'Module incluse', val: 'Core', color: GREEN }
+      { icon: 'Users', label: 'Max. jucători', val: '20', color: C.blue },
+      { icon: 'UserCog', label: 'Owner / Admini', val: '1', color: C.purple },
+      { icon: 'Zap', label: 'Rapoarte AI', val: 'Nu este inclus', color: C.dim },
+      { icon: 'Box', label: 'Module incluse', val: 'Core', color: C.green }
     ],
     nextStep: {
       title: 'Următorul pas: Starter',
       sub: 'Descoperă ce beneficii obții în plus.',
-      color: BLUE_ACCENT,
+      color: C.blue,
       icon: 'Star',
       benefits: ['Până la 100 de jucători', '3 administratori', 'Rapoarte AI de performanță', 'Planificare avansată antrenamente', 'Statistici și rapoarte detaliate', 'Suport prioritar'],
       link: 'Vezi planul Starter'
     },
     included: ['Gestionarea jucătorilor (până la 20)', 'Programarea antrenamentelor', 'Organizarea meciurilor', 'Listă sarcini și notificări', 'Utilizator Owner/Admin (1)', 'Suport prin email'],
     limitations: ['Fără rapoarte AI', 'Fără statistici avansate', 'Fără exporturi și rapoarte personalizate', 'Fără integrare calendar extern', 'Fără suport prioritar', 'Nu se pot adăuga administratori suplimentari'],
-    usage: { per: 60, val: '12 / 20', bars: [{ label: 'Jucători utilizați', val: '12 / 20', per: 0.6, color: CYAN }, { label: 'Administratori', val: '1 / 1', per: 1.0, color: BLUE_ACCENT }] },
+    usage: { per: 60, val: '12 / 20', bars: [{ label: 'Jucători utilizați', val: '12 / 20', per: 0.6, color: C.cyan }, { label: 'Administratori', val: '1 / 1', per: 1.0, color: C.blue }] },
     clubs: [
       { name: 'FC Autentic Junior', id: 'CLUB-1024', owner: 'Andrei Popescu', players: '15 / 20', admins: '1 / 1', status: 'Activ', date: '12 mai 2026' },
       { name: 'ACS Progresul Youth', id: 'CLUB-0587', owner: 'Mihai Ionescu', players: '8 / 20', admins: '1 / 1', status: 'Activ', date: '3 mai 2026' },
@@ -55,25 +45,25 @@ const PLAN_DATA = {
     ]
   },
   starter: {
-    id: 'starter', name: 'Starter', price: '299 lei', color: BLUE_ACCENT,
+    id: 'starter', name: 'Starter', price: '299 lei', color: C.blue,
     desc: 'Ideal pentru cluburile care cresc și își organizează activitatea.',
     limits: [
-      { icon: 'Users', label: 'Max. jucători', val: '50', color: BLUE_ACCENT },
-      { icon: 'UserCog', label: 'Antrenori', val: '3', color: VIOLET },
-      { icon: 'Zap', label: 'Rapoarte AI', val: 'De bază', color: BLUE_ACCENT },
-      { icon: 'Box', label: 'Module incluse', val: 'Starter', color: AMBER }
+      { icon: 'Users', label: 'Max. jucători', val: '50', color: C.blue },
+      { icon: 'UserCog', label: 'Antrenori', val: '3', color: C.purple },
+      { icon: 'Zap', label: 'Rapoarte AI', val: 'De bază', color: C.blue },
+      { icon: 'Box', label: 'Module incluse', val: 'Starter', color: C.amber }
     ],
     nextStep: {
       title: 'Ce deblochează Pro?',
       sub: 'Du-te la următorul nivel cu beneficii avansate.',
-      color: AMBER,
+      color: C.amber,
       icon: 'Star',
       benefits: ['Rapoarte AI avansate și predictive', 'Statistici detaliate și grafice avansate', 'Planificare avansată a antrenamentelor', 'Scouting și observații jucători', 'Integrări și exporturi avansate', 'Suport prioritar dedicat'],
       link: 'Vezi planul Pro'
     },
     included: ['Gestionarea jucătorilor (până la 50)', 'Programarea antrenamentelor', 'Organizarea meciurilor', 'Listă sarcini și notificări', 'Rapoarte AI de bază', 'Suport prin email'],
     limitations: ['Fără rapoarte AI avansate', 'Fără statistici avansate', 'Fără exporturi și rapoarte personalizate', 'Fără integrare calendar extern', 'Fără suport prioritar', 'Nu se pot adăuga administratori suplimentari'],
-    usage: { per: 63, val: '31 / 50', bars: [{ label: 'Jucători utilizați', val: '31 / 50', per: 0.63, color: CYAN }, { label: 'Antrenori utilizați', val: '2 / 3', per: 0.67, color: BLUE_ACCENT }, { label: 'Module utilizate', val: '8 / 10', per: 0.8, color: AMBER }] },
+    usage: { per: 63, val: '31 / 50', bars: [{ label: 'Jucători utilizați', val: '31 / 50', per: 0.63, color: C.cyan }, { label: 'Antrenori utilizați', val: '2 / 3', per: 0.67, color: C.blue }, { label: 'Module utilizate', val: '8 / 10', per: 0.8, color: C.amber }] },
     clubs: [
       { name: 'FC Autentic Youth', id: 'CLUB-1001', owner: 'Mihai Ionescu', players: '28 / 50', admins: '2 / 3', status: 'Activ', date: '8 mai 2026' },
       { name: 'Sportul Autentic Kids', id: 'CLUB-1012', owner: 'Vlad Marinescu', players: '22 / 50', admins: '2 / 3', status: 'Activ', date: '12 mai 2026' },
@@ -83,25 +73,25 @@ const PLAN_DATA = {
     ]
   },
   pro: {
-    id: 'pro', name: 'Pro', price: '599 lei', color: VIOLET,
+    id: 'pro', name: 'Pro', price: '599 lei', color: C.purple,
     desc: 'Pachetul recomandat pentru cluburile performante și organizate.',
     limits: [
-      { icon: 'Users', label: 'Max. jucători', val: '150', color: BLUE_ACCENT },
-      { icon: 'UserCog', label: 'Conturi staff', val: '8', color: VIOLET },
-      { icon: 'Zap', label: 'Rapoarte AI', val: 'Incluse', color: VIOLET },
-      { icon: 'Box', label: 'Module incluse', val: 'Pro', color: VIOLET }
+      { icon: 'Users', label: 'Max. jucători', val: '150', color: C.blue },
+      { icon: 'UserCog', label: 'Conturi staff', val: '8', color: C.purple },
+      { icon: 'Zap', label: 'Rapoarte AI', val: 'Incluse', color: C.purple },
+      { icon: 'Box', label: 'Module incluse', val: 'Pro', color: C.purple }
     ],
     nextStep: {
       title: 'Ce deblochează Elite?',
       sub: 'Treci la Elite pentru beneficii premium suplimentare.',
-      color: VIOLET,
+      color: C.purple,
       icon: 'Crown',
       benefits: ['Max. 500 jucători și staff nelimitat', 'Rapoarte AI avansate și predictive', 'Planificare sezonieră și scenarii tactice', 'Integrare avansată cu dispozitive GPS', 'Suport prioritar 24/7 și account manager dedicat', 'Personalizări avansate și branding propriu', 'Exporturi avansate și API dedicat'],
       link: 'Vezi planul Elite'
     },
     included: ['Gestionarea jucătorilor (până la 150)', 'Programarea antrenamentelor avansată', 'Organizarea meciurilor și turneelor', 'Rapoarte AI și analiză de performanță', 'Lista sarcini și notificări', 'Suport prioritar prin email și chat', 'Stocare documente și exporturi avansate'],
     limitations: ['Fără rapoarte AI predictive avansate', 'Fără integrare cu dispozitive GPS', 'Fără scenarii tactice avansate', 'Fără personalizări avansate și branding', 'Fără suport telefonic 24/7', 'Număr maxim de jucători: 150', 'Număr maxim conturi staff: 8'],
-    usage: { per: 62, val: '93 / 150', bars: [{ label: 'Jucători utilizați', val: '93 / 150', per: 0.62, color: VIOLET }, { label: 'Conturi staff utilizate', val: '5 / 8', per: 0.63, color: VIOLET }] },
+    usage: { per: 62, val: '93 / 150', bars: [{ label: 'Jucători utilizați', val: '93 / 150', per: 0.62, color: C.purple }, { label: 'Conturi staff utilizate', val: '5 / 8', per: 0.63, color: C.purple }] },
     clubs: [
       { name: 'FC Autentic Senior', id: 'CLUB-1001', owner: 'Andrei Popescu', players: '128 / 150', admins: '6 / 8', status: 'Activ', date: '12 mai 2026' },
       { name: 'FC Victoria Elite', id: 'CLUB-1003', owner: 'Maria Ionescu', players: '112 / 150', admins: '5 / 8', status: 'Activ', date: '14 mai 2026' },
@@ -111,24 +101,24 @@ const PLAN_DATA = {
     ]
   },
   elite: {
-    id: 'elite', name: 'Elite', price: '999 lei', color: AMBER,
+    id: 'elite', name: 'Elite', price: '999 lei', color: C.amber,
     desc: 'Plan premium pentru academii și organizații sportive la nivel înalt.',
     limits: [
-      { icon: 'Users', label: 'Jucători', val: 'Nelimitat', color: AMBER },
-      { icon: 'UserCog', label: 'Staff', val: 'Nelimitat', color: VIOLET },
-      { icon: 'Zap', label: 'Rapoarte AI', val: 'Avansate', color: BLUE_ACCENT },
-      { icon: 'Box', label: 'Module incluse', val: 'Elite', color: GREEN }
+      { icon: 'Users', label: 'Jucători', val: 'Nelimitat', color: C.amber },
+      { icon: 'UserCog', label: 'Staff', val: 'Nelimitat', color: C.purple },
+      { icon: 'Zap', label: 'Rapoarte AI', val: 'Avansate', color: C.blue },
+      { icon: 'Box', label: 'Module incluse', val: 'Elite', color: C.green }
     ],
     included: ['Jucători și staff nelimitat', 'Rapoarte AI avansate și predictive', 'Toate modulele disponibile (Elite)', 'Stocare date nelimitată', 'Personalizare completă a platformei', 'Suport dedicat 24/7', 'Exporturi avansate și API complet', 'SLA garantat 99.9%'],
     benefits: [
-      { title: 'Performanță AI', sub: 'Analiză predictivă și scouting avansat', icon: 'Brain', color: AMBER },
-      { title: 'Dashboard avansat', sub: 'Vizualizări personalizate și KPI în timp real', icon: 'BarChart3', color: AMBER },
-      { title: 'Automatizări Elite', sub: 'Fluxuri de lucru și reguli inteligente', icon: 'Zap', color: AMBER },
-      { title: 'Securitate maximă', sub: 'Backups zilnice și criptare avansată', icon: 'ShieldCheck', color: AMBER },
-      { title: 'Branding complet', sub: 'Logo, culori și domeniu personalizat', icon: 'Palette', color: AMBER },
-      { title: 'Integrări avansate', sub: 'API complet și integrări externe', icon: 'Link', color: AMBER }
+      { title: 'Performanță AI', sub: 'Analiză predictivă și scouting avansat', icon: 'Brain', color: C.amber },
+      { title: 'Dashboard avansat', sub: 'Vizualizări personalizate și KPI în timp real', icon: 'BarChart3', color: C.amber },
+      { title: 'Automatizări Elite', sub: 'Fluxuri de lucru și reguli inteligente', icon: 'Zap', color: C.amber },
+      { title: 'Securitate maximă', sub: 'Backups zilnice și criptare avansată', icon: 'ShieldCheck', color: C.amber },
+      { title: 'Branding complet', sub: 'Logo, culori și domeniu personalizat', icon: 'Palette', color: C.amber },
+      { title: 'Integrări avansate', sub: 'API complet și integrări externe', icon: 'Link', color: C.amber }
     ],
-    usage: { per: 87, val: '87%', sub: 'utilizare curentă', bars: [{ label: 'Jucători', val: '1.248 / Nelimitat', per: 0.4, color: AMBER }, { label: 'Staff', val: '54 / Nelimitat', per: 0.3, color: AMBER }, { label: 'Stocare date', val: '1.2 TB / Nelimitat', per: 0.6, color: AMBER }, { label: 'Rapoarte AI', val: '842 / Nelimitat', per: 0.5, color: AMBER }] },
+    usage: { per: 87, val: '87%', sub: 'utilizare curentă', bars: [{ label: 'Jucători', val: '1.248 / Nelimitat', per: 0.4, color: C.amber }, { label: 'Staff', val: '54 / Nelimitat', per: 0.3, color: C.amber }, { label: 'Stocare date', val: '1.2 TB / Nelimitat', per: 0.6, color: C.amber }, { label: 'Rapoarte AI', val: '842 / Nelimitat', per: 0.5, color: C.amber }] },
     clubs: [
       { name: 'FC Autentic Academy', id: 'ELITE-001', academy: 'Andrei Popescu Academy', players: '1.248', staff: '54', status: 'Activ', date: '10 mai 2026' },
       { name: 'ACS Progresul Elite', id: 'ELITE-002', academy: 'Progresul Academy', players: '976', staff: '48', status: 'Activ', date: '7 mai 2026' },
@@ -212,7 +202,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                 <View style={styles.cardMain}>
                    <View style={styles.planTitleRow}>
                       <Text style={styles.cardPlanName}>Plan {activePlan.name}</Text>
-                      {selectedPlan === 'elite' && <LucideIcons.Crown size={28} color={AMBER} />}
+                      {selectedPlan === 'elite' && <LucideIcons.Crown size={28} color={C.amber} />}
                    </View>
                    <Text style={styles.cardPlanDesc}>{activePlan.desc}</Text>
 
@@ -234,7 +224,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                         disabled={saving || isCurrent || !isOwner}
                         style={[
                           styles.actionBtn,
-                          { backgroundColor: activePlan.id === 'elite' ? AMBER : CYAN },
+                          { backgroundColor: activePlan.id === 'elite' ? C.amber : C.cyan },
                           (saving || isCurrent || !isOwner) && { opacity: 0.55 },
                         ]}
                       >
@@ -328,7 +318,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                            per={currentMaxPlayers ? Math.min(Math.round((players.length / currentMaxPlayers) * 100), 100) : 0}
                            label={currentMaxPlayers ? `${players.length} / ${currentMaxPlayers}` : `${players.length}`}
                            sub="jucători"
-                           color={PLAN_DATA[currentPlanId]?.color || CYAN}
+                           color={PLAN_DATA[currentPlanId]?.color || C.cyan}
                          />
                       </View>
                       <View style={styles.usageBars}>
@@ -336,7 +326,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                            label="Jucători utilizați"
                            val={currentMaxPlayers ? `${players.length} / ${currentMaxPlayers}` : `${players.length} / nelimitat`}
                            per={currentMaxPlayers ? Math.min(players.length / currentMaxPlayers, 1) : 0.05}
-                           color={PLAN_DATA[currentPlanId]?.color || CYAN}
+                           color={PLAN_DATA[currentPlanId]?.color || C.cyan}
                          />
                          <Text style={styles.usageHint}>
                            Pe planul {subscription?.planName || "Free"}{currentMaxPlayers ? `, limita este de ${currentMaxPlayers} jucători` : ", jucătorii sunt nelimitați"}.
@@ -354,11 +344,11 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
              </View>
              <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}>
                 <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", alignItems: 'center', justifyContent: 'center' }}>
-                   <LucideIcons.Shield size={16} color={CYAN} />
+                   <LucideIcons.Shield size={16} color={C.cyan} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                   <Text style={{ color: 'white', fontSize: 13, fontWeight: '900' }}>{selectedClub?.name || "Clubul tău"}</Text>
-                   <Text style={{ color: TEXT_TH, fontSize: 10, fontWeight: '700', marginTop: 2 }}>
+                   <Text style={{ color: C.text, fontSize: 13, fontWeight: '900' }}>{selectedClub?.name || "Clubul tău"}</Text>
+                   <Text style={{ color: C.dim, fontSize: 10, fontWeight: '700', marginTop: 2 }}>
                      Plan curent: {subscription?.planName || selectedClub?.plan || "Free"}
                      {subscription?.maxPlayers ? ` • max. ${subscription.maxPlayers} jucători` : ""}
                      {subscription?.status ? ` • ${subscription.status === "active" ? "activ" : subscription.status}` : ""}
@@ -394,7 +384,7 @@ const CompareRow = ({ label, v1, v2, v3, v4, active }) => (
      <Text style={styles.compareVal}>{v1}</Text>
      <Text style={styles.compareVal}>{v2}</Text>
      <Text style={styles.compareVal}>{v3}</Text>
-     <Text style={[styles.compareVal, active && { color: AMBER, fontWeight: '900' }]}>{v4}</Text>
+     <Text style={[styles.compareVal, active && { color: C.amber, fontWeight: '900' }]}>{v4}</Text>
   </View>
 );
 
@@ -407,8 +397,8 @@ const BenefitItem = ({ label, color }) => (
 
 const FeatureLine = ({ label, included }) => (
   <View style={styles.featureLine}>
-     {included ? <LucideIcons.CheckCircle2 size={16} color={GREEN} /> : <LucideIcons.AlertCircle size={16} color={AMBER} />}
-     <Text style={[styles.featureText, !included && { color: TEXT_DIM }]}>{label}</Text>
+     {included ? <LucideIcons.CheckCircle2 size={16} color={C.green} /> : <LucideIcons.AlertCircle size={16} color={C.amber} />}
+     <Text style={[styles.featureText, !included && { color: C.muted }]}>{label}</Text>
   </View>
 );
 
@@ -444,112 +434,112 @@ const UsageBar = ({ label, val, per, color }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 30 },
-  pageTitle: { color: 'white', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
-  pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
+  pageTitle: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+  pageSub: { color: C.muted, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   planTabsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30, alignItems: 'stretch' },
   planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
-  planTabText: { color: TEXT_DIM, fontSize: 12, fontWeight: '800' },
-  planTabPrice: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', marginTop: 1 },
+  planTabText: { color: C.muted, fontSize: 12, fontWeight: '800' },
+  planTabPrice: { color: C.dim, fontSize: 9.5, fontWeight: '700', marginTop: 1 },
   activePlanIndicator: { position: 'absolute', top: 10, right: 10, backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3 },
-  activePlanText: { color: TEXT_DIM, fontSize: 7.5, fontWeight: '900' },
+  activePlanText: { color: C.muted, fontSize: 7.5, fontWeight: '900' },
   compareBtn: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: "rgba(0, 212, 255, 0.05)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.2)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  compareBtnText: { color: CYAN, fontSize: 11, fontWeight: '900' },
+  compareBtnText: { color: C.cyan, fontSize: 11, fontWeight: '900' },
 
   topGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
   colLeft: { flexBasis: 340, flexGrow: 1.8 },
   colRight: { flexBasis: 280, flexGrow: 1 },
 
-  cardMain: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 16 },
+  cardMain: { backgroundColor: C.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line, marginBottom: 16 },
   planTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardPlanName: { color: 'white', fontSize: 18, fontWeight: '900' },
-  cardPlanDesc: { color: TEXT_DIM, fontSize: 11.5, fontWeight: '600', marginTop: 5, maxWidth: '85%' },
+  cardPlanName: { color: C.text, fontSize: 18, fontWeight: '900' },
+  cardPlanDesc: { color: C.muted, fontSize: 11.5, fontWeight: '600', marginTop: 5, maxWidth: '85%' },
 
   priceRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 18, marginBottom: 20 },
-  bigPrice: { color: 'white', fontSize: 36, fontWeight: '900', lineHeight: 40 },
-  pricePeriod: { color: TEXT_TH, fontSize: 13, fontWeight: '800', marginLeft: 6, marginBottom: 5 },
+  bigPrice: { color: C.text, fontSize: 36, fontWeight: '900', lineHeight: 40 },
+  pricePeriod: { color: C.dim, fontSize: 13, fontWeight: '800', marginLeft: 6, marginBottom: 5 },
   freeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5, marginLeft: 16, marginBottom: 6 },
   freeBadgeText: { fontSize: 9, fontWeight: '900' },
 
   limitsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 25 },
   limitBox: { flexBasis: 150, flexGrow: 1, minHeight: 74, backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   limitIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  limitLabel: { color: TEXT_TH, fontSize: 9.5, fontWeight: '800' },
-  limitVal: { color: 'white', fontSize: 13, fontWeight: '900', marginTop: 1 },
+  limitLabel: { color: C.dim, fontSize: 9.5, fontWeight: '800' },
+  limitVal: { color: C.text, fontSize: 13, fontWeight: '900', marginTop: 1 },
 
   cardActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionBtn: { flex: 1.2, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   actionBtnOutline: { flex: 1, height: 44, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  actionBtnText: { color: 'white', fontSize: 12, fontWeight: '800' },
-  actionBtnTextDark: { color: BG_DARK, fontSize: 12, fontWeight: '900' },
+  actionBtnText: { color: C.text, fontSize: 12, fontWeight: '800' },
+  actionBtnTextDark: { color: C.bg, fontSize: 12, fontWeight: '900' },
 
-  cardSide: { backgroundColor: CARD_BG, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  cardSide: { backgroundColor: C.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line },
   sideHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  sideTitle: { fontSize: 15, fontWeight: '900', color: 'white' },
-  sideSub: { color: TEXT_DIM, fontSize: 11.5, fontWeight: '600', marginTop: 3 },
+  sideTitle: { fontSize: 15, fontWeight: '900', color: C.text },
+  sideSub: { color: C.muted, fontSize: 11.5, fontWeight: '600', marginTop: 3 },
   iconBox: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: "rgba(255,255,255,0.03)" },
   benefitList: { gap: 12, marginBottom: 25 },
   benefitLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  benefitText: { color: 'white', fontSize: 12.5, fontWeight: '600' },
+  benefitText: { color: C.text, fontSize: 12.5, fontWeight: '600' },
   upgradeLink: { height: 44, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 },
   upgradeLinkText: { fontSize: 11, fontWeight: '900' },
 
   compareTable: { marginTop: 12 },
   compareRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)", alignItems: 'center' },
-  compareLabel: { flex: 1.2, color: TEXT_DIM, fontSize: 10.5, fontWeight: '700' },
-  compareVal: { flex: 1, color: TEXT_TH, fontSize: 9.5, fontWeight: '700', textAlign: 'center' },
+  compareLabel: { flex: 1.2, color: C.muted, fontSize: 10.5, fontWeight: '700' },
+  compareVal: { flex: 1, color: C.dim, fontSize: 9.5, fontWeight: '700', textAlign: 'center' },
 
   middleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
   colFeatures: { flexBasis: 340, flexGrow: 1.8 },
   colUsage: { flexBasis: 280, flexGrow: 1 },
 
   featuresColumns: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  columnTitle: { color: 'white', fontSize: 13, fontWeight: '900', marginBottom: 16 },
+  columnTitle: { color: C.text, fontSize: 13, fontWeight: '900', marginBottom: 16 },
   featureLine: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  featureText: { color: 'white', fontSize: 11.5, fontWeight: '600' },
+  featureText: { color: C.text, fontSize: 11.5, fontWeight: '600' },
 
   eliteBenefitsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   eliteBenefitCard: { width: '47%', flexDirection: 'row', alignItems: 'center', backgroundColor: "rgba(255,255,255,0.02)", padding: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   benefitIconWrap: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  benefitTitle: { color: 'white', fontSize: 11.5, fontWeight: '800' },
-  benefitSub: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600', marginTop: 1 },
+  benefitTitle: { color: C.text, fontSize: 11.5, fontWeight: '800' },
+  benefitSub: { color: C.dim, fontSize: 8.5, fontWeight: '600', marginTop: 1 },
 
-  cardTitle: { color: 'white', fontSize: 14, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  cardTitle: { color: C.text, fontSize: 14, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  updateTime: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700' },
+  updateTime: { color: C.dim, fontSize: 9.5, fontWeight: '700' },
   usageHint: { color: '#475569', fontSize: 9.5, fontWeight: '600', marginTop: 10, lineHeight: 14 },
   usageContent: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 20 },
   usageDonutWrap: { width: 100, alignItems: 'center', justifyContent: 'center' },
   donutContainer: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   donutOverlay: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  donutMainText: { color: 'white', fontSize: 16, fontWeight: '900' },
-  donutSubText: { color: TEXT_TH, fontSize: 8.5, fontWeight: '700', marginTop: -2 },
+  donutMainText: { color: C.text, fontSize: 16, fontWeight: '900' },
+  donutSubText: { color: C.dim, fontSize: 8.5, fontWeight: '700', marginTop: -2 },
   usageBars: { flex: 1, gap: 16 },
   usageBarItem: {},
   usageBarHeader: { flexDirection: 'row', marginBottom: 6, alignItems: 'center' },
-  usageBarLabel: { flex: 1, color: TEXT_DIM, fontSize: 10.5, fontWeight: '800' },
-  usageBarVal: { color: 'white', fontSize: 10.5, fontWeight: '900', marginRight: 8 },
-  usageBarPer: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', width: 32, textAlign: 'right' },
+  usageBarLabel: { flex: 1, color: C.muted, fontSize: 10.5, fontWeight: '800' },
+  usageBarVal: { color: C.text, fontSize: 10.5, fontWeight: '900', marginRight: 8 },
+  usageBarPer: { color: C.dim, fontSize: 9.5, fontWeight: '700', width: 32, textAlign: 'right' },
   usageBarBg: { height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 2.5, overflow: 'hidden' },
   usageBarFill: { height: '100%', borderRadius: 2.5 },
   viewDetailsBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  viewDetailsText: { color: TEXT_TH, fontSize: 10.5, fontWeight: '800' },
+  viewDetailsText: { color: C.dim, fontSize: 10.5, fontWeight: '800' },
 
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   seeAllText: { fontSize: 11, fontWeight: '900' },
   tableHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
-  th: { color: TEXT_TH, fontSize: 9.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
+  th: { color: C.dim, fontSize: 9.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
   tableRow: { flexDirection: 'row', alignItems: 'center', height: 58, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   miniClubCrest: { width: 28, height: 28, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  rowMainText: { color: 'white', fontSize: 12, fontWeight: '800' },
-  rowSubText: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
+  rowMainText: { color: C.text, fontSize: 12, fontWeight: '800' },
+  rowSubText: { color: C.dim, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, minWidth: 60, alignItems: 'center' },
   statusBadgeText: { fontSize: 8.5, fontWeight: '900', textTransform: 'uppercase' }
-});
+}));

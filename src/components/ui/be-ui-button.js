@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { colors as C } from "../../constants/theme";
+import { colors as C, themedStyles } from "../../constants/theme";
 import * as LucideIcons from "lucide-react-native";
 
 const CYAN = "#06B6D4";
@@ -99,7 +99,7 @@ export function BeUIButton({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: {
     borderRadius: 16,
     overflow: "hidden",
@@ -169,14 +169,14 @@ const styles = StyleSheet.create({
     height: 48,
     paddingHorizontal: 0,
   },
-});
+}));
 
 const textStyles = StyleSheet.create({
   primary: {
-    color: "#FFFFFF",
+    color: C.text,
   },
   secondary: {
-    color: "#FFFFFF",
+    color: C.text,
   },
   outline: {
     color: CYAN,
@@ -185,10 +185,10 @@ const textStyles = StyleSheet.create({
     color: CYAN,
   },
   danger: {
-    color: "#FFFFFF",
+    color: C.text,
   },
   success: {
-    color: "#FFFFFF",
+    color: C.text,
   },
   sm: {
     fontSize: 12,

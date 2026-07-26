@@ -33,12 +33,8 @@ import {
   Check,
   CheckCircle2
 } from 'lucide-react-native';
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
-const CYAN = C.cyan;
-const VIOLET = C.purple;
-const GREEN = C.green;
-const RED = C.red;
 const BG_DARK = "#020617";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,7 +63,7 @@ function calculatePasswordStrength(password) {
 function PasswordStrengthIndicator({ password }) {
   if (!password) return null;
   const { score, feedback } = calculatePasswordStrength(password);
-  const color = score <= 1 ? RED : score <= 2 ? '#F97316' : score <= 3 ? '#EAB308' : score <= 4 ? '#3B82F6' : GREEN;
+  const color = score <= 1 ? C.red : score <= 2 ? '#F97316' : score <= 3 ? '#EAB308' : score <= 4 ? '#3B82F6' : C.green;
   const label = score <= 1 ? 'Foarte slabă' : score <= 2 ? 'Slabă' : score <= 3 ? 'Acceptabilă' : score <= 4 ? 'Bună' : 'Puternică';
   return (
     <View style={styles.strengthWrap}>
@@ -95,7 +91,7 @@ function FieldError({ message, center }) {
   if (!message) return null;
   return (
     <View style={[styles.fieldErrorRow, center && { justifyContent: 'center' }]}>
-      <AlertTriangle size={11} color={RED} />
+      <AlertTriangle size={11} color={C.red} />
       <Text style={styles.fieldErrorText}>{message}</Text>
     </View>
   );
@@ -321,7 +317,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
             <View style={styles.header}>
               <View style={styles.headerLogo}>
                 <View style={styles.logoBadge}>
-                   <Shield size={20} color={CYAN} />
+                   <Shield size={20} color={C.cyan} />
                 </View>
                 <View>
                   <Text style={styles.logoText}>FOOTBAL MANAGER 99</Text>
@@ -344,16 +340,16 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                 </View>
                 <Text style={styles.mainTitle}>
                   Administrează clubul{"\n"}
-                  tău <Text style={{ color: CYAN }}>inteligent</Text>
+                  tău <Text style={{ color: C.cyan }}>inteligent</Text>
                 </Text>
                 <Text style={styles.subtitle}>
                   Gestionează jucători, antrenamente, meciuri și finanțe într-o platformă de performanță.
                 </Text>
 
                 <View style={styles.benefitList}>
-                  <BenefitItem icon="Users" color={CYAN} title="Gestionează jucătorii" />
-                  <BenefitItem icon="Dumbbell" color={VIOLET} title="Planifică antrenamente" />
-                  <BenefitItem icon="Trophy" color={GREEN} title="Controlează clubul" />
+                  <BenefitItem icon="Users" color={C.cyan} title="Gestionează jucătorii" />
+                  <BenefitItem icon="Dumbbell" color={C.purple} title="Planifică antrenamente" />
+                  <BenefitItem icon="Trophy" color={C.green} title="Controlează clubul" />
                 </View>
               </View>
 
@@ -364,7 +360,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                   {/* Success Message */}
                   {!!successMessage && (
                     <View style={styles.successBanner}>
-                      <CheckCircle2 size={16} color={GREEN} />
+                      <CheckCircle2 size={16} color={C.green} />
                       <Text style={styles.successText}>{successMessage}</Text>
                     </View>
                   )}
@@ -372,7 +368,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                   {/* General Error */}
                   {!!displayError && (
                     <View style={styles.errorBanner}>
-                      <AlertTriangle size={16} color={RED} />
+                      <AlertTriangle size={16} color={C.red} />
                       <Text style={styles.errorBannerText}>{displayError}</Text>
                     </View>
                   )}
@@ -407,7 +403,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                   {mode === 'reset' && (
                     <View style={styles.form}>
                       <View style={styles.resetHeader}>
-                        <KeyRound size={44} color={CYAN} />
+                        <KeyRound size={44} color={C.cyan} />
                         <Text style={styles.resetText}>
                           Introdu adresa de email și îți trimitem un link pentru resetarea parolei.
                         </Text>
@@ -424,7 +420,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                       />
 
                       <Pressable onPress={submitReset} disabled={busy || !form.email}>
-                        <LinearGradient colors={[CYAN, VIOLET]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.loginBtn, (busy || !form.email) && styles.btnDisabled]}>
+                        <LinearGradient colors={[C.cyan, C.purple]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.loginBtn, (busy || !form.email) && styles.btnDisabled]}>
                           {submitting ? <ActivityIndicator color="white" size="small" /> : (
                             <>
                               <KeyRound size={18} color="white" />
@@ -514,7 +510,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                             <Text style={styles.optionText}>Ține-mă minte</Text>
                           </Pressable>
                           <Pressable onPress={() => switchMode('reset')}>
-                            <Text style={[styles.optionText, { color: CYAN }]}>Ai uitat parola?</Text>
+                            <Text style={[styles.optionText, { color: C.cyan }]}>Ai uitat parola?</Text>
                           </Pressable>
                         </View>
                       ) : (
@@ -522,7 +518,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                           <Pressable style={styles.termsRow} onPress={() => handleChange('agreeToTerms', !form.agreeToTerms)}>
                             <CheckBox checked={form.agreeToTerms} onToggle={() => handleChange('agreeToTerms', !form.agreeToTerms)} />
                             <Text style={[styles.optionText, { flex: 1 }]}>
-                              Sunt de acord cu <Text style={{ color: CYAN }}>Termenii și condițiile</Text> și <Text style={{ color: CYAN }}>Politica de confidențialitate</Text>
+                              Sunt de acord cu <Text style={{ color: C.cyan }}>Termenii și condițiile</Text> și <Text style={{ color: C.cyan }}>Politica de confidențialitate</Text>
                             </Text>
                           </Pressable>
                           <FieldError message={errors.agreeToTerms} />
@@ -532,7 +528,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                       {/* Submit */}
                       <Pressable onPress={mode === 'login' ? submitLogin : submitSignup} disabled={busy}>
                         <LinearGradient
-                          colors={[CYAN, VIOLET]}
+                          colors={[C.cyan, C.purple]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
                           style={[styles.loginBtn, busy && styles.btnDisabled]}
@@ -566,7 +562,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                           {mode === 'login' ? 'Nu ai cont? ' : 'Ai deja cont? '}
                         </Text>
                         <Pressable onPress={() => switchMode(mode === 'login' ? 'signup' : 'login')}>
-                          <Text style={[styles.footerText, { color: CYAN, fontWeight: 'bold' }]}>
+                          <Text style={[styles.footerText, { color: C.cyan, fontWeight: 'bold' }]}>
                             {mode === 'login' ? 'Creează cont' : 'Autentifică-te'}
                           </Text>
                         </Pressable>
@@ -590,7 +586,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   bgImage: { flex: 1, width: '100%', height: '100%' },
   scrollContent: { paddingBottom: 40 },
@@ -605,15 +601,15 @@ const styles = StyleSheet.create({
   },
   headerLogo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoBadge: { width: 36, height: 36, backgroundColor: '#0f172a', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  logoText: { color: 'white', fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
-  adminBadge: { color: CYAN, fontSize: 8, fontWeight: '900', letterSpacing: 1.5, marginTop: -3 },
+  logoText: { color: C.text, fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
+  adminBadge: { color: C.cyan, fontSize: 8, fontWeight: '900', letterSpacing: 1.5, marginTop: -3 },
   langSelector: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(15,23,42,0.5)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   langText: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
   mainLayout: { padding: 24, alignItems: 'center' },
   desktopLayout: { flexDirection: 'row', justifyContent: 'center', gap: 60, paddingTop: 60 },
   leftCol: { alignItems: 'center', marginBottom: 40, width: '100%', maxWidth: 500 },
-  bigShield: { padding: 20, backgroundColor: 'rgba(15,23,42,0.4)', borderRadius: 24, borderWidth: 1, borderColor: CYAN + '30', marginBottom: 20 },
-  mainTitle: { color: 'white', fontSize: 32, fontWeight: '900', textAlign: 'center', lineHeight: 40 },
+  bigShield: { padding: 20, backgroundColor: 'rgba(15,23,42,0.4)', borderRadius: 24, borderWidth: 1, borderColor: C.cyan + '30', marginBottom: 20 },
+  mainTitle: { color: C.text, fontSize: 32, fontWeight: '900', textAlign: 'center', lineHeight: 40 },
   subtitle: { color: '#94A3B8', fontSize: 14, textAlign: 'center', marginTop: 15, lineHeight: 22, maxWidth: 300 },
   benefitList: { marginTop: 30, gap: 12, width: '100%' },
   benefitItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.3)', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
@@ -621,7 +617,7 @@ const styles = StyleSheet.create({
   benefitText: { color: '#E2E8F0', fontSize: 13, fontWeight: '700', marginLeft: 12 },
   rightCol: { width: '100%', maxWidth: 420 },
   loginCard: { padding: 30, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden', backgroundColor: 'rgba(15,23,42,0.4)' },
-  loginTitle: { color: 'white', fontSize: 24, fontWeight: '900', textAlign: 'center' },
+  loginTitle: { color: C.text, fontSize: 24, fontWeight: '900', textAlign: 'center' },
   loginSubtitle: { color: '#94A3B8', fontSize: 12, textAlign: 'center', marginTop: 5, textTransform: 'uppercase', letterSpacing: 1 },
 
   successBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(34,197,94,0.12)', borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)', borderRadius: 14, padding: 12, marginBottom: 18 },
@@ -633,14 +629,14 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: '#0f172a', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   tabText: { color: '#64748B', fontSize: 13, fontWeight: '800' },
-  tabTextActive: { color: 'white' },
+  tabTextActive: { color: C.text },
 
   form: { marginTop: 24, gap: 18 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(2,6,23,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 16, paddingHorizontal: 16, height: 56 },
   inputWrapperError: { borderColor: 'rgba(239,68,68,0.6)' },
-  input: { flex: 1, color: 'white', fontSize: 14, fontWeight: '600' },
+  input: { flex: 1, color: C.text, fontSize: 14, fontWeight: '600' },
   fieldErrorRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6, marginLeft: 4 },
-  fieldErrorText: { color: RED, fontSize: 11, fontWeight: '700' },
+  fieldErrorText: { color: C.red, fontSize: 11, fontWeight: '700' },
 
   strengthWrap: { marginTop: 10, gap: 8 },
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -652,24 +648,24 @@ const styles = StyleSheet.create({
   strengthHintText: { color: '#F59E0B', fontSize: 10, fontWeight: '600' },
 
   checkbox: { width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)', backgroundColor: 'rgba(2,6,23,0.5)', alignItems: 'center', justifyContent: 'center' },
-  checkboxChecked: { backgroundColor: CYAN, borderColor: CYAN },
+  checkboxChecked: { backgroundColor: C.cyan, borderColor: C.cyan },
   rememberRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
 
   formOptions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
   optionText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
-  loginBtn: { height: 56, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: CYAN, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
+  loginBtn: { height: 56, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: C.cyan, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20 },
   btnDisabled: { opacity: 0.6 },
-  loginBtnText: { color: 'white', fontWeight: '900', fontSize: 16 },
+  loginBtnText: { color: C.text, fontWeight: '900', fontSize: 16 },
   separator: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
   line: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.05)' },
   sepText: { color: '#475569', fontSize: 10, fontWeight: '900', marginHorizontal: 15 },
   googleBtn: { height: 56, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  googleBtnText: { color: 'white', fontWeight: '700', fontSize: 14 },
+  googleBtnText: { color: C.text, fontWeight: '700', fontSize: 14 },
   footerLinks: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
   footerText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
-  linkCenter: { color: CYAN, fontSize: 12, fontWeight: '700', textAlign: 'center', marginTop: 4 },
+  linkCenter: { color: C.cyan, fontSize: 12, fontWeight: '700', textAlign: 'center', marginTop: 4 },
 
   resetHeader: { alignItems: 'center', gap: 12, marginBottom: 4 },
   resetText: { color: '#94A3B8', fontSize: 13, textAlign: 'center', lineHeight: 20 },
-});
+}));

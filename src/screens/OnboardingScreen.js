@@ -3,7 +3,7 @@ import { Image, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { ArrowRight, ChevronRight, Globe, Info, QrCode, ShieldPlus, UsersRound } from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2200" };
 
@@ -116,18 +116,18 @@ function OptionCard({ icon: Icon, color, title, text, cta, onPress, primary }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "#020617" },
   bg: { flex: 1 },
   header: { minHeight: 86, paddingHorizontal: 28, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "rgba(148,163,184,0.1)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 12 },
   logoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
   logo: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
-  brandText: { color: "white", fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
+  brandText: { color: C.text, fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
   brandAdmin: { color: C.cyan, fontSize: 17 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
   lang: { height: 44, paddingHorizontal: 16, borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: "rgba(148,163,184,0.18)", backgroundColor: "rgba(15,23,42,0.58)" },
-  langText: { color: "white", fontSize: 13, fontWeight: "800" },
+  langText: { color: C.text, fontSize: 13, fontWeight: "800" },
   ghostSmall: { height: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(148,163,184,0.14)", alignItems: "center", justifyContent: "center" },
   ghostText: { color: C.muted, fontSize: 12, fontWeight: "900" },
   content: { flexGrow: 1, padding: 22, gap: 22 },
@@ -135,29 +135,29 @@ const styles = StyleSheet.create({
   left: { alignItems: "center" },
   leftDesktop: { width: "42%", maxWidth: 620 },
   heroLogo: { width: 150, height: 150, resizeMode: "contain", marginBottom: 18 },
-  heroTitle: { color: "white", fontSize: 48, lineHeight: 56, fontWeight: "900", textAlign: "center", letterSpacing: -1.2 },
+  heroTitle: { color: C.text, fontSize: 48, lineHeight: 56, fontWeight: "900", textAlign: "center", letterSpacing: -1.2 },
   cyan: { color: C.cyan },
   heroSubtitle: { color: "#CBD5E1", fontSize: 18, lineHeight: 28, textAlign: "center", maxWidth: 520, marginTop: 18 },
   featureStack: { width: "100%", gap: 12, marginTop: 30 },
   feature: { flexDirection: "row", alignItems: "center", gap: 18, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.14)", backgroundColor: "rgba(15,23,42,0.55)" },
   featureIcon: { width: 58, height: 58, borderRadius: 18, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  featureTitle: { color: "white", fontSize: 17, fontWeight: "900" },
+  featureTitle: { color: C.text, fontSize: 17, fontWeight: "900" },
   featureText: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 3, fontWeight: "700" },
   choiceCard: { width: "100%", borderRadius: 30, overflow: "hidden", padding: 24, borderWidth: 1, borderColor: "rgba(148,163,184,0.22)", backgroundColor: "rgba(15,23,42,0.56)" },
   choiceDesktop: { width: "44%", maxWidth: 720, padding: 44 },
-  choiceTitle: { color: "white", fontSize: 36, fontWeight: "900", textAlign: "center" },
+  choiceTitle: { color: C.text, fontSize: 36, fontWeight: "900", textAlign: "center" },
   choiceSubtitle: { color: C.muted, fontSize: 16, textAlign: "center", marginTop: 8, marginBottom: 28 },
   option: { borderRadius: 22, borderWidth: 1.2, backgroundColor: C.bgSecondary, padding: 20, gap: 18 },
   optionTop: { flexDirection: "row", alignItems: "center", gap: 18 },
   optionIcon: { width: 82, height: 82, borderRadius: 41, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  optionTitle: { color: "white", fontSize: 24, fontWeight: "900" },
+  optionTitle: { color: C.text, fontSize: 24, fontWeight: "900" },
   optionText: { color: "#CBD5E1", fontSize: 15, lineHeight: 22, marginTop: 6 },
   optionButton: { height: 58, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
   outlineButton: { height: 58, borderRadius: 16, borderWidth: 1.5, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: "rgba(124,58,237,0.08)" },
-  optionButtonText: { color: "white", fontSize: 16, fontWeight: "900" },
+  optionButtonText: { color: C.text, fontSize: 16, fontWeight: "900" },
   divider: { flexDirection: "row", alignItems: "center", gap: 16, marginVertical: 22 },
   line: { flex: 1, height: 1, backgroundColor: "rgba(148,163,184,0.15)" },
   dividerText: { color: C.dim, fontWeight: "900" },
   infoRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 20, justifyContent: "center" },
   infoText: { color: C.dim, fontSize: 13, fontWeight: "700" },
-});
+}));
