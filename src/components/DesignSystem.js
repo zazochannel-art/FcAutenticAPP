@@ -34,7 +34,7 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, s
             <LucideIcons.ArrowUpRight size={10} color={trendUp ? C.green : C.red} style={{ transform: [{ rotate: trendUp ? "0deg" : "90deg" }] }} />
             <Text style={[styles.trendText, { color: trendUp ? C.green : C.red }]}>{trend}</Text>
           </View>
-        ) : (spark && spark.length > 1 ? <Sparkline data={spark} color={color} width={58} height={22} /> : null)}
+        ) : (spark ? <Sparkline data={spark} color={color} width={58} height={22} /> : null)}
       </View>
       <Text style={[styles.statValue, isSmallMobile && { fontSize: 20 }]}>{value}</Text>
       <Text style={[styles.statLabel, isSmallMobile && { fontSize: 9 }]} numberOfLines={1}>{label}</Text>
