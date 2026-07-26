@@ -16,8 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import * as LucideIcons from 'lucide-react-native';
 import { supabaseService } from '../services/supabaseService';
+import { colors as C } from "../constants/theme";
 
-const CYAN = "#00D4FF";
+const CYAN = C.cyan;
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.65)";

@@ -33,11 +33,12 @@ import {
   Check,
   CheckCircle2
 } from 'lucide-react-native';
+import { colors as C } from "../constants/theme";
 
-const CYAN = "#06B6D4";
-const VIOLET = "#7C3AED";
-const GREEN = "#22C55E";
-const RED = "#EF4444";
+const CYAN = C.cyan;
+const VIOLET = C.purple;
+const GREEN = C.green;
+const RED = C.red;
 const BG_DARK = "#020617";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

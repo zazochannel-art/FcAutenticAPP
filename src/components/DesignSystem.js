@@ -3,10 +3,11 @@ import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-na
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing } from "../constants/theme";
+import { colors as C, radius, spacing, elevation } from "../constants/theme";
 import { Sparkline } from "./ui/visuals";
 
-// --- GlassCard: Componenta de bază pentru toate containerele ---
+// --- GlassCard: suprafața de bază. Stratificare prin luminozitate + bordură
+// neutră discretă (nu accent colorat), cu umbră subtilă. ---
 export const GlassCard = ({ children, style, intensity = 20 }) => (
   <View style={[styles.glassWrapper, style]}>
     <BlurView intensity={intensity} tint="dark" style={styles.glassBlur}>
@@ -75,7 +76,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.line,
     overflow: "hidden",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: C.card,
+    ...elevation.low,
   },
   glassBlur: { flex: 1 },
   glassContent: { padding: spacing.lg },
@@ -83,8 +85,8 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, minWidth: 160, margin: spacing.xs },
   statHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
   statIconWrap: { width: 42, height: 42, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  statValue: { color: C.text, fontSize: 24, fontWeight: "900", letterSpacing: -0.5 },
-  statLabel: { color: C.muted, fontSize: 11, fontWeight: "700", marginTop: spacing.xs, textTransform: "uppercase", letterSpacing: 1 },
+  statValue: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.7 },
+  statLabel: { color: C.muted, fontSize: 10, fontWeight: "800", marginTop: spacing.xs, textTransform: "uppercase", letterSpacing: 1 },
   trendWrap: { flexDirection: "row", alignItems: "center", gap: 4 },
   trendText: { fontSize: 10, fontWeight: "800" },
 
