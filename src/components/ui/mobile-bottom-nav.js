@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View, Modal, ScrollView } from "react-native";
 import { BlurView } from "expo-blur";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C } from "../../constants/theme";
+import { colors as C, themedStyles } from "../../constants/theme";
 
 const tabIcons = {
   Dashboard: "LayoutGrid",
@@ -95,7 +95,7 @@ function BottomItem({ label, icon, active, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   wrapper: {
     position: "absolute",
     bottom: 0,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: C.line,
-    backgroundColor: "rgba(24,24,27,0.92)",
+    backgroundColor: C.card,
     paddingHorizontal: 8,
     alignItems: "center",
     justifyContent: "space-around",
@@ -127,9 +127,9 @@ const styles = StyleSheet.create({
 
   sheetOverlay: { flex: 1, backgroundColor: C.bgSecondary, justifyContent: "flex-end" },
   sheet: { backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === "ios" ? 40 : 24, maxHeight: "75%" },
-  sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.15)", marginBottom: 12 },
+  sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.lineStrong, marginBottom: 12 },
   sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  sheetTitle: { color: "white", fontSize: 16, fontWeight: "900" },
+  sheetTitle: { color: C.text, fontSize: 16, fontWeight: "900" },
   sheetClose: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 6 },
   tile: { width: "22%", minWidth: 74, flexGrow: 1, alignItems: "center", paddingVertical: 14, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: C.line },
@@ -138,4 +138,4 @@ const styles = StyleSheet.create({
   tileIconActive: { backgroundColor: "rgba(255,255,255,0.09)" },
   tileLabel: { color: C.muted, fontSize: 10, fontWeight: "800", textAlign: "center" },
   tileLabelActive: { color: C.cyan },
-});
+}));

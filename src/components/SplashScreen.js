@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, StyleSheet, Text } from "react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 const HOLD_MS = 1400;
 const FADE_MS = 450;
@@ -42,7 +42,7 @@ export default function SplashScreen({ onDone }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "#020617",
@@ -70,4 +70,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 6,
   },
-});
+}));

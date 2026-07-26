@@ -12,17 +12,9 @@ import {
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 // --- Premium Palette ---
-const CARD_BG = C.card;
-const BORDER_COLOR = C.line;
-const CYAN = C.cyan;
-const AMBER = C.amber;
-const RED = C.red;
-const BLUE_ACCENT = C.blue;
-const TEXT_DIM = C.muted;
-const TEXT_TH = C.dim;
 
 const QUICK_ANALYSES = [
   { type: "attendance", icon: "Users", label: "Analiză prezență", question: "Analizează prezența la antrenamente pe grupe. Ce jucători au prezență scăzută și ce recomanzi?" },
@@ -77,7 +69,7 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
   if (!canUse) {
     return (
       <View style={[styles.container, { alignItems: "center", justifyContent: "center", padding: 30 }]}>
-        <LucideIcons.Lock size={34} color={TEXT_TH} />
+        <LucideIcons.Lock size={34} color={C.dim} />
         <Text style={[styles.emptyText, { marginTop: 12 }]}>Analiza AI este disponibilă pentru staff-ul clubului (owner, admin, antrenor).</Text>
       </View>
     );
@@ -100,9 +92,9 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
             const Icon = LucideIcons[qa.icon] || LucideIcons.Sparkles;
             return (
               <Pressable key={qa.type} disabled={loading} onPress={() => run(qa.type, qa.question)} style={styles.quickCard}>
-                <View style={styles.quickIconWrap}><Icon size={18} color={CYAN} /></View>
+                <View style={styles.quickIconWrap}><Icon size={18} color={C.cyan} /></View>
                 <Text style={styles.quickLabel}>{qa.label}</Text>
-                <LucideIcons.ArrowRight size={13} color={TEXT_TH} />
+                <LucideIcons.ArrowRight size={13} color={C.dim} />
               </Pressable>
             );
           })}
@@ -117,7 +109,7 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
               value={question}
               onChangeText={setQuestion}
               placeholder="Ex: Care jucători riscă să piardă meciul de sâmbătă din cauza prezenței?"
-              placeholderTextColor={TEXT_TH}
+              placeholderTextColor={C.dim}
               multiline
               editable={!loading}
             />
@@ -128,7 +120,7 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
           {loading && <Text style={styles.loadingText}>AI-ul analizează datele clubului...</Text>}
           {!!error && (
             <View style={styles.errorBox}>
-              <LucideIcons.AlertTriangle size={14} color={RED} />
+              <LucideIcons.AlertTriangle size={14} color={C.red} />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -137,7 +129,7 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
         {/* Results */}
         {history.length === 0 && !loading && (
           <View style={styles.emptyBox}>
-            <LucideIcons.Sparkles size={30} color={TEXT_TH} />
+            <LucideIcons.Sparkles size={30} color={C.dim} />
             <Text style={styles.emptyText}>
               Alege o analiză rapidă sau pune o întrebare. AI-ul răspunde folosind exclusiv datele clubului tău (jucători, prezențe, plăți, antrenamente).
             </Text>
@@ -147,12 +139,12 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
         {history.map((item) => (
           <View key={item.id} style={styles.resultCard}>
             <View style={styles.resultHeader}>
-              <View style={styles.resultIcon}><LucideIcons.MessageCircleQuestion size={13} color={AMBER} /></View>
+              <View style={styles.resultIcon}><LucideIcons.MessageCircleQuestion size={13} color={C.amber} /></View>
               <Text style={styles.resultQuestion}>{item.question}</Text>
             </View>
             <View style={styles.resultDivider} />
             <View style={styles.resultHeader}>
-              <View style={[styles.resultIcon, { backgroundColor: CYAN + "12" }]}><LucideIcons.Sparkles size={13} color={CYAN} /></View>
+              <View style={[styles.resultIcon, { backgroundColor: C.cyan + "12" }]}><LucideIcons.Sparkles size={13} color={C.cyan} /></View>
               <Text style={styles.resultAnswer}>{item.answer}</Text>
             </View>
             {item.missingData.length > 0 && (
@@ -171,38 +163,38 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 24 },
-  pageTitle: { color: 'white', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
-  pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3, lineHeight: 19 },
+  pageTitle: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+  pageSub: { color: C.muted, fontSize: 13, fontWeight: '600', marginTop: 3, lineHeight: 19 },
 
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  quickCard: { flexBasis: 200, flexGrow: 1, backgroundColor: CARD_BG, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: BORDER_COLOR, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  quickIconWrap: { width: 34, height: 34, borderRadius: 10, backgroundColor: CYAN + "10", borderWidth: 1, borderColor: CYAN + "25", alignItems: 'center', justifyContent: 'center' },
-  quickLabel: { flex: 1, color: 'white', fontSize: 11.5, fontWeight: '800' },
+  quickCard: { flexBasis: 200, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  quickIconWrap: { width: 34, height: 34, borderRadius: 10, backgroundColor: C.cyan + "10", borderWidth: 1, borderColor: C.cyan + "25", alignItems: 'center', justifyContent: 'center' },
+  quickLabel: { flex: 1, color: C.text, fontSize: 11.5, fontWeight: '800' },
 
-  askCard: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 16 },
-  cardTitle: { color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
+  askCard: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line, marginBottom: 16 },
+  cardTitle: { color: C.text, fontSize: 12, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
   askRow: { flexDirection: 'row', gap: 10, alignItems: 'flex-end' },
-  askInput: { flex: 1, minHeight: 60, maxHeight: 120, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 12, fontWeight: '600', textAlignVertical: 'top' },
-  sendBtn: { width: 46, height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { color: CYAN, fontSize: 10.5, fontWeight: '700', marginTop: 10 },
-  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: RED + "10", borderWidth: 1, borderColor: RED + "30", borderRadius: 10, padding: 10, marginTop: 12 },
-  errorText: { flex: 1, color: RED, fontSize: 11, fontWeight: '700', lineHeight: 15 },
+  askInput: { flex: 1, minHeight: 60, maxHeight: 120, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 12, fontWeight: '600', textAlignVertical: 'top' },
+  sendBtn: { width: 46, height: 46, borderRadius: 12, backgroundColor: C.blue, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { color: C.cyan, fontSize: 10.5, fontWeight: '700', marginTop: 10 },
+  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.red + "10", borderWidth: 1, borderColor: C.red + "30", borderRadius: 10, padding: 10, marginTop: 12 },
+  errorText: { flex: 1, color: C.red, fontSize: 11, fontWeight: '700', lineHeight: 15 },
 
   emptyBox: { alignItems: 'center', gap: 12, paddingVertical: 40, paddingHorizontal: 24 },
-  emptyText: { color: TEXT_DIM, fontSize: 11.5, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
+  emptyText: { color: C.muted, fontSize: 11.5, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
-  resultCard: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 12 },
+  resultCard: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line, marginBottom: 12 },
   resultHeader: { flexDirection: 'row', gap: 10 },
-  resultIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: AMBER + "12", alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  resultQuestion: { flex: 1, color: TEXT_DIM, fontSize: 11.5, fontWeight: '800', lineHeight: 17 },
+  resultIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: C.amber + "12", alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  resultQuestion: { flex: 1, color: C.muted, fontSize: 11.5, fontWeight: '800', lineHeight: 17 },
   resultDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginVertical: 12 },
-  resultAnswer: { flex: 1, color: 'white', fontSize: 12, fontWeight: '600', lineHeight: 19 },
-  missingBox: { marginTop: 12, backgroundColor: AMBER + "08", borderWidth: 1, borderColor: AMBER + "20", borderRadius: 10, padding: 10 },
-  missingTitle: { color: AMBER, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, marginBottom: 6 },
-  missingItem: { color: TEXT_DIM, fontSize: 10, fontWeight: '600', lineHeight: 15 },
-});
+  resultAnswer: { flex: 1, color: C.text, fontSize: 12, fontWeight: '600', lineHeight: 19 },
+  missingBox: { marginTop: 12, backgroundColor: C.amber + "08", borderWidth: 1, borderColor: C.amber + "20", borderRadius: 10, padding: 10 },
+  missingTitle: { color: C.amber, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, marginBottom: 6 },
+  missingItem: { color: C.muted, fontSize: 10, fontWeight: '600', lineHeight: 15 },
+}));

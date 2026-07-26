@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, spacing, radius } from "../constants/theme";
+import { colors as C, spacing, radius, themedStyles } from "../constants/theme";
 import { GlassCard, StatCard } from "../components/DesignSystem";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { presenceMap } from "../utils/stats";
@@ -173,7 +173,7 @@ const TaskItem = ({ title, status, color, date }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: spacing.md, paddingBottom: 120 },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -spacing.xs, marginBottom: spacing.lg },
@@ -182,24 +182,24 @@ const styles = StyleSheet.create({
   actionContent: { paddingHorizontal: spacing.md, gap: 12 },
   quickAction: { width: 90, backgroundColor: "rgba(15, 23, 42, 0.4)", borderRadius: radius.lg, padding: 12, alignItems: "center", borderWidth: 1, borderColor: C.line },
   actionIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, marginBottom: 8 },
-  actionLabel: { color: "white", fontSize: 9, fontWeight: "800", textAlign: "center", textTransform: "uppercase" },
+  actionLabel: { color: C.text, fontSize: 9, fontWeight: "800", textAlign: "center", textTransform: "uppercase" },
   gridMain: { flexDirection: "row", gap: spacing.lg },
   mobileGrid: { flexDirection: "column" },
   mainCol: { flex: 2 },
   sideCol: { flex: 1 },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
-  cardTitle: { color: "white", fontSize: 12, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.5 },
+  cardTitle: { color: C.text, fontSize: 12, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.5 },
   cardAction: { color: C.cyan, fontSize: 10, fontWeight: "700" },
   activityItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   activityIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: "rgba(0,212,255,0.1)", alignItems: "center", justifyContent: "center" },
-  activityTitle: { color: "white", fontSize: 12, fontWeight: "700" },
+  activityTitle: { color: C.text, fontSize: 12, fontWeight: "700" },
   activityMeta: { color: C.dim, fontSize: 10, marginTop: 2, fontWeight: "600" },
   taskItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   taskCheck: { width: 16, height: 16, borderRadius: 4, borderWidth: 2, borderColor: "rgba(255,255,255,0.1)" },
-  taskTitle: { color: "white", fontSize: 12, fontWeight: "700" },
+  taskTitle: { color: C.text, fontSize: 12, fontWeight: "700" },
   taskMetaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   taskDate: { color: C.muted, fontSize: 9, fontWeight: "700" },
   taskStatus: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 3 },
   taskStatusText: { fontSize: 7, fontWeight: "900" },
   emptyText: { color: C.dim, fontSize: 11, textAlign: "center", paddingVertical: 20 }
-});
+}));

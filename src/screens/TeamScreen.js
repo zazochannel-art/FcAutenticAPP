@@ -15,22 +15,12 @@ import Svg, { Circle, Rect, G, Text as SvgText } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import PlayerDetailModal from "../components/PlayerDetailModal";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 // --- Premium Palette ---
-const CARD_BG = C.card;
-const BORDER_COLOR = C.line;
-const CYAN = C.cyan;
-const VIOLET = C.purple;
-const AMBER = C.amber;
-const GREEN = C.green;
-const RED = C.red;
-const BLUE_ACCENT = C.blue;
-const TEXT_DIM = C.muted;
-const TEXT_TH = C.dim;
 
 const DEFAULT_GROUPS = ["U13", "U16", "U19", "Juniori", "Seniori"];
-const GROUP_COLORS = [BLUE_ACCENT, VIOLET, AMBER, GREEN, CYAN, RED];
+const GROUP_COLORS_ = () => ([C.blue, C.purple, C.amber, C.green, C.cyan, C.red]);
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -57,10 +47,10 @@ function positionBucket(role) {
 
 function statusInfo(status) {
   const value = (status || "").toLowerCase();
-  if (value.includes("accident")) return { label: status, color: RED };
-  if (value.includes("recuper")) return { label: status, color: AMBER };
-  if (value.includes("inactiv") || value.includes("suspend")) return { label: status, color: TEXT_TH };
-  return { label: status || "Activ", color: GREEN };
+  if (value.includes("accident")) return { label: status, color: C.red };
+  if (value.includes("recuper")) return { label: status, color: C.amber };
+  if (value.includes("inactiv") || value.includes("suspend")) return { label: status, color: C.dim };
+  return { label: status || "Activ", color: C.green };
 }
 
 export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, setTab }) {
@@ -104,7 +94,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
     return total ? Math.round((present / total) * 100) : null;
   }, [presenceByPlayer]);
 
-  const activePlayers = players.filter((p) => statusInfo(p.status).color === GREEN);
+  const activePlayers = players.filter((p) => statusInfo(p.status).color === C.green);
   const injuredPlayers = players.filter((p) => (p.status || "").toLowerCase().includes("accident"));
   const groupsInUse = clubGroups.filter((g) => players.some((p) => p.group === g));
 
@@ -173,18 +163,18 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 
           {/* Row 1: Stat Cards */}
           <View style={styles.statsGrid}>
-             <StatCard icon="Users" label="JUCĂTORI ACTIVI" val={String(activePlayers.length)} valSub={`din ${players.length} înregistrați`} iColor={BLUE_ACCENT} />
-             <StatCard icon="TrendingUp" label="PREZENȚĂ MEDIE" val={attendanceAverage === null ? "—" : `${attendanceAverage}%`} valSub={attendanceAverage === null ? "fără prezențe marcate" : "din prezențele marcate"} iColor={GREEN} />
-             <StatCard icon="ShieldAlert" label="JUCĂTORI ACCIDENTAȚI" val={String(injuredPlayers.length)} valSub={injuredPlayers.length ? "momentan indisponibili" : "toți disponibili"} iColor={AMBER} />
-             <StatCard icon="LayoutGrid" label="GRUPE ACTIVE" val={String(groupsInUse.length)} valSub={groupsInUse.join(", ") || "nicio grupă cu jucători"} iColor={VIOLET} />
+             <StatCard icon="Users" label="JUCĂTORI ACTIVI" val={String(activePlayers.length)} valSub={`din ${players.length} înregistrați`} iColor={C.blue} />
+             <StatCard icon="TrendingUp" label="PREZENȚĂ MEDIE" val={attendanceAverage === null ? "—" : `${attendanceAverage}%`} valSub={attendanceAverage === null ? "fără prezențe marcate" : "din prezențele marcate"} iColor={C.green} />
+             <StatCard icon="ShieldAlert" label="JUCĂTORI ACCIDENTAȚI" val={String(injuredPlayers.length)} valSub={injuredPlayers.length ? "momentan indisponibili" : "toți disponibili"} iColor={C.amber} />
+             <StatCard icon="LayoutGrid" label="GRUPE ACTIVE" val={String(groupsInUse.length)} valSub={groupsInUse.join(", ") || "nicio grupă cu jucători"} iColor={C.purple} />
           </View>
 
           {/* Row 2: Quick Actions */}
           {canManage && (
             <View style={styles.actionsRow}>
                <View style={styles.actionsList}>
-                  <ActionBtn icon="UserPlus" label="Adaugă jucător" color={BLUE_ACCENT} onPress={() => setAddOpen(true)} />
-                  <ActionBtn icon="CheckCircle" label="Marchează prezență" color={BLUE_ACCENT} onPress={() => setTab?.("Antren.")} />
+                  <ActionBtn icon="UserPlus" label="Adaugă jucător" color={C.blue} onPress={() => setAddOpen(true)} />
+                  <ActionBtn icon="CheckCircle" label="Marchează prezență" color={C.blue} onPress={() => setTab?.("Antren.")} />
                </View>
             </View>
           )}
@@ -199,10 +189,10 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                       <Text style={styles.cardTitle}>LOTUL ECHIPEI ({visiblePlayers.length})</Text>
                       <View style={styles.tableControls}>
                          <View style={styles.smallSearch}>
-                            <LucideIcons.Search size={14} color={TEXT_TH} />
+                            <LucideIcons.Search size={14} color={C.dim} />
                             <TextInput
                               placeholder="Caută în lot..."
-                              placeholderTextColor={TEXT_TH}
+                              placeholderTextColor={C.dim}
                               style={styles.smallSearchInput}
                               value={search}
                               onChangeText={setSearch}
@@ -214,7 +204,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
                       {["Toate", ...clubGroups].map((g) => (
                         <Pressable key={g} onPress={() => setGroupFilter(g)} style={[styles.groupChip, groupFilter === g && styles.groupChipActive]}>
-                          <Text style={[styles.groupChipText, groupFilter === g && { color: CYAN }]}>{g}</Text>
+                          <Text style={[styles.groupChipText, groupFilter === g && { color: C.cyan }]}>{g}</Text>
                         </Pressable>
                       ))}
                    </ScrollView>
@@ -230,7 +220,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 
                    {visiblePlayers.length === 0 && (
                      <View style={styles.emptyBox}>
-                        <LucideIcons.Users size={28} color={TEXT_TH} />
+                        <LucideIcons.Users size={28} color={C.dim} />
                         <Text style={styles.emptyText}>
                           {players.length === 0
                             ? "Niciun jucător înregistrat încă. Adaugă primul jucător cu butonul de mai sus."
@@ -250,18 +240,18 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                              <View style={styles.miniAvatar}><LucideIcons.User size={12} color="white" /></View>
                              <Text style={[styles.rowMainText, { marginLeft: 10 }]} numberOfLines={1}>{player.name}</Text>
                           </View>
-                          <Text style={[styles.posLabel, { color: BLUE_ACCENT, flex: 1.5 }]} numberOfLines={1}>{player.role || "—"}</Text>
+                          <Text style={[styles.posLabel, { color: C.blue, flex: 1.5 }]} numberOfLines={1}>{player.role || "—"}</Text>
                           <Text style={[styles.rowSubText, { width: 50, textAlign: 'center' }]}>{ageFromBirthdate(player.birthdate)}</Text>
                           <View style={{ flex: 1.5, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                              <View style={[styles.statusDot, { backgroundColor: s.color }]} />
-                             <Text style={[styles.rowSubText, { color: s.color === GREEN ? TEXT_DIM : s.color }]} numberOfLines={1}>{s.label}</Text>
+                             <Text style={[styles.rowSubText, { color: s.color === C.green ? C.muted : s.color }]} numberOfLines={1}>{s.label}</Text>
                           </View>
                           <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                              <View style={styles.ratingBarBg}>
-                                {rate !== null && <View style={[styles.ratingBarFill, { width: `${Math.round(rate * 100)}%`, backgroundColor: GREEN }]} />}
+                                {rate !== null && <View style={[styles.ratingBarFill, { width: `${Math.round(rate * 100)}%`, backgroundColor: C.green }]} />}
                              </View>
-                             <Text style={[styles.ratingVal, rate === null && { color: TEXT_TH }]}>{rate === null ? "—" : `${Math.round(rate * 100)}%`}</Text>
-                             <LucideIcons.ChevronRight size={13} color={TEXT_TH} />
+                             <Text style={[styles.ratingVal, rate === null && { color: C.dim }]}>{rate === null ? "—" : `${Math.round(rate * 100)}%`}</Text>
+                             <LucideIcons.ChevronRight size={13} color={C.dim} />
                           </View>
                        </Pressable>
                      );
@@ -281,7 +271,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                        name={group}
                        sub={`${players.filter((p) => p.group === group).length} jucători`}
                        count={String(players.filter((p) => p.group === group).length)}
-                       color={GROUP_COLORS[index % GROUP_COLORS.length]}
+                       color={GROUP_COLORS_()[index % GROUP_COLORS_().length]}
                      />
                    ))}
                 </View>
@@ -293,9 +283,9 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                    <GroupAttendanceChart players={players} presenceByPlayer={presenceByPlayer} groups={clubGroups} />
                    <View style={styles.attendanceFooter}>
                       <View style={styles.footerTrend}>
-                         <LucideIcons.CheckCircle2 size={12} color={GREEN} />
+                         <LucideIcons.CheckCircle2 size={12} color={C.green} />
                          <Text style={styles.footerTrendText}>
-                           Medie club: <Text style={{ color: GREEN }}>{attendanceAverage === null ? "—" : `${attendanceAverage}%`}</Text>
+                           Medie club: <Text style={{ color: C.green }}>{attendanceAverage === null ? "—" : `${attendanceAverage}%`}</Text>
                          </Text>
                       </View>
                    </View>
@@ -318,12 +308,12 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                         </View>
                       </View>
                       <View style={styles.legend}>
-                         <LegendItem dot={CYAN} label="Portari" count={String(positionCounts.Portari)} per={`${pct(positionCounts.Portari)}%`} />
-                         <LegendItem dot={BLUE_ACCENT} label="Fundași" count={String(positionCounts["Fundași"])} per={`${pct(positionCounts["Fundași"])}%`} />
-                         <LegendItem dot={GREEN} label="Mijlocași" count={String(positionCounts["Mijlocași"])} per={`${pct(positionCounts["Mijlocași"])}%`} />
-                         <LegendItem dot={RED} label="Atacanți" count={String(positionCounts["Atacanți"])} per={`${pct(positionCounts["Atacanți"])}%`} />
+                         <LegendItem dot={C.cyan} label="Portari" count={String(positionCounts.Portari)} per={`${pct(positionCounts.Portari)}%`} />
+                         <LegendItem dot={C.blue} label="Fundași" count={String(positionCounts["Fundași"])} per={`${pct(positionCounts["Fundași"])}%`} />
+                         <LegendItem dot={C.green} label="Mijlocași" count={String(positionCounts["Mijlocași"])} per={`${pct(positionCounts["Mijlocași"])}%`} />
+                         <LegendItem dot={C.red} label="Atacanți" count={String(positionCounts["Atacanți"])} per={`${pct(positionCounts["Atacanți"])}%`} />
                          {positionCounts["Alții"] > 0 && (
-                           <LegendItem dot={TEXT_TH} label="Alții" count={String(positionCounts["Alții"])} per={`${pct(positionCounts["Alții"])}%`} />
+                           <LegendItem dot={C.dim} label="Alții" count={String(positionCounts["Alții"])} per={`${pct(positionCounts["Alții"])}%`} />
                          )}
                       </View>
                    </View>
@@ -335,10 +325,10 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                 <View style={styles.cardMain}>
                    <Text style={styles.cardTitle}>DISPONIBILITATEA LOTULUI</Text>
                    <View style={styles.availSummaryGrid}>
-                      <AvailMini label="Apt" count={String(availability.Apt)} per={`${pct(availability.Apt)}%`} color={GREEN} />
-                      <AvailMini label="Accidentați" count={String(availability["Accidentați"])} per={`${pct(availability["Accidentați"])}%`} color={RED} />
-                      <AvailMini label="În recuperare" count={String(availability["În recuperare"])} per={`${pct(availability["În recuperare"])}%`} color={AMBER} />
-                      <AvailMini label="Indisponibili" count={String(availability.Indisponibili)} per={`${pct(availability.Indisponibili)}%`} color={BLUE_ACCENT} />
+                      <AvailMini label="Apt" count={String(availability.Apt)} per={`${pct(availability.Apt)}%`} color={C.green} />
+                      <AvailMini label="Accidentați" count={String(availability["Accidentați"])} per={`${pct(availability["Accidentați"])}%`} color={C.red} />
+                      <AvailMini label="În recuperare" count={String(availability["În recuperare"])} per={`${pct(availability["În recuperare"])}%`} color={C.amber} />
+                      <AvailMini label="Indisponibili" count={String(availability.Indisponibili)} per={`${pct(availability.Indisponibili)}%`} color={C.blue} />
                    </View>
                 </View>
              </View>
@@ -350,7 +340,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                    {nextTraining ? (
                      <View style={styles.nextActivities}>
                         <View style={styles.activityRow}>
-                           <View style={styles.activityIconWrap}><LucideIcons.Dumbbell size={16} color={GREEN} /></View>
+                           <View style={styles.activityIconWrap}><LucideIcons.Dumbbell size={16} color={C.green} /></View>
                            <View style={{ flex: 1, marginLeft: 14 }}>
                               <Text style={styles.activityLabel}>ANTRENAMENT • {nextTraining.group}</Text>
                               <Text style={styles.activityTitle}>{nextTraining.theme || "Antrenament echipă"}</Text>
@@ -361,7 +351,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                      </View>
                    ) : (
                      <View style={styles.emptyBox}>
-                        <LucideIcons.CalendarOff size={24} color={TEXT_TH} />
+                        <LucideIcons.CalendarOff size={24} color={C.dim} />
                         <Text style={styles.emptyText}>Niciun antrenament programat.</Text>
                      </View>
                    )}
@@ -405,20 +395,20 @@ function AddPlayerModal({ visible, onClose, onSave, groups }) {
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Adaugă jucător</Text>
-            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           <Text style={styles.modalLabel}>NUME COMPLET</Text>
-          <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => update("name", v)} placeholder="Andrei Popescu" placeholderTextColor={TEXT_TH} />
+          <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => update("name", v)} placeholder="Andrei Popescu" placeholderTextColor={C.dim} />
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>NUMĂR</Text>
-              <TextInput style={styles.modalInput} value={form.no} onChangeText={(v) => update("no", v)} placeholder="10" placeholderTextColor={TEXT_TH} keyboardType="numeric" />
+              <TextInput style={styles.modalInput} value={form.no} onChangeText={(v) => update("no", v)} placeholder="10" placeholderTextColor={C.dim} keyboardType="numeric" />
             </View>
             <View style={{ flex: 2 }}>
               <Text style={styles.modalLabel}>POZIȚIE</Text>
-              <TextInput style={styles.modalInput} value={form.role} onChangeText={(v) => update("role", v)} placeholder="Mijlocaș" placeholderTextColor={TEXT_TH} />
+              <TextInput style={styles.modalInput} value={form.role} onChangeText={(v) => update("role", v)} placeholder="Mijlocaș" placeholderTextColor={C.dim} />
             </View>
           </View>
 
@@ -428,14 +418,14 @@ function AddPlayerModal({ visible, onClose, onSave, groups }) {
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
                 {groups.map((g) => (
                   <Pressable key={g} onPress={() => update("group", g)} style={[styles.groupChip, form.group === g && styles.groupChipActive]}>
-                    <Text style={[styles.groupChipText, form.group === g && { color: CYAN }]}>{g}</Text>
+                    <Text style={[styles.groupChipText, form.group === g && { color: C.cyan }]}>{g}</Text>
                   </Pressable>
                 ))}
               </View>
             </View>
             <View style={{ width: 96 }}>
               <Text style={styles.modalLabel}>RATING</Text>
-              <TextInput style={styles.modalInput} value={form.rating} onChangeText={(v) => update("rating", v.replace(/[^0-9]/g, "").slice(0, 2))} placeholder="60" placeholderTextColor={TEXT_TH} keyboardType="number-pad" />
+              <TextInput style={styles.modalInput} value={form.rating} onChangeText={(v) => update("rating", v.replace(/[^0-9]/g, "").slice(0, 2))} placeholder="60" placeholderTextColor={C.dim} keyboardType="number-pad" />
             </View>
           </View>
 
@@ -532,8 +522,8 @@ const GroupAttendanceChart = ({ players, presenceByPlayer, groups }) => {
     <Svg width="100%" height="150" viewBox="0 0 300 150">
        {bars.map((bar, i) => (
           <G key={bar.group} transform={`translate(${i * slot}, 0)`}>
-             <Rect x={slot / 2 - 10} y={130 - bar.per} width="20" height={Math.max(bar.per, 2)} rx="3" fill={BLUE_ACCENT} opacity="0.8" />
-             <SvgText fontSize="7" fill={TEXT_DIM} x={slot / 2} y="145" textAnchor="middle">{bar.group}</SvgText>
+             <Rect x={slot / 2 - 10} y={130 - bar.per} width="20" height={Math.max(bar.per, 2)} rx="3" fill={C.blue} opacity="0.8" />
+             <SvgText fontSize="7" fill={C.muted} x={slot / 2} y="145" textAnchor="middle">{bar.group}</SvgText>
              <SvgText fontSize="7" fill="white" fontWeight="800" x={slot / 2} y={124 - bar.per} textAnchor="middle">{bar.per}%</SvgText>
           </G>
        ))}
@@ -544,11 +534,11 @@ const GroupAttendanceChart = ({ players, presenceByPlayer, groups }) => {
 const PositionsDonut = ({ counts, total }) => {
   const CIRC = 251.2;
   const order = [
-    ["Portari", CYAN],
-    ["Fundași", BLUE_ACCENT],
-    ["Mijlocași", GREEN],
-    ["Atacanți", RED],
-    ["Alții", TEXT_TH],
+    ["Portari", C.cyan],
+    ["Fundași", C.blue],
+    ["Mijlocași", C.green],
+    ["Atacanți", C.red],
+    ["Alții", C.dim],
   ];
   let acc = 0;
   return (
@@ -575,7 +565,7 @@ const PositionsDonut = ({ counts, total }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
@@ -583,54 +573,54 @@ const styles = StyleSheet.create({
 
   pageHeader: { marginBottom: 25 },
   pageTitleContainer: {},
-  pageTitle: { color: 'white', fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
-  pageSub: { color: TEXT_DIM, fontSize: 12, fontWeight: '600', marginTop: 3 },
+  pageTitle: { color: C.text, fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
+  pageSub: { color: C.muted, fontSize: 12, fontWeight: '600', marginTop: 3 },
 
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 },
-  statCard: { flexBasis: 220, flexGrow: 1, backgroundColor: CARD_BG, borderRadius: 14, padding: 12, minHeight: 95, borderWidth: 1, borderColor: BORDER_COLOR },
+  statCard: { flexBasis: 220, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 12, minHeight: 95, borderWidth: 1, borderColor: C.line },
   statContent: { flexDirection: 'row', alignItems: 'center' },
   statIconWrap: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  statLabel: { color: TEXT_DIM, fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
-  statVal: { color: 'white', fontSize: 18, fontWeight: '900', marginTop: 4 },
-  statValSub: { color: TEXT_TH, fontSize: 8.5, fontWeight: '700', marginTop: 1 },
+  statLabel: { color: C.muted, fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  statVal: { color: C.text, fontSize: 18, fontWeight: '900', marginTop: 4 },
+  statValSub: { color: C.dim, fontSize: 8.5, fontWeight: '700', marginTop: 1 },
 
   actionsRow: { marginBottom: 25 },
   actionsList: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
   actionBtn: { flexGrow: 1, height: 38, borderRadius: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.12)" },
-  actionBtnText: { color: 'white', fontSize: 10.5, fontWeight: '800' },
+  actionBtnText: { color: C.text, fontSize: 10.5, fontWeight: '800' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
   colLeft: { flexBasis: 420, flexGrow: 3 },
   colRight: { flexBasis: 240, flexGrow: 1 },
 
-  cardMain: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR, marginBottom: 12 },
-  cardSide: { backgroundColor: CARD_BG, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR },
+  cardMain: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line, marginBottom: 12 },
+  cardSide: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, flexWrap: 'wrap', gap: 10 },
-  cardTitle: { color: 'white', fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  cardTitle: { color: C.text, fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
 
   tableControls: { flexDirection: 'row', gap: 10 },
   smallSearch: { width: 170, height: 28, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 7, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
-  smallSearchInput: { flex: 1, color: 'white', fontSize: 10, fontWeight: '600', marginLeft: 6 },
+  smallSearchInput: { flex: 1, color: C.text, fontSize: 10, fontWeight: '600', marginLeft: 6 },
 
   groupChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginRight: 6 },
-  groupChipActive: { borderColor: CYAN, backgroundColor: CYAN + "10" },
-  groupChipText: { color: TEXT_DIM, fontSize: 10, fontWeight: '800' },
+  groupChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + "10" },
+  groupChipText: { color: C.muted, fontSize: 10, fontWeight: '800' },
 
   tableHeader: { flexDirection: 'row', paddingBottom: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 10 },
-  th: { color: TEXT_TH, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
+  th: { color: C.dim, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
   tableRow: { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
-  rowNum: { color: TEXT_DIM, fontSize: 11, fontWeight: '900', width: 30 },
+  rowNum: { color: C.muted, fontSize: 11, fontWeight: '900', width: 30 },
   miniAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.07)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
-  rowMainText: { color: 'white', fontSize: 11, fontWeight: '800' },
-  rowSubText: { color: TEXT_TH, fontSize: 9.5, fontWeight: '600' },
+  rowMainText: { color: C.text, fontSize: 11, fontWeight: '800' },
+  rowSubText: { color: C.dim, fontSize: 9.5, fontWeight: '600' },
   posLabel: { fontSize: 10, fontWeight: '900' },
   statusDot: { width: 5, height: 5, borderRadius: 2.5 },
   ratingBarBg: { flex: 1, height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 2.5, overflow: 'hidden' },
   ratingBarFill: { height: '100%', borderRadius: 2.5 },
-  ratingVal: { color: 'white', fontSize: 10, fontWeight: '900', width: 34, textAlign: 'right' },
+  ratingVal: { color: C.text, fontSize: 10, fontWeight: '900', width: 34, textAlign: 'right' },
 
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 26, paddingHorizontal: 12 },
-  emptyText: { color: TEXT_DIM, fontSize: 11, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
+  emptyText: { color: C.muted, fontSize: 11, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
   groupItem: { flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 10, marginBottom: 5, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.02)" },
   groupIndicator: { width: 3, height: 18, borderRadius: 2 },
@@ -639,43 +629,43 @@ const styles = StyleSheet.create({
 
   attendanceFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 },
   footerTrend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  footerTrendText: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700' },
+  footerTrendText: { color: C.dim, fontSize: 9.5, fontWeight: '700' },
 
   bottomGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
   colWidget: { flexBasis: 260, flexGrow: 1 },
   donutArea: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
   donutWrapper: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   donutLabelWrap: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  donutVal: { color: 'white', fontSize: 16, fontWeight: '900' },
-  donutSub: { color: TEXT_TH, fontSize: 8, fontWeight: '700', marginTop: -2 },
+  donutVal: { color: C.text, fontSize: 16, fontWeight: '900' },
+  donutSub: { color: C.dim, fontSize: 8, fontWeight: '700', marginTop: -2 },
   legend: { flex: 1, gap: 8 },
   legendItem: { flexDirection: 'row', alignItems: 'center' },
   legendDot: { width: 6, height: 6, borderRadius: 3, marginRight: 8 },
-  legendLabel: { flex: 1, color: TEXT_DIM, fontSize: 10, fontWeight: '700' },
-  legendCount: { color: 'white', fontSize: 10, fontWeight: '800', marginRight: 4 },
-  legendPer: { color: TEXT_TH, fontSize: 9, fontWeight: '700' },
+  legendLabel: { flex: 1, color: C.muted, fontSize: 10, fontWeight: '700' },
+  legendCount: { color: C.text, fontSize: 10, fontWeight: '800', marginRight: 4 },
+  legendPer: { color: C.dim, fontSize: 9, fontWeight: '700' },
 
   availSummaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 },
   availMiniCard: { flexBasis: '45%', flexGrow: 1, padding: 10, borderRadius: 12, borderWidth: 1 },
   miniCheck: { width: 18, height: 18, borderRadius: 5, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   availMiniVal: { fontSize: 14, fontWeight: '900' },
-  availMiniLabel: { color: TEXT_TH, fontSize: 8.5, fontWeight: '800', marginTop: 4 },
+  availMiniLabel: { color: C.dim, fontSize: 8.5, fontWeight: '800', marginTop: 4 },
   availMiniPer: { fontSize: 8.5, fontWeight: '900', marginTop: 2 },
 
   nextActivities: { gap: 14, marginTop: 10 },
   activityRow: { flexDirection: 'row', alignItems: 'center' },
-  activityIconWrap: { width: 32, height: 32, borderRadius: 8, backgroundColor: GREEN + "15", alignItems: 'center', justifyContent: 'center' },
-  activityLabel: { color: GREEN, fontSize: 7.5, fontWeight: '900', letterSpacing: 0.5 },
-  activityTitle: { color: 'white', fontSize: 11, fontWeight: '800', marginTop: 1 },
-  activityMeta: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', marginTop: 2 },
-  activityLoc: { color: TEXT_TH, fontSize: 8.5, fontWeight: '600' },
+  activityIconWrap: { width: 32, height: 32, borderRadius: 8, backgroundColor: C.green + "15", alignItems: 'center', justifyContent: 'center' },
+  activityLabel: { color: C.green, fontSize: 7.5, fontWeight: '900', letterSpacing: 0.5 },
+  activityTitle: { color: C.text, fontSize: 11, fontWeight: '800', marginTop: 1 },
+  activityMeta: { color: C.dim, fontSize: 9.5, fontWeight: '700', marginTop: 2 },
+  activityLoc: { color: C.dim, fontSize: 8.5, fontWeight: '600' },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.line },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
-  modalLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
-  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  modalSaveText: { color: 'white', fontSize: 12, fontWeight: '900' },
-});
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: '900' },
+  modalLabel: { color: C.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: '900' },
+}));

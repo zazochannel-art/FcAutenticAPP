@@ -5,50 +5,114 @@
 // Accentul principal: verde-gazon, potrivit tematic cu fotbalul.
 // Cheia `cyan` rămâne ca alias istoric (e folosită în ~260 de locuri);
 // numele nou și corect este `accent`.
-const ACCENT = "#4ADE80";
+const ACCENT_DARK = "#4ADE80"; // verde-gazon, pe fundal închis
+const ACCENT_LIGHT = "#16A34A"; // varianta mai închisă, lizibilă pe alb
 
-export const colors = {
-  // Fundaluri
-  bg: "#09090B",
-  bgSecondary: "#0F0F12",
-  bgElevated: "#131316",
+// --- Paletele celor două teme ------------------------------------------------
+export const palettes = {
+  dark: {
+    bg: "#09090B",
+    bgSecondary: "#0F0F12",
+    bgElevated: "#131316",
 
-  // Lumini ambientale (folosite de fundalul cu gradient fin)
-  glowA: "rgba(74, 222, 128, 0.10)",
-  glowB: "rgba(139, 92, 246, 0.09)",
-  glowC: "rgba(56, 189, 248, 0.07)",
+    glowA: "rgba(74, 222, 128, 0.10)",
+    glowB: "rgba(139, 92, 246, 0.09)",
+    glowC: "rgba(56, 189, 248, 0.07)",
 
-  // Suprafețe (carduri) — stratificare prin luminozitate, nu prin bordură colorată
-  card: "#18181B",
-  cardHover: "#1F1F23",
-  cardLight: "#212126",
+    card: "#18181B",
+    cardHover: "#1F1F23",
+    cardLight: "#212126",
 
-  // Borduri neutre, discrete
-  line: "rgba(255, 255, 255, 0.07)",
-  lineStrong: "rgba(255, 255, 255, 0.12)",
-  lineFocus: "rgba(74, 222, 128, 0.45)",
+    line: "rgba(255, 255, 255, 0.07)",
+    lineStrong: "rgba(255, 255, 255, 0.12)",
+    lineFocus: "rgba(74, 222, 128, 0.45)",
 
-  // Accente
-  accent: ACCENT,
-  cyan: ACCENT, // alias istoric — accentul principal (verde-gazon)
-  teal: "#06B6D4",
-  blue: "#3B82F6",
-  purple: "#8B5CF6",
-  violet: "#A78BFA",
-  gold: "#FBBF24",
-  amber: "#F59E0B",
-  green: "#22C55E",
-  red: "#EF4444",
+    accent: ACCENT_DARK,
+    cyan: ACCENT_DARK, // alias istoric — accentul principal
+    teal: "#06B6D4",
+    blue: "#3B82F6",
+    purple: "#8B5CF6",
+    violet: "#A78BFA",
+    gold: "#FBBF24",
+    amber: "#F59E0B",
+    green: "#22C55E",
+    red: "#EF4444",
 
-  // Text
-  text: "#FAFAFA",
-  muted: "#A1A1AA",
-  dim: "#71717A",
+    text: "#FAFAFA",
+    muted: "#A1A1AA",
+    dim: "#71717A",
 
-  // Speciale
-  white: "#FFFFFF",
-  transparent: "transparent",
+    white: "#FFFFFF",
+    transparent: "transparent",
+    isDark: true,
+  },
+  light: {
+    bg: "#FAFAFA",
+    bgSecondary: "#F4F4F5",
+    bgElevated: "#FFFFFF",
+
+    glowA: "rgba(22, 163, 74, 0.09)",
+    glowB: "rgba(139, 92, 246, 0.07)",
+    glowC: "rgba(56, 189, 248, 0.06)",
+
+    card: "#FFFFFF",
+    cardHover: "#FAFAFA",
+    cardLight: "#F4F4F5",
+
+    line: "rgba(9, 9, 11, 0.10)",
+    lineStrong: "rgba(9, 9, 11, 0.16)",
+    lineFocus: "rgba(22, 163, 74, 0.45)",
+
+    accent: ACCENT_LIGHT,
+    cyan: ACCENT_LIGHT,
+    teal: "#0891B2",
+    blue: "#2563EB",
+    purple: "#7C3AED",
+    violet: "#8B5CF6",
+    gold: "#D97706",
+    amber: "#D97706",
+    green: "#16A34A",
+    red: "#DC2626",
+
+    text: "#18181B",
+    muted: "#52525B",
+    dim: "#71717A",
+
+    white: "#FFFFFF",
+    transparent: "transparent",
+    isDark: false,
+  },
 };
+
+// `colors` este un obiect MUTAT ÎN LOC la schimbarea temei. Importurile de tip
+// `import { colors as C }` păstrează aceeași referință, deci toate fișierele
+// văd automat noile valori după `applyTheme()` + remontarea aplicației.
+export const colors = { ...palettes.dark };
+
+// Fabricile de stiluri înregistrate (vezi themedStyles). Le re-executăm la
+// schimbarea temei și mutăm rezultatul în obiectul original, ca referințele
+// existente din module să rămână valide.
+const styleRegistry = [];
+
+export function themedStyles(factory) {
+  const holder = factory(colors);
+  styleRegistry.push({ holder, factory });
+  return holder;
+}
+
+export let themeName = "dark";
+
+export function applyTheme(name) {
+  const next = palettes[name] || palettes.dark;
+  themeName = name;
+  Object.keys(colors).forEach((k) => { delete colors[k]; });
+  Object.assign(colors, next);
+  styleRegistry.forEach(({ holder, factory }) => {
+    const fresh = factory(colors);
+    Object.keys(holder).forEach((k) => { delete holder[k]; });
+    Object.assign(holder, fresh);
+  });
+}
 
 export const spacing = {
   xs: 4,

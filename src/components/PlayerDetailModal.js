@@ -4,14 +4,8 @@ import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line, Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
-const CARD_BG = C.card;
-const BORDER = C.line;
-const CYAN = C.cyan;
-const BLUE = C.blue;
-const DIM = C.muted;
-const TH = C.dim;
 
 const METRICS = [
   ["technique", "Tehnică"],
@@ -205,16 +199,16 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
               <Text style={styles.meta}>#{player.no || "—"} • {player.role || "—"} • {player.group} • {player.status || "Activ"}{player.rating != null ? ` • ★ ${player.rating}` : ""}</Text>
             </View>
             <Pressable onPress={() => exportReport(player, scores, playerObs, plan)} style={styles.exportBtn} aria-label="Exportă raport">
-              <LucideIcons.Printer size={17} color={CYAN} />
+              <LucideIcons.Printer size={17} color={C.cyan} />
             </Pressable>
-            <Pressable onPress={onClose} style={styles.closeBtn}><LucideIcons.X size={18} color={DIM} /></Pressable>
+            <Pressable onPress={onClose} style={styles.closeBtn}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           {/* Tabs */}
           <View style={styles.tabs}>
             {[["profil", "Atribute"], ["eval", "Evaluare"], ["obs", "Observații"], ["dev", "Dezvoltare"]].map(([k, l]) => (
               <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && styles.tabActive]}>
-                <Text style={[styles.tabText, tab === k && { color: CYAN }]}>{l}</Text>
+                <Text style={[styles.tabText, tab === k && { color: C.cyan }]}>{l}</Text>
               </Pressable>
             ))}
           </View>
@@ -239,7 +233,7 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
                       value={rating}
                       onChangeText={(v) => setRating(v.replace(/[^0-9]/g, "").slice(0, 2))}
                       placeholder="60"
-                      placeholderTextColor={TH}
+                      placeholderTextColor={C.dim}
                       keyboardType="number-pad"
                     />
                   )}
@@ -255,7 +249,7 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
                     return (
                       <Pressable key={code} disabled={!canManage} onPress={() => toggleSecPos(code)}
                         style={[styles.posChip, on && styles.posChipOn, !canManage && !on && { opacity: 0.5 }]}>
-                        <Text style={[styles.posChipText, on && { color: CYAN }]}>{code}</Text>
+                        <Text style={[styles.posChipText, on && { color: C.cyan }]}>{code}</Text>
                       </Pressable>
                     );
                   })}
@@ -307,7 +301,7 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
                     <View style={styles.obsTypeRow}>
                       {OBS_TYPES.map((t) => (
                         <Pressable key={t} onPress={() => setObsForm((f) => ({ ...f, type: t }))} style={[styles.obsTypeChip, obsForm.type === t && styles.obsTypeChipActive]}>
-                          <Text style={[styles.obsTypeText, obsForm.type === t && { color: CYAN }]}>{t}</Text>
+                          <Text style={[styles.obsTypeText, obsForm.type === t && { color: C.cyan }]}>{t}</Text>
                         </Pressable>
                       ))}
                     </View>
@@ -316,7 +310,7 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
                       value={obsForm.text}
                       onChangeText={(text) => setObsForm((f) => ({ ...f, text }))}
                       placeholder="Scrie o observație despre jucător..."
-                      placeholderTextColor={TH}
+                      placeholderTextColor={C.dim}
                       multiline
                     />
                     <Pressable onPress={addObs} disabled={saving} style={styles.saveBtn}>
@@ -333,7 +327,7 @@ export default function PlayerDetailModal({ player, canManage, evaluations = {},
                       <Text style={styles.obsItemText}>{o.text}</Text>
                     </View>
                     {canManage && (
-                      <Pressable onPress={() => deleteObs(o.id)} style={{ padding: 6 }}><LucideIcons.Trash2 size={14} color={TH} /></Pressable>
+                      <Pressable onPress={() => deleteObs(o.id)} style={{ padding: 6 }}><LucideIcons.Trash2 size={14} color={C.dim} /></Pressable>
                     )}
                   </View>
                 ))}
@@ -370,7 +364,7 @@ function Field({ label, value, onChange, placeholder, editable, multiline }) {
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={TH}
+        placeholderTextColor={C.dim}
         editable={editable}
         multiline={multiline}
       />
@@ -401,60 +395,60 @@ const RadarChart = ({ scores }) => {
           />
         ))}
         {grid.map((g, i) => <Line key={i} x1={cx} y1={cy} x2={g.x} y2={g.y} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />)}
-        <Polygon points={points} fill={CYAN + "33"} stroke={CYAN} strokeWidth="2" />
-        {points.split(" ").map((p, i) => { const [x, y] = p.split(","); return <Circle key={i} cx={x} cy={y} r="2.5" fill={CYAN} />; })}
+        <Polygon points={points} fill={C.cyan + "33"} stroke={C.cyan} strokeWidth="2" />
+        {points.split(" ").map((p, i) => { const [x, y] = p.split(","); return <Circle key={i} cx={x} cy={y} r="2.5" fill={C.cyan} />; })}
       </Svg>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: CARD_BG, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: BORDER, maxWidth: 560, width: "100%", alignSelf: "center" },
+const styles = themedStyles((C) => StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.75)" : "rgba(9,9,11,0.45)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: C.line, maxWidth: 560, width: "100%", alignSelf: "center" },
   header: { flexDirection: "row", alignItems: "center", padding: 18, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
-  name: { color: "white", fontSize: 16, fontWeight: "900" },
-  meta: { color: TH, fontSize: 10.5, fontWeight: "700", marginTop: 2 },
-  exportBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "35", alignItems: "center", justifyContent: "center", marginRight: 8 },
+  name: { color: C.text, fontSize: 16, fontWeight: "900" },
+  meta: { color: C.dim, fontSize: 10.5, fontWeight: "700", marginTop: 2 },
+  exportBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: C.cyan + "12", borderWidth: 1, borderColor: C.cyan + "35", alignItems: "center", justifyContent: "center", marginRight: 8 },
   closeBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
   tabs: { flexDirection: "row", padding: 8, gap: 6 },
   tab: { flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  tabActive: { backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "30" },
-  tabText: { color: DIM, fontSize: 12, fontWeight: "900" },
+  tabActive: { backgroundColor: C.cyan + "12", borderWidth: 1, borderColor: C.cyan + "30" },
+  tabText: { color: C.muted, fontSize: 12, fontWeight: "900" },
 
   metricRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 10 },
-  metricLabel: { color: "white", fontSize: 11, fontWeight: "800", width: 78 },
+  metricLabel: { color: C.text, fontSize: 11, fontWeight: "800", width: 78 },
   metricBarBg: { flex: 1, height: 6, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" },
-  metricBarFill: { height: "100%", backgroundColor: CYAN, borderRadius: 3 },
+  metricBarFill: { height: "100%", backgroundColor: C.cyan, borderRadius: 3 },
   stepper: { flexDirection: "row", alignItems: "center", gap: 8 },
   stepBtn: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
-  stepTxt: { color: "white", fontSize: 16, fontWeight: "900" },
-  metricVal: { color: "white", fontSize: 13, fontWeight: "900", width: 22, textAlign: "center" },
+  stepTxt: { color: C.text, fontSize: 16, fontWeight: "900" },
+  metricVal: { color: C.text, fontSize: 13, fontWeight: "900", width: 22, textAlign: "center" },
 
-  saveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 44, borderRadius: 12, backgroundColor: BLUE, marginTop: 14 },
-  saveBtnText: { color: "white", fontSize: 12, fontWeight: "900" },
-  empty: { color: DIM, fontSize: 11.5, fontWeight: "600", textAlign: "center", paddingVertical: 20 },
+  saveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 44, borderRadius: 12, backgroundColor: C.blue, marginTop: 14 },
+  saveBtnText: { color: C.text, fontSize: 12, fontWeight: "900" },
+  empty: { color: C.muted, fontSize: 11.5, fontWeight: "600", textAlign: "center", paddingVertical: 20 },
 
   obsAdd: { marginBottom: 14 },
   obsTypeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
   obsTypeChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  obsTypeChipActive: { borderColor: CYAN, backgroundColor: CYAN + "10" },
-  obsTypeText: { color: DIM, fontSize: 10, fontWeight: "800" },
-  obsInput: { minHeight: 64, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 12, color: "white", fontSize: 12, fontWeight: "600", textAlignVertical: "top" },
+  obsTypeChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + "10" },
+  obsTypeText: { color: C.muted, fontSize: 10, fontWeight: "800" },
+  obsInput: { minHeight: 64, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 12, color: C.text, fontSize: 12, fontWeight: "600", textAlignVertical: "top" },
   obsItem: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
-  obsItemType: { color: CYAN, fontSize: 9.5, fontWeight: "900", letterSpacing: 0.4 },
-  obsItemText: { color: "white", fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
+  obsItemType: { color: C.cyan, fontSize: 9.5, fontWeight: "900", letterSpacing: 0.4 },
+  obsItemText: { color: C.text, fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
 
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  ratingBadge: { minWidth: 66, height: 52, borderRadius: 14, backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "40", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
-  ratingBadgeText: { color: CYAN, fontSize: 24, fontWeight: "900" },
-  ratingInput: { flex: 1, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 44, color: "white", fontSize: 14, fontWeight: "800", textAlign: "center" },
-  primaryPos: { color: BLUE, fontSize: 14, fontWeight: "900" },
+  ratingBadge: { minWidth: 66, height: 52, borderRadius: 14, backgroundColor: C.cyan + "12", borderWidth: 1, borderColor: C.cyan + "40", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
+  ratingBadgeText: { color: C.cyan, fontSize: 24, fontWeight: "900" },
+  ratingInput: { flex: 1, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 44, color: C.text, fontSize: 14, fontWeight: "800", textAlign: "center" },
+  primaryPos: { color: C.blue, fontSize: 14, fontWeight: "900" },
   posGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   posChip: { width: 52, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-  posChipOn: { borderColor: CYAN, backgroundColor: CYAN + "12" },
-  posChipText: { color: DIM, fontSize: 11, fontWeight: "800" },
+  posChipOn: { borderColor: C.cyan, backgroundColor: C.cyan + "12" },
+  posChipText: { color: C.muted, fontSize: 11, fontWeight: "800" },
 
-  fieldLabel: { color: DIM, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
-  fieldInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 42, color: "white", fontSize: 12, fontWeight: "600" },
-});
+  fieldLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
+  fieldInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 42, color: C.text, fontSize: 12, fontWeight: "600" },
+}));

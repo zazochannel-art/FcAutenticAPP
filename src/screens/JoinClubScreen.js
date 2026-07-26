@@ -3,7 +3,7 @@ import { ActivityIndicator, ImageBackground, Pressable, SafeAreaView, ScrollView
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Globe, Mail, Shield, Users } from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { supabaseService } from "../services/supabaseService";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000" };
@@ -142,25 +142,25 @@ function Field(props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "#020617" },
   bg: { flex: 1 },
   content: { flexGrow: 1, padding: 22, alignItems: "center", justifyContent: "center" },
   header: { position: "absolute", top: 18, left: 22, right: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(15,23,42,0.65)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
-  brandText: { color: "white", fontSize: 18, fontWeight: "900" },
+  brandText: { color: C.text, fontSize: 18, fontWeight: "900" },
   brandAdmin: { color: C.cyan, fontSize: 14 },
   lang: { flexDirection: "row", alignItems: "center", gap: 7, borderRadius: 14, paddingHorizontal: 14, height: 44, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(15,23,42,0.65)" },
   langText: { color: C.muted, fontSize: 12, fontWeight: "800" },
   card: { width: "100%", maxWidth: 620, borderRadius: 30, overflow: "hidden", padding: 30, borderWidth: 1, borderColor: "rgba(124,58,237,0.45)", backgroundColor: "rgba(15,23,42,0.58)" },
   iconHero: { alignSelf: "center", width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(124,58,237,0.16)", borderWidth: 1, borderColor: "rgba(124,58,237,0.42)", marginBottom: 18 },
-  title: { color: "white", fontSize: 30, fontWeight: "900", textAlign: "center" },
+  title: { color: C.text, fontSize: 30, fontWeight: "900", textAlign: "center" },
   subtitle: { color: C.muted, fontSize: 14, lineHeight: 22, textAlign: "center", marginTop: 8, marginBottom: 24 },
   field: { marginBottom: 14 },
   label: { color: C.muted, fontSize: 11, fontWeight: "900", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 8 },
-  input: { height: 54, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: "white", paddingHorizontal: 16, fontSize: 14, fontWeight: "700" },
-  textarea: { minHeight: 90, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: "white", padding: 16, fontSize: 14, fontWeight: "700", textAlignVertical: "top" },
+  input: { height: 54, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: C.text, paddingHorizontal: 16, fontSize: 14, fontWeight: "700" },
+  textarea: { minHeight: 90, borderRadius: 16, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.62)", color: C.text, padding: 16, fontSize: 14, fontWeight: "700", textAlignVertical: "top" },
   separator: { flexDirection: "row", alignItems: "center", gap: 16, marginVertical: 14 },
   line: { flex: 1, height: 1, backgroundColor: "rgba(148,163,184,0.14)" },
   sepText: { color: C.dim, fontWeight: "900", fontSize: 11 },
@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
   rolePill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(2,6,23,0.45)" },
   roleActive: { borderColor: C.purple, backgroundColor: "rgba(124,58,237,0.18)" },
   roleText: { color: C.muted, fontSize: 12, fontWeight: "900" },
-  roleTextActive: { color: "white" },
+  roleTextActive: { color: C.text },
   statusBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(34,197,94,0.28)", backgroundColor: "rgba(34,197,94,0.1)", padding: 14, marginTop: 16 },
   statusText: { flex: 1, color: C.green, fontSize: 12, fontWeight: "800" },
   errorBox: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "rgba(239,68,68,0.3)", backgroundColor: "rgba(239,68,68,0.08)", padding: 14, marginTop: 16 },
   errorText: { flex: 1, color: C.red, fontSize: 12, fontWeight: "800" },
   primaryPress: { marginTop: 18 },
   primaryButton: { height: 58, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
-  primaryText: { color: "white", fontSize: 15, fontWeight: "900" },
-});
+  primaryText: { color: C.text, fontSize: 15, fontWeight: "900" },
+}));

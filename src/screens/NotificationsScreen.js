@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View, Pressable, TextInput, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 
@@ -105,19 +105,19 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub,
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   content: { padding: 18, paddingBottom: 120 },
   composer: { backgroundColor: C.card, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 18 },
-  input: { minHeight: 60, color: "white", fontSize: 13, fontWeight: "600", textAlignVertical: "top", backgroundColor: C.bgSecondary, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.line },
+  input: { minHeight: 60, color: C.text, fontSize: 13, fontWeight: "600", textAlignVertical: "top", backgroundColor: C.bgSecondary, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.line },
   postBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 42, borderRadius: 12, backgroundColor: C.blue, marginTop: 10 },
-  postBtnText: { color: "white", fontSize: 12, fontWeight: "900" },
+  postBtnText: { color: C.text, fontSize: 12, fontWeight: "900" },
   empty: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", paddingVertical: 20 },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 20 },
   card: { flexDirection: "row", backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   cardIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(0,212,255,0.1)", alignItems: "center", justifyContent: "center" },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 3 },
-  author: { color: "white", fontSize: 12, fontWeight: "900" },
+  author: { color: C.text, fontSize: 12, fontWeight: "900" },
   time: { color: C.dim, fontSize: 9.5, fontWeight: "700" },
   msgText: { color: C.muted, fontSize: 12.5, fontWeight: "600", lineHeight: 18 },
-});
+}));

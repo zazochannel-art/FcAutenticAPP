@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Modal, TextInput, Image, Platform, Alert, Linking } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
@@ -133,11 +133,11 @@ function AddMediaModal({ visible, clubId, onClose, onSaved }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 120 },
   addBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 14, backgroundColor: C.blue, marginBottom: 18 },
-  addBtnText: { color: "white", fontSize: 12.5, fontWeight: "900" },
+  addBtnText: { color: C.text, fontSize: 12.5, fontWeight: "900" },
   empty: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", paddingVertical: 20 },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 20 },
@@ -147,18 +147,18 @@ const styles = StyleSheet.create({
   thumbImg: { width: "100%", height: "100%" },
   videoThumb: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(124,58,237,0.15)" },
   tileFooter: { flexDirection: "row", alignItems: "center", padding: 10, gap: 6 },
-  tileTitle: { color: "white", fontSize: 11.5, fontWeight: "800" },
+  tileTitle: { color: C.text, fontSize: 11.5, fontWeight: "800" },
   tileDate: { color: C.dim, fontSize: 9, fontWeight: "700", marginTop: 2 },
   delBtn: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
   modalCard: { width: "100%", maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 },
   chip: { paddingHorizontal: 14, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   chipText: { color: C.muted, fontSize: 10.5, fontWeight: "800" },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 },
-  modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },
-});
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: "900" },
+}));

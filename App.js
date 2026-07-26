@@ -72,6 +72,7 @@ import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
+import { themedStyles, colors, applyTheme } from "./src/constants/theme";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
@@ -122,21 +123,35 @@ const roleTabs = {
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
+  // `themeKey` forțează remontarea întregului arbore după schimbarea temei, ca
+  // stilurile regenerate de `applyTheme` să fie preluate de toate ecranele.
+  const [themeKey, setThemeKey] = useState(0);
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem("fc_theme")
+      .then((saved) => { if (saved === "light") applyTheme("light"); })
+      .catch(() => {})
+      .finally(() => setThemeReady(true));
+  }, []);
+
+  if (!themeReady) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+
   return (
     <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister }}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#020617" }}>
-        <StatusBar barStyle="light-content" />
-        <MainApp />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+        <StatusBar barStyle={colors.isDark ? "light-content" : "dark-content"} />
+        <MainApp key={themeKey} onThemeChange={() => setThemeKey((k) => k + 1)} />
         {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
       </SafeAreaView>
     </PersistQueryClientProvider>
   );
 }
 
-function MainApp() {
+function MainApp({ onThemeChange }) {
   const queryClient = useQueryClient();
   const { width } = useWindowDimensions();
   const isDesktopLayout = width >= 768;
@@ -784,6 +799,7 @@ function MainApp() {
     ),
     "Mai mult": (
       <MoreScreen
+        onThemeChange={onThemeChange}
         currentUser={effectiveUser}
         onLogout={logout}
         selectedClub={selectedClub}
@@ -936,7 +952,7 @@ function MainApp() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#020617" },
   app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 100 : 80 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
@@ -949,5 +965,5 @@ const styles = StyleSheet.create({
   pendingPrimaryText: { color: "white", fontSize: 14, fontWeight: "900" },
   pendingGhost: { width: "100%", height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 10 },
   pendingGhostText: { color: "#94A3B8", fontSize: 13, fontWeight: "800" },
-});
+}));
 

@@ -13,18 +13,9 @@ import {
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 // --- Premium Palette ---
-const CARD_BG = C.card;
-const BORDER_COLOR = C.line;
-const CYAN = C.cyan;
-const VIOLET = C.purple;
-const AMBER = C.amber;
-const GREEN = C.green;
-const BLUE_ACCENT = C.blue;
-const TEXT_DIM = C.muted;
-const TEXT_TH = C.dim;
 
 const MONTH_NAMES = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
 const MONTH_PREFIXES = { ian: 0, feb: 1, mar: 2, apr: 3, mai: 4, iun: 5, iul: 6, aug: 7, sep: 8, oct: 9, noi: 10, nov: 10, dec: 11 };
@@ -55,11 +46,11 @@ function notify(title, msg) {
 }
 
 const EVENT_TYPE_COLORS = {
-  training: VIOLET,
-  match: BLUE_ACCENT,
-  event: AMBER,
-  medical: GREEN,
-  payment: CYAN,
+  training: C.purple,
+  match: C.blue,
+  event: C.amber,
+  medical: C.green,
+  payment: C.cyan,
 };
 
 export default function CalendarSaaS({ trainings = [], matches = [], events = [], clubId, currentUser }) {
@@ -169,10 +160,10 @@ export default function CalendarSaaS({ trainings = [], matches = [], events = []
 
         {/* Stat Cards */}
         <View style={styles.statsGrid}>
-           <StatCard icon="CalendarDays" label={`Evenimente în ${MONTH_NAMES[viewMonth]}`} val={String(monthEvents.length)} iColor={GREEN} />
-           <StatCard icon="Dumbbell" label="Antrenamente" val={String(trainings.length)} iColor={VIOLET} />
-           <StatCard icon="Trophy" label="Meciuri" val={String(matches.length)} iColor={BLUE_ACCENT} />
-           <StatCard icon="Bell" label="Alte evenimente" val={String(events.length)} iColor={AMBER} />
+           <StatCard icon="CalendarDays" label={`Evenimente în ${MONTH_NAMES[viewMonth]}`} val={String(monthEvents.length)} iColor={C.green} />
+           <StatCard icon="Dumbbell" label="Antrenamente" val={String(trainings.length)} iColor={C.purple} />
+           <StatCard icon="Trophy" label="Meciuri" val={String(matches.length)} iColor={C.blue} />
+           <StatCard icon="Bell" label="Alte evenimente" val={String(events.length)} iColor={C.amber} />
         </View>
 
         {canManage && (
@@ -208,7 +199,7 @@ export default function CalendarSaaS({ trainings = [], matches = [], events = []
                       <View key={dIndex} style={[styles.calCell, !date && styles.calCellEmpty, isToday && styles.calCellActive]}>
                         {date && (
                           <>
-                            <Text style={[styles.calDayNum, isToday && { color: CYAN }]}>{date.getDate()}</Text>
+                            <Text style={[styles.calDayNum, isToday && { color: C.cyan }]}>{date.getDate()}</Text>
                             <View style={styles.calEvents}>
                               {dayEvents.slice(0, 3).map((e) => (
                                 <View key={e.id} style={[styles.eventMarker, { backgroundColor: e.color + "15" }]}>
@@ -284,9 +275,9 @@ export default function CalendarSaaS({ trainings = [], matches = [], events = []
 
             <View style={[styles.cardSide, { marginTop: 16 }]}>
               <Text style={[styles.cardTitle, { marginBottom: 14 }]}>Legendă</Text>
-              <LegendItem dot={VIOLET} label="Antrenamente" />
-              <LegendItem dot={BLUE_ACCENT} label="Meciuri" />
-              <LegendItem dot={AMBER} label="Evenimente club" />
+              <LegendItem dot={C.purple} label="Antrenamente" />
+              <LegendItem dot={C.blue} label="Meciuri" />
+              <LegendItem dot={C.amber} label="Evenimente club" />
             </View>
           </View>
         </View>
@@ -313,31 +304,31 @@ function AddEventModal({ visible, onClose, onSave }) {
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Eveniment nou</Text>
-            <Pressable onPress={onClose}><LucideIcons.X size={18} color={TEXT_DIM} /></Pressable>
+            <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           <Text style={styles.modalLabel}>TIP EVENIMENT</Text>
-          <TextInput style={styles.modalInput} value={form.type} onChangeText={(v) => update("type", v)} placeholder="Ex: Ședință staff, Evaluări medicale" placeholderTextColor={TEXT_TH} />
+          <TextInput style={styles.modalInput} value={form.type} onChangeText={(v) => update("type", v)} placeholder="Ex: Ședință staff, Evaluări medicale" placeholderTextColor={C.dim} />
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>DATA</Text>
-              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="29 iulie 2026" placeholderTextColor={TEXT_TH} />
+              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="29 iulie 2026" placeholderTextColor={C.dim} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>ORA</Text>
-              <TextInput style={styles.modalInput} value={form.time} onChangeText={(v) => update("time", v)} placeholder="18:00" placeholderTextColor={TEXT_TH} />
+              <TextInput style={styles.modalInput} value={form.time} onChangeText={(v) => update("time", v)} placeholder="18:00" placeholderTextColor={C.dim} />
             </View>
           </View>
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.modalLabel}>GRUPA (OPȚIONAL)</Text>
-              <TextInput style={styles.modalInput} value={form.group} onChangeText={(v) => update("group", v)} placeholder="U16" placeholderTextColor={TEXT_TH} />
+              <TextInput style={styles.modalInput} value={form.group} onChangeText={(v) => update("group", v)} placeholder="U16" placeholderTextColor={C.dim} />
             </View>
             <View style={{ flex: 2 }}>
               <Text style={styles.modalLabel}>DETALII (OPȚIONAL)</Text>
-              <TextInput style={styles.modalInput} value={form.notes} onChangeText={(v) => update("notes", v)} placeholder="Sala de conferințe" placeholderTextColor={TEXT_TH} />
+              <TextInput style={styles.modalInput} value={form.notes} onChangeText={(v) => update("notes", v)} placeholder="Sala de conferințe" placeholderTextColor={C.dim} />
             </View>
           </View>
 
@@ -373,80 +364,80 @@ const LegendItem = ({ dot, label }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   scrollContent: { padding: 18, paddingBottom: 60 },
 
   pageHeader: { marginBottom: 24 },
-  pageTitle: { color: 'white', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
-  pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
+  pageTitle: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+  pageSub: { color: C.muted, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  statCard: { flexBasis: 170, flexGrow: 1, backgroundColor: CARD_BG, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: BORDER_COLOR, flexDirection: 'row', alignItems: 'center' },
+  statCard: { flexBasis: 170, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center' },
   statIconWrap: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  statVal: { color: 'white', fontSize: 18, fontWeight: '900' },
-  statLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 1 },
+  statVal: { color: C.text, fontSize: 18, fontWeight: '900' },
+  statLabel: { color: C.muted, fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 1 },
 
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: BLUE_ACCENT, height: 44, borderRadius: 12, marginBottom: 16 },
-  addBtnText: { color: 'white', fontSize: 12, fontWeight: '900' },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: C.blue, height: 44, borderRadius: 12, marginBottom: 16 },
+  addBtnText: { color: C.text, fontSize: 12, fontWeight: '900' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   colCalendar: { flexBasis: 420, flexGrow: 3 },
   colSidebar: { flexBasis: 250, flexGrow: 1 },
 
-  cardMain: { backgroundColor: CARD_BG, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR },
-  cardSide: { backgroundColor: CARD_BG, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: BORDER_COLOR },
+  cardMain: { backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: C.line },
+  cardSide: { backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: C.line },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  cardTitle: { color: 'white', fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
-  emptyText: { color: TEXT_DIM, fontSize: 11, fontWeight: '600', lineHeight: 16 },
+  cardTitle: { color: C.text, fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
+  emptyText: { color: C.muted, fontSize: 11, fontWeight: '600', lineHeight: 16 },
 
   calendarControls: { marginBottom: 14 },
   navRow: { flexDirection: 'row', alignItems: 'center' },
   navBtn: { width: 30, height: 30, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   todayBtn: { paddingHorizontal: 12, height: 30, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginHorizontal: 8 },
-  todayText: { color: 'white', fontSize: 11, fontWeight: '800' },
-  currentMonth: { color: 'white', fontSize: 15, fontWeight: '900', marginLeft: 8 },
+  todayText: { color: C.text, fontSize: 11, fontWeight: '800' },
+  currentMonth: { color: C.text, fontSize: 15, fontWeight: '900', marginLeft: 8 },
 
   dayHeaders: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", paddingBottom: 8, marginBottom: 4 },
-  dayH: { flex: 1, color: TEXT_TH, fontSize: 9, fontWeight: '900', textAlign: 'center' },
+  dayH: { flex: 1, color: C.dim, fontSize: 9, fontWeight: '900', textAlign: 'center' },
 
   calRow: { flexDirection: 'row', minHeight: 84, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   calCell: { flex: 1, borderRightWidth: 1, borderRightColor: "rgba(255,255,255,0.03)", padding: 4 },
   calCellEmpty: { backgroundColor: "rgba(255,255,255,0.01)" },
-  calCellActive: { backgroundColor: BLUE_ACCENT + "08" },
-  calDayNum: { color: TEXT_DIM, fontSize: 10.5, fontWeight: '800' },
+  calCellActive: { backgroundColor: C.blue + "08" },
+  calDayNum: { color: C.muted, fontSize: 10.5, fontWeight: '800' },
   calEvents: { marginTop: 3, gap: 2 },
   eventMarker: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4 },
   eventDot: { width: 4, height: 4, borderRadius: 2, marginRight: 4 },
   eventText: { fontSize: 7.5, fontWeight: '700', flex: 1 },
-  moreText: { color: TEXT_TH, fontSize: 7.5, fontWeight: '800', marginLeft: 4 },
-  undatedHint: { color: TEXT_TH, fontSize: 9, fontWeight: '600', marginTop: 10, lineHeight: 13 },
+  moreText: { color: C.dim, fontSize: 7.5, fontWeight: '800', marginLeft: 4 },
+  undatedHint: { color: C.dim, fontSize: 9, fontWeight: '600', marginTop: 10, lineHeight: 13 },
 
-  dateLabel: { color: TEXT_TH, fontSize: 10.5, fontWeight: '800' },
+  dateLabel: { color: C.dim, fontSize: 10.5, fontWeight: '800' },
   agendaLine: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
-  agendaTime: { color: TEXT_TH, fontSize: 10, fontWeight: '900', width: 42 },
+  agendaTime: { color: C.dim, fontSize: 10, fontWeight: '900', width: 42 },
   agendaMarker: { width: 3, height: 22, borderRadius: 2, marginHorizontal: 10 },
-  agendaTitle: { color: 'white', fontSize: 11, fontWeight: '800' },
-  agendaLoc: { color: TEXT_TH, fontSize: 9, fontWeight: '700', marginTop: 1 },
+  agendaTitle: { color: C.text, fontSize: 11, fontWeight: '800' },
+  agendaLoc: { color: C.dim, fontSize: 9, fontWeight: '700', marginTop: 1 },
 
   upcomingItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
   upDateBlock: { width: 34, alignItems: 'center' },
-  upDateNum: { color: 'white', fontSize: 13, fontWeight: '900' },
-  upDateMonth: { color: BLUE_ACCENT, fontSize: 7.5, fontWeight: '900' },
+  upDateNum: { color: C.text, fontSize: 13, fontWeight: '900' },
+  upDateMonth: { color: C.blue, fontSize: 7.5, fontWeight: '900' },
   upMarker: { width: 5, height: 5, borderRadius: 2.5, marginHorizontal: 10 },
-  upTitle: { color: 'white', fontSize: 10.5, fontWeight: '800' },
-  upTime: { color: TEXT_TH, fontSize: 8.5, fontWeight: '700', marginTop: 1 },
+  upTitle: { color: C.text, fontSize: 10.5, fontWeight: '800' },
+  upTime: { color: C.dim, fontSize: 8.5, fontWeight: '700', marginTop: 1 },
 
   legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   legendDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },
-  legendText: { color: TEXT_DIM, fontSize: 10.5, fontWeight: '700' },
+  legendText: { color: C.muted, fontSize: 10.5, fontWeight: '700' },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modalCard: { width: '100%', maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: BORDER_COLOR },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.line },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: 'white', fontSize: 15, fontWeight: '900' },
-  modalLabel: { color: TEXT_DIM, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
-  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: 'white', borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
-  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: BLUE_ACCENT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  modalSaveText: { color: 'white', fontSize: 12, fontWeight: '900' },
-});
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: '900' },
+  modalLabel: { color: C.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
+  modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
+  modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: '900' },
+}));

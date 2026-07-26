@@ -5,7 +5,7 @@ import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-nativ
 import Svg, { Polyline, Path, Defs, LinearGradient, RadialGradient, Stop, Circle, Rect, Ellipse } from "react-native-svg";
 import { LinearGradient as ExpoGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius as R, elevation } from "../../constants/theme";
+import { colors as C, radius as R, elevation, themedStyles } from "../../constants/theme";
 
 // --- AmbientBackground: lumini difuze foarte fine peste fundal --------------
 // Trei pete radiale (verde / mov / albastru) la opacitate mică, care rup
@@ -17,16 +17,16 @@ export function AmbientBackground({ style }) {
       <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
         <Defs>
           <RadialGradient id="ambA" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#4ADE80" stopOpacity="0.16" />
-            <Stop offset="1" stopColor="#4ADE80" stopOpacity="0" />
+            <Stop offset="0" stopColor={C.accent} stopOpacity={C.isDark ? "0.16" : "0.13"} />
+            <Stop offset="1" stopColor={C.accent} stopOpacity="0" />
           </RadialGradient>
           <RadialGradient id="ambB" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#8B5CF6" stopOpacity="0.14" />
-            <Stop offset="1" stopColor="#8B5CF6" stopOpacity="0" />
+            <Stop offset="0" stopColor={C.purple} stopOpacity={C.isDark ? "0.14" : "0.10"} />
+            <Stop offset="1" stopColor={C.purple} stopOpacity="0" />
           </RadialGradient>
           <RadialGradient id="ambC" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#38BDF8" stopOpacity="0.10" />
-            <Stop offset="1" stopColor="#38BDF8" stopOpacity="0" />
+            <Stop offset="0" stopColor={C.blue} stopOpacity={C.isDark ? "0.10" : "0.08"} />
+            <Stop offset="1" stopColor={C.blue} stopOpacity="0" />
           </RadialGradient>
         </Defs>
         <Rect x="0" y="0" width="100" height="100" fill={C.bg} />
@@ -52,7 +52,7 @@ export function Surface({ children, style, contentStyle, accent, radius = R.xl }
       />
       {/* muchia luminoasă de sus (1px) */}
       <ExpoGradient
-        colors={["rgba(255,255,255,0.16)", "rgba(255,255,255,0.03)", "transparent"]}
+        colors={C.isDark ? ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.03)", "transparent"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.4)", "transparent"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.topEdge}
@@ -158,7 +158,7 @@ export function Skeleton({ width = "100%", height = 16, radius = 8, style }) {
     loop.start();
     return () => loop.stop();
   }, [opacity]);
-  return <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: "rgba(148,163,184,0.16)", opacity }, style]} />;
+  return <Animated.View style={[{ width, height, borderRadius: radius, backgroundColor: C.lineStrong, opacity }, style]} />;
 }
 
 // Un rând de skeleton tip listă (avatar + două linii).
@@ -232,7 +232,7 @@ export function FadeInView({ children, delay = 0, style }) {
   return <Animated.View style={[{ opacity: v, transform: [{ translateY }] }, style]}>{children}</Animated.View>;
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   topEdge: { position: "absolute", top: 0, left: 0, right: 0, height: 1 },
   accentBar: { position: "absolute", top: 0, left: 0, right: 0, height: 2.5 },
   chartEmptyText: { color: C.dim, fontSize: 11, fontWeight: "700", textAlign: "center" },
@@ -241,8 +241,8 @@ const styles = StyleSheet.create({
   trendBadgeText: { fontSize: 10, fontWeight: "900" },
   empty: { alignItems: "center", justifyContent: "center", paddingVertical: 46, paddingHorizontal: 24, gap: 8 },
   emptyIcon: { width: 60, height: 60, borderRadius: 18, backgroundColor: "rgba(148,163,184,0.1)", alignItems: "center", justifyContent: "center", marginBottom: 4 },
-  emptyTitle: { color: "white", fontSize: 14, fontWeight: "800", textAlign: "center" },
+  emptyTitle: { color: C.text, fontSize: 14, fontWeight: "800", textAlign: "center" },
   emptySub: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", lineHeight: 18 },
   emptyBtn: { flexDirection: "row", alignItems: "center", gap: 6, height: 42, paddingHorizontal: 18, borderRadius: 12, backgroundColor: C.cyan, marginTop: 8 },
   emptyBtnText: { color: C.bg, fontSize: 12.5, fontWeight: "900" },
-});
+}));

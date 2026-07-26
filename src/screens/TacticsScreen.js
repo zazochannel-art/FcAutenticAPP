@@ -6,7 +6,7 @@ import {
 import Svg, { Rect, Line, Circle } from "react-native-svg";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import {
@@ -92,7 +92,7 @@ const FORMATIONS = {
 const FORMATION_NAMES = Object.keys(FORMATIONS);
 
 const LINE_LABEL = { GK: "Portari", DEF: "Fundași", MID: "Mijlocași", ATT: "Atacanți" };
-const LINE_COLOR = { GK: C.amber, DEF: C.blue, MID: C.cyan, ATT: C.purple };
+const LINE_COLOR_ = () => ({ GK: C.amber, DEF: C.blue, MID: C.cyan, ATT: C.purple });
 
 const MENTALITIES = ["Foarte defensiv", "Defensiv", "Echilibrat", "Ofensiv", "Foarte ofensiv"];
 const STYLES = ["Posesie", "Contraatac", "Presing agresiv", "Joc direct", "Atac pe benzi", "Pase scurte", "Pase lungi", "Echilibrat"];
@@ -279,7 +279,7 @@ function FormationSelector({ value, onChange, disabled }) {
 // PlayerPosition — card pe teren
 // ---------------------------------------------------------------------------
 function PlayerPosition({ slot, player, isCaptain, moveActive, suspended, onPress }) {
-  const lineColor = LINE_COLOR[LINE_OF_CODE[slot.code]] || C.cyan;
+  const lineColor = LINE_COLOR_()[LINE_OF_CODE[slot.code]] || C.cyan;
   const available = player ? (isAvailable(player.status) && !suspended) : true;
   return (
     <Pressable
@@ -288,7 +288,7 @@ function PlayerPosition({ slot, player, isCaptain, moveActive, suspended, onPres
     >
       <View style={[
         styles.posAvatar,
-        { borderColor: player ? lineColor : "rgba(255,255,255,0.35)", backgroundColor: player ? "rgba(0,0,0,0.72)" : C.bgSecondary },
+        { borderColor: player ? lineColor : "rgba(255,255,255,0.35)", backgroundColor: player ? C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)" : C.bgSecondary },
         moveActive && { borderColor: C.amber, borderStyle: "dashed" },
       ]}>
         {player ? (
@@ -434,8 +434,8 @@ function PlayerSelectionModal({ visible, players, targetSlot, usedIds, currentId
               const secLabel = (p.secondaryPositions || []).length ? ` · ${p.secondaryPositions.join("/")}` : "";
               return (
                 <Pressable key={p.id} onPress={() => onPick(p.id)} style={styles.playerCard}>
-                  <View style={[styles.playerNo, { backgroundColor: (LINE_COLOR[line] || C.cyan) + "22" }]}>
-                    <Text style={[styles.playerNoText, { color: LINE_COLOR[line] || C.cyan }]}>{p.no ? p.no : initials(p.name)}</Text>
+                  <View style={[styles.playerNo, { backgroundColor: (LINE_COLOR_()[line] || C.cyan) + "22" }]}>
+                    <Text style={[styles.playerNoText, { color: LINE_COLOR_()[line] || C.cyan }]}>{p.no ? p.no : initials(p.name)}</Text>
                   </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={styles.playerCardName} numberOfLines={1}>{p.name}</Text>
@@ -580,7 +580,7 @@ function SubstitutesBench({ subs, playersById, onAdd, onRemove, canEdit }) {
           const line = playerLine(p.role);
           return (
             <View key={id} style={styles.benchItem}>
-              <View style={[styles.benchAvatar, { borderColor: LINE_COLOR[line] || C.cyan }]}>
+              <View style={[styles.benchAvatar, { borderColor: LINE_COLOR_()[line] || C.cyan }]}>
                 <Text style={styles.benchNo}>{p.no ? `#${p.no}` : initials(p.name)}</Text>
                 {p.rating != null && <View style={styles.benchRating}><Text style={styles.benchRatingText}>{p.rating}</Text></View>}
               </View>
@@ -1016,7 +1016,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 18, paddingBottom: 140 },
 
@@ -1024,26 +1024,26 @@ const styles = StyleSheet.create({
   newBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 40, borderRadius: 12, borderWidth: 1, borderColor: C.cyan + "40", backgroundColor: C.cyan + "10" },
   newBtnText: { color: C.cyan, fontSize: 12, fontWeight: "900" },
   countPill: { paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: "rgba(15,23,42,0.7)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  countPillText: { color: "white", fontSize: 12, fontWeight: "900" },
+  countPillText: { color: C.text, fontSize: 12, fontWeight: "900" },
 
   card: { backgroundColor: C.card, borderRadius: 18, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
-  cardTitle: { color: "white", fontSize: 13, fontWeight: "900" },
+  cardTitle: { color: C.text, fontSize: 13, fontWeight: "900" },
 
   sectionLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 8 },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 2 },
 
-  nameInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 13, fontWeight: "700" },
+  nameInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 13, fontWeight: "700" },
 
   formChip: { paddingHorizontal: 14, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   formChipText: { color: C.muted, fontSize: 11.5, fontWeight: "800" },
 
   pubToggle: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
   checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center" },
-  pubToggleText: { color: "white", fontSize: 12, fontWeight: "700" },
+  pubToggleText: { color: C.text, fontSize: 12, fontWeight: "700" },
 
   saveBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 12, backgroundColor: C.blue, marginTop: 14 },
-  saveBtnText: { color: "white", fontSize: 12.5, fontWeight: "900" },
+  saveBtnText: { color: C.text, fontSize: 12.5, fontWeight: "900" },
 
   moveHint: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.amber + "12", borderColor: C.amber + "40", borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, height: 42, marginBottom: 12 },
   moveHintText: { color: C.amber, fontSize: 11.5, fontWeight: "800", flex: 1 },
@@ -1053,18 +1053,18 @@ const styles = StyleSheet.create({
 
   posWrap: { position: "absolute", width: 56, alignItems: "center", transform: [{ translateX: -28 }, { translateY: -28 }] },
   posAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, alignItems: "center", justifyContent: "center", position: "relative" },
-  posInitials: { color: "white", fontSize: 12, fontWeight: "900" },
+  posInitials: { color: C.text, fontSize: 12, fontWeight: "900" },
   posCodeTag: { paddingHorizontal: 6, height: 15, borderRadius: 5, borderWidth: 1, alignItems: "center", justifyContent: "center", marginTop: 3 },
   posCode: { fontSize: 8, fontWeight: "900" },
-  posName: { color: "white", fontSize: 9.5, fontWeight: "800", marginTop: 2, textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 3 },
+  posName: { color: C.text, fontSize: 9.5, fontWeight: "800", marginTop: 2, textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 3 },
   capBadge: { position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: 8, backgroundColor: C.amber, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: C.bg },
   capBadgeText: { color: C.bg, fontSize: 8, fontWeight: "900" },
   condDot: { position: "absolute", bottom: -2, left: -2, width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: C.bg },
 
   benchRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   benchItem: { width: 64, alignItems: "center" },
-  benchAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center" },
-  benchNo: { color: "white", fontSize: 11, fontWeight: "900" },
+  benchAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center" },
+  benchNo: { color: C.text, fontSize: 11, fontWeight: "900" },
   benchRating: { position: "absolute", bottom: -3, right: -3, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.cyan, alignItems: "center", justifyContent: "center", paddingHorizontal: 3, borderWidth: 1.5, borderColor: C.bg },
   benchRatingText: { color: C.bg, fontSize: 8, fontWeight: "900" },
   benchName: { color: C.muted, fontSize: 9.5, fontWeight: "700", marginTop: 4, textAlign: "center" },
@@ -1078,7 +1078,7 @@ const styles = StyleSheet.create({
   chipText: { color: C.muted, fontSize: 10.5, fontWeight: "800" },
 
   sliderHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  sliderLabel: { color: "white", fontSize: 11.5, fontWeight: "800" },
+  sliderLabel: { color: C.text, fontSize: 11.5, fontWeight: "800" },
   sliderValue: { fontSize: 12, fontWeight: "900" },
   sliderTrack: { height: 24, justifyContent: "center", borderRadius: 12, backgroundColor: C.bgSecondary, paddingHorizontal: 2 },
   sliderFill: { position: "absolute", left: 2, height: 6, borderRadius: 3 },
@@ -1092,7 +1092,7 @@ const styles = StyleSheet.create({
 
   savedRow: { flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, marginBottom: 8 },
   savedTop: { flexDirection: "row", alignItems: "center", gap: 8 },
-  savedName: { color: "white", fontSize: 12.5, fontWeight: "800" },
+  savedName: { color: C.text, fontSize: 12.5, fontWeight: "800" },
   savedMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 3 },
   pubBadge: { backgroundColor: C.green + "18", borderColor: C.green + "40", borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
   pubBadgeText: { color: C.green, fontSize: 8, fontWeight: "900" },
@@ -1108,15 +1108,15 @@ const styles = StyleSheet.create({
   emptyText: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 10, marginTop: 4 },
 
   // modaluri
-  sheetOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", justifyContent: "flex-end" },
+  sheetOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", justifyContent: "flex-end" },
   sheetCard: { backgroundColor: "#0b1220", borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, maxHeight: "88%", borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
   modalCard: { width: "100%", maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
-  modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
+  modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
 
   searchRow: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, paddingHorizontal: 12, height: 44, marginBottom: 10 },
-  searchInput: { flex: 1, color: "white", fontSize: 13, fontWeight: "600" },
+  searchInput: { flex: 1, color: C.text, fontSize: 13, fontWeight: "600" },
   filterRow: { gap: 6, paddingBottom: 4 },
   sortRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
   miniChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, height: 30, borderRadius: 9, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", justifyContent: "center" },
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
   playerCard: { flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 12, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   playerNo: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   playerNoText: { fontSize: 12, fontWeight: "900" },
-  playerCardName: { color: "white", fontSize: 12.5, fontWeight: "800" },
+  playerCardName: { color: C.text, fontSize: 12.5, fontWeight: "800" },
   playerCardMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },
   fitBadge: { backgroundColor: C.green + "18", borderColor: C.green + "40", borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3, marginRight: 6 },
   fitBadgeText: { color: C.green, fontSize: 8.5, fontWeight: "900" },
@@ -1138,14 +1138,14 @@ const styles = StyleSheet.create({
   availPill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7 },
   availPillText: { fontSize: 8.5, fontWeight: "900" },
 
-  menuOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", alignItems: "center", justifyContent: "center", padding: 24 },
+  menuOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.7)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 24 },
   menuCard: { width: "100%", maxWidth: 340, backgroundColor: "#0b1220", borderRadius: 18, padding: 8, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
   menuHead: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)", marginBottom: 4 },
-  menuName: { color: "white", fontSize: 14, fontWeight: "900" },
+  menuName: { color: C.text, fontSize: 14, fontWeight: "900" },
   menuMeta: { color: C.dim, fontSize: 10.5, fontWeight: "700", marginTop: 2 },
   menuRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, height: 44, borderRadius: 10 },
-  menuRowText: { color: "white", fontSize: 12.5, fontWeight: "700" },
+  menuRowText: { color: C.text, fontSize: 12.5, fontWeight: "700" },
 
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 },
-  modalSaveText: { color: "white", fontSize: 12, fontWeight: "900" },
-});
+  modalSaveText: { color: C.text, fontSize: 12, fontWeight: "900" },
+}));

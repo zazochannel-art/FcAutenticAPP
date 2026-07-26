@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C } from "../constants/theme";
+import { colors as C, themedStyles } from "../constants/theme";
 
 const ROLE_LABELS = {
   super_admin: "Administrator platformă",
@@ -79,22 +79,22 @@ const MenuItem = ({ icon, label, onPress, danger }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = themedStyles((C) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: C.bgSecondary, alignItems: "flex-end", justifyContent: "flex-start", padding: 16 },
   card: { width: "100%", maxWidth: 340, backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)", marginTop: 8 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: "rgba(0,212,255,0.14)", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", alignItems: "center", justifyContent: "center" },
   avatarText: { color: C.cyan, fontSize: 18, fontWeight: "900" },
-  name: { color: "white", fontSize: 15, fontWeight: "900" },
+  name: { color: C.text, fontSize: 15, fontWeight: "900" },
   email: { color: C.muted, fontSize: 11, fontWeight: "600", marginTop: 2 },
   closeBtn: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
 
   infoRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
   infoPill: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.bgSecondary, borderRadius: 12, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   infoLabel: { color: C.dim, fontSize: 8.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
-  infoValue: { color: "white", fontSize: 11.5, fontWeight: "800", marginTop: 1 },
+  infoValue: { color: C.text, fontSize: 11.5, fontWeight: "800", marginTop: 1 },
 
   menu: { gap: 4 },
   menuItem: { flexDirection: "row", alignItems: "center", gap: 12, height: 46, borderRadius: 12, paddingHorizontal: 12, backgroundColor: "rgba(255,255,255,0.02)", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   menuLabel: { flex: 1, fontSize: 13, fontWeight: "700" },
-});
+}));
