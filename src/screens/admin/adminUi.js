@@ -1,9 +1,8 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Platform, Alert } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C } from "../../constants/theme";
-import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow } from "../../components/ui/visuals";
+import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface } from "../../components/ui/visuals";
 
 // --- Paletă comună, derivată din tema globală a aplicației ---
 // (înainte era o paletă paralelă; acum admin și club folosesc aceleași culori)
@@ -22,7 +21,7 @@ export const AD = {
 };
 
 // Re-export ca ecranele admin să poată folosi aceleași primitive vizuale.
-export { FadeInView, PressableScale, SkeletonRow, Sparkline };
+export { FadeInView, PressableScale, SkeletonRow, Sparkline, Surface };
 
 // Prețuri de listă pentru MRR estimat (nu există facturare reală încă).
 export const PLAN_PRICES = { Free: 0, Starter: 299, Basic: 299, Pro: 599, Elite: 999, Academy: 999 };
@@ -75,13 +74,7 @@ export const StatCard = ({ icon, label, val, sub, iColor = AD.cyan, spark, delay
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
     <FadeInView delay={delay} style={s.statCell}>
-      <View style={s.statCard}>
-        <LinearGradient
-          colors={[iColor, iColor + "00"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={s.statAccent}
-        />
+      <Surface accent={iColor} contentStyle={s.statCardInner}>
         <View style={s.statTop}>
           <View style={[s.statIconWrap, { backgroundColor: iColor + "15", borderColor: iColor + "35" }]}>
             <Icon size={19} color={iColor} />
@@ -91,7 +84,7 @@ export const StatCard = ({ icon, label, val, sub, iColor = AD.cyan, spark, delay
         <Text style={s.statVal} numberOfLines={1}>{val}</Text>
         <Text style={s.statLabel} numberOfLines={1}>{label}</Text>
         {!!sub && <Text style={s.statSub} numberOfLines={1}>{sub}</Text>}
-      </View>
+      </Surface>
     </FadeInView>
   );
 };
@@ -111,7 +104,7 @@ export const ActionBtn = ({ icon, label, color = AD.cyan, onPress }) => {
 
 export const Card = ({ title, action, onAction, children, style, delay = 0 }) => (
   <FadeInView delay={delay}>
-    <View style={[s.card, style]}>
+    <Surface style={[s.cardOuter, style]} contentStyle={s.cardInner}>
       {!!title && (
         <View style={s.cardHead}>
           <View style={s.cardTitleRow}>
@@ -124,7 +117,7 @@ export const Card = ({ title, action, onAction, children, style, delay = 0 }) =>
         </View>
       )}
       {children}
-    </View>
+    </Surface>
   </FadeInView>
 );
 
@@ -151,8 +144,7 @@ export const s = StyleSheet.create({
 
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 18 },
   statCell: { flexBasis: 180, flexGrow: 1, minWidth: 165 },
-  statCard: { backgroundColor: AD.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: AD.border, overflow: "hidden" },
-  statAccent: { position: "absolute", top: 0, left: 0, right: 0, height: 2.5 },
+  statCardInner: { padding: 16 },
   statTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   statIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
   statVal: { color: "white", fontSize: 24, fontWeight: "900", letterSpacing: -0.6 },
@@ -164,7 +156,8 @@ export const s = StyleSheet.create({
   actionIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   actionBtnText: { color: "white", fontSize: 11.5, fontWeight: "800", flex: 1 },
 
-  card: { backgroundColor: AD.card, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: AD.border, marginBottom: 14 },
+  cardOuter: { marginBottom: 14 },
+  cardInner: { padding: 18 },
   cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 9 },
   cardAccent: { width: 3, height: 14, borderRadius: 2, backgroundColor: AD.cyan },

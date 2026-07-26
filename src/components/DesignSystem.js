@@ -1,21 +1,16 @@
 import React from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, spacing, elevation } from "../constants/theme";
-import { Sparkline } from "./ui/visuals";
+import { Sparkline, Surface } from "./ui/visuals";
 
 // --- GlassCard: suprafața de bază. Stratificare prin luminozitate + bordură
 // neutră discretă (nu accent colorat), cu umbră subtilă. ---
-export const GlassCard = ({ children, style, intensity = 20 }) => (
-  <View style={[styles.glassWrapper, style]}>
-    <BlurView intensity={intensity} tint="dark" style={styles.glassBlur}>
-      <View style={styles.glassContent}>
-        {children}
-      </View>
-    </BlurView>
-  </View>
+export const GlassCard = ({ children, style, accent }) => (
+  <Surface style={style} contentStyle={styles.glassContent} accent={accent}>
+    {children}
+  </Surface>
 );
 
 // --- StatCard: Carduri statistice de sus ---
@@ -25,7 +20,7 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, s
   const Icon = LucideIcons[icon] || LucideIcons.Activity;
 
   return (
-    <GlassCard style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]}>
+    <GlassCard style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]} accent={color}>
       <View style={styles.statHeader}>
         <View style={[styles.statIconWrap, { backgroundColor: color + "15", borderColor: color + "30" }]}>
           <Icon size={isSmallMobile ? 16 : 20} color={color} />
