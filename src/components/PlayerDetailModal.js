@@ -4,13 +4,14 @@ import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line, Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
+import { colors as C } from "../constants/theme";
 
-const CARD_BG = "#071127";
-const BORDER = "rgba(0, 212, 255, 0.12)";
-const CYAN = "#00D4FF";
-const BLUE = "#0D8BFF";
-const DIM = "#94A3B8";
-const TH = "#475569";
+const CARD_BG = C.card;
+const BORDER = C.line;
+const CYAN = C.cyan;
+const BLUE = C.blue;
+const DIM = C.muted;
+const TH = C.dim;
 
 const METRICS = [
   ["technique", "Tehnică"],
@@ -408,7 +409,7 @@ const RadarChart = ({ scores }) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.88)", justifyContent: "flex-end" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" },
   sheet: { backgroundColor: CARD_BG, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: BORDER, maxWidth: 560, width: "100%", alignSelf: "center" },
   header: { flexDirection: "row", alignItems: "center", padding: 18, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   obsTypeChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   obsTypeChipActive: { borderColor: CYAN, backgroundColor: CYAN + "10" },
   obsTypeText: { color: DIM, fontSize: 10, fontWeight: "800" },
-  obsInput: { minHeight: 64, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 12, padding: 12, color: "white", fontSize: 12, fontWeight: "600", textAlignVertical: "top" },
+  obsInput: { minHeight: 64, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 12, color: "white", fontSize: 12, fontWeight: "600", textAlignVertical: "top" },
   obsItem: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
   obsItemType: { color: CYAN, fontSize: 9.5, fontWeight: "900", letterSpacing: 0.4 },
   obsItemText: { color: "white", fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
@@ -447,7 +448,7 @@ const styles = StyleSheet.create({
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   ratingBadge: { minWidth: 66, height: 52, borderRadius: 14, backgroundColor: CYAN + "12", borderWidth: 1, borderColor: CYAN + "40", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
   ratingBadgeText: { color: CYAN, fontSize: 24, fontWeight: "900" },
-  ratingInput: { flex: 1, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, height: 44, color: "white", fontSize: 14, fontWeight: "800", textAlign: "center" },
+  ratingInput: { flex: 1, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 44, color: "white", fontSize: 14, fontWeight: "800", textAlign: "center" },
   primaryPos: { color: BLUE, fontSize: 14, fontWeight: "900" },
   posGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   posChip: { width: 52, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
@@ -455,5 +456,5 @@ const styles = StyleSheet.create({
   posChipText: { color: DIM, fontSize: 11, fontWeight: "800" },
 
   fieldLabel: { color: DIM, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6 },
-  fieldInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, height: 42, color: "white", fontSize: 12, fontWeight: "600" },
+  fieldInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 42, color: "white", fontSize: 12, fontWeight: "600" },
 });

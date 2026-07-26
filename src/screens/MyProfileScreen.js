@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 24 },
 
-  heroCard: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 20, padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 14 },
+  heroCard: { flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 20, padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 14 },
   heroAvatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: "rgba(0,212,255,0.12)", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", alignItems: "center", justifyContent: "center" },
   heroName: { color: "white", fontSize: 18, fontWeight: "900" },
   heroMeta: { color: C.muted, fontSize: 11, fontWeight: "700", marginTop: 3 },
@@ -238,21 +238,21 @@ const styles = StyleSheet.create({
   statusPillText: { fontSize: 9, fontWeight: "900" },
 
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 8 },
-  statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: C.card, borderRadius: 16, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   statVal: { color: "white", fontSize: 18, fontWeight: "900", marginTop: 8 },
   statLabel: { color: C.dim, fontSize: 9, fontWeight: "800", marginTop: 2, textTransform: "uppercase" },
 
-  evalCard: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  evalCard: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   evalRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   evalLabel: { color: "white", fontSize: 10, fontWeight: "800", width: 62 },
   evalBarBg: { flex: 1, height: 5, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" },
   evalBarFill: { height: "100%", backgroundColor: C.cyan, borderRadius: 3 },
   evalVal: { color: "white", fontSize: 11, fontWeight: "900", width: 16, textAlign: "right" },
 
-  plainCard: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  plainCard: { backgroundColor: C.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   plainText: { color: C.muted, fontSize: 12, fontWeight: "600", lineHeight: 17 },
 
-  activityRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  activityRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   activityDot: { width: 8, height: 8, borderRadius: 4 },
   activityTitle: { color: "white", fontSize: 12.5, fontWeight: "800" },
   activityMeta: { color: C.dim, fontSize: 10, fontWeight: "700", marginTop: 2 },

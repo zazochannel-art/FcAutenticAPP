@@ -288,7 +288,7 @@ function PlayerPosition({ slot, player, isCaptain, moveActive, suspended, onPres
     >
       <View style={[
         styles.posAvatar,
-        { borderColor: player ? lineColor : "rgba(255,255,255,0.35)", backgroundColor: player ? "rgba(2,6,23,0.85)" : "rgba(2,6,23,0.5)" },
+        { borderColor: player ? lineColor : "rgba(255,255,255,0.35)", backgroundColor: player ? "rgba(0,0,0,0.72)" : C.bgSecondary },
         moveActive && { borderColor: C.amber, borderStyle: "dashed" },
       ]}>
         {player ? (
@@ -1026,14 +1026,14 @@ const styles = StyleSheet.create({
   countPill: { paddingHorizontal: 12, height: 32, borderRadius: 10, backgroundColor: "rgba(15,23,42,0.7)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   countPillText: { color: "white", fontSize: 12, fontWeight: "900" },
 
-  card: { backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 18, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  card: { backgroundColor: C.card, borderRadius: 18, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   cardTitle: { color: "white", fontSize: 13, fontWeight: "900" },
 
   sectionLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 8 },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 2 },
 
-  nameInput: { backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 13, fontWeight: "700" },
+  nameInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: "white", borderRadius: 10, paddingHorizontal: 12, height: 44, fontSize: 13, fontWeight: "700" },
 
   formChip: { paddingHorizontal: 14, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   formChipText: { color: C.muted, fontSize: 11.5, fontWeight: "800" },
@@ -1063,7 +1063,7 @@ const styles = StyleSheet.create({
 
   benchRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   benchItem: { width: 64, alignItems: "center" },
-  benchAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center" },
+  benchAvatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center" },
   benchNo: { color: "white", fontSize: 11, fontWeight: "900" },
   benchRating: { position: "absolute", bottom: -3, right: -3, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.cyan, alignItems: "center", justifyContent: "center", paddingHorizontal: 3, borderWidth: 1.5, borderColor: C.bg },
   benchRatingText: { color: C.bg, fontSize: 8, fontWeight: "900" },
@@ -1080,13 +1080,13 @@ const styles = StyleSheet.create({
   sliderHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   sliderLabel: { color: "white", fontSize: 11.5, fontWeight: "800" },
   sliderValue: { fontSize: 12, fontWeight: "900" },
-  sliderTrack: { height: 24, justifyContent: "center", borderRadius: 12, backgroundColor: "rgba(2,6,23,0.6)", paddingHorizontal: 2 },
+  sliderTrack: { height: 24, justifyContent: "center", borderRadius: 12, backgroundColor: C.bgSecondary, paddingHorizontal: 2 },
   sliderFill: { position: "absolute", left: 2, height: 6, borderRadius: 3 },
   sliderThumb: { position: "absolute", width: 18, height: 18, borderRadius: 9, backgroundColor: "white", borderWidth: 3, marginLeft: -9 },
   sliderEnds: { flexDirection: "row", justifyContent: "space-between", marginTop: 5 },
   sliderEndText: { color: C.dim, fontSize: 9, fontWeight: "700" },
 
-  instrPos: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(2,6,23,0.5)", borderRadius: 10, paddingHorizontal: 12, height: 40, marginBottom: 12 },
+  instrPos: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: C.bgSecondary, borderRadius: 10, paddingHorizontal: 12, height: 40, marginBottom: 12 },
   instrPosLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
   instrPosValue: { color: C.cyan, fontSize: 13, fontWeight: "900" },
 
@@ -1108,14 +1108,14 @@ const styles = StyleSheet.create({
   emptyText: { color: C.muted, fontSize: 12, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 10, marginTop: 4 },
 
   // modaluri
-  sheetOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", justifyContent: "flex-end" },
+  sheetOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", justifyContent: "flex-end" },
   sheetCard: { backgroundColor: "#0b1220", borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, maxHeight: "88%", borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center", padding: 20 },
-  modalCard: { width: "100%", maxWidth: 460, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  modalCard: { width: "100%", maxWidth: 460, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   modalTitle: { color: "white", fontSize: 15, fontWeight: "900" },
 
-  searchRow: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 12, paddingHorizontal: 12, height: 44, marginBottom: 10 },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, paddingHorizontal: 12, height: 44, marginBottom: 10 },
   searchInput: { flex: 1, color: "white", fontSize: 13, fontWeight: "600" },
   filterRow: { gap: 6, paddingBottom: 4 },
   sortRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 },
@@ -1124,7 +1124,7 @@ const styles = StyleSheet.create({
   miniChipText: { color: C.muted, fontSize: 10.5, fontWeight: "800" },
   miniChipTextOn: { color: C.bg },
 
-  playerCard: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 12, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  playerCard: { flexDirection: "row", alignItems: "center", backgroundColor: C.card, borderRadius: 12, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   playerNo: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   playerNoText: { fontSize: 12, fontWeight: "900" },
   playerCardName: { color: "white", fontSize: 12.5, fontWeight: "800" },
@@ -1138,7 +1138,7 @@ const styles = StyleSheet.create({
   availPill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7 },
   availPillText: { fontSize: 8.5, fontWeight: "900" },
 
-  menuOverlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.8)", alignItems: "center", justifyContent: "center", padding: 24 },
+  menuOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)", alignItems: "center", justifyContent: "center", padding: 24 },
   menuCard: { width: "100%", maxWidth: 340, backgroundColor: "#0b1220", borderRadius: 18, padding: 8, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
   menuHead: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)", marginBottom: 4 },
   menuName: { color: "white", fontSize: 14, fontWeight: "900" },

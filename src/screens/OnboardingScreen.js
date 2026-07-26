@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   choiceDesktop: { width: "44%", maxWidth: 720, padding: 44 },
   choiceTitle: { color: "white", fontSize: 36, fontWeight: "900", textAlign: "center" },
   choiceSubtitle: { color: C.muted, fontSize: 16, textAlign: "center", marginTop: 8, marginBottom: 28 },
-  option: { borderRadius: 22, borderWidth: 1.2, backgroundColor: "rgba(2,6,23,0.42)", padding: 20, gap: 18 },
+  option: { borderRadius: 22, borderWidth: 1.2, backgroundColor: C.bgSecondary, padding: 20, gap: 18 },
   optionTop: { flexDirection: "row", alignItems: "center", gap: 18 },
   optionIcon: { width: 82, height: 82, borderRadius: 41, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   optionTitle: { color: "white", fontSize: 24, fontWeight: "900" },

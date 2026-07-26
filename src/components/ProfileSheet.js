@@ -80,8 +80,8 @@ const MenuItem = ({ icon, label, onPress, danger }) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.6)", alignItems: "flex-end", justifyContent: "flex-start", padding: 16 },
-  card: { width: "100%", maxWidth: 340, backgroundColor: "#071127", borderRadius: 18, padding: 16, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)", marginTop: 8 },
+  overlay: { flex: 1, backgroundColor: C.bgSecondary, alignItems: "flex-end", justifyContent: "flex-start", padding: 16 },
+  card: { width: "100%", maxWidth: 340, backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)", marginTop: 8 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: "rgba(0,212,255,0.14)", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", alignItems: "center", justifyContent: "center" },
   avatarText: { color: C.cyan, fontSize: 18, fontWeight: "900" },
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   closeBtn: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
 
   infoRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
-  infoPill: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "rgba(2,6,23,0.5)", borderRadius: 12, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  infoPill: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.bgSecondary, borderRadius: 12, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   infoLabel: { color: C.dim, fontSize: 8.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   infoValue: { color: "white", fontSize: 11.5, fontWeight: "800", marginTop: 1 },
 

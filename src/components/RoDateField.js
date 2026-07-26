@@ -92,16 +92,16 @@ const PickItem = ({ active, label, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  field: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(2,6,23,0.6)", borderWidth: 1, borderColor: "#1e293b", borderRadius: 10, paddingHorizontal: 12, height: 42, marginBottom: 12 },
+  field: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 42, marginBottom: 12 },
   fieldText: { color: "white", fontSize: 12, fontWeight: "600", flex: 1 },
-  overlay: { flex: 1, backgroundColor: "rgba(2,6,23,0.85)", alignItems: "center", justifyContent: "center", padding: 20 },
-  card: { width: "100%", maxWidth: 360, backgroundColor: "#071127", borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.72)", alignItems: "center", justifyContent: "center", padding: 20 },
+  card: { width: "100%", maxWidth: 360, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   title: { color: "white", fontSize: 15, fontWeight: "900" },
   columns: { flexDirection: "row", gap: 8, height: 200 },
   column: { flex: 1 },
   columnLabel: { color: C.dim, fontSize: 8.5, fontWeight: "900", letterSpacing: 1, marginBottom: 6, textAlign: "center" },
-  columnScroll: { flex: 1, backgroundColor: "rgba(2,6,23,0.5)", borderRadius: 10, borderWidth: 1, borderColor: "#1e293b" },
+  columnScroll: { flex: 1, backgroundColor: C.bgSecondary, borderRadius: 10, borderWidth: 1, borderColor: C.line },
   item: { paddingVertical: 9, alignItems: "center" },
   itemActive: { backgroundColor: C.cyan + "18" },
   itemText: { color: C.muted, fontSize: 12, fontWeight: "700" },

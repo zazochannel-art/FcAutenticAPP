@@ -105,7 +105,9 @@ function MenuItem({ tab, activeTab, setTab }) {
   const isActive = activeTab === tab.label;
   return (
     <Pressable onPress={() => setTab(tab.label)} style={[styles.menuItem, isActive && styles.menuItemActive]}>
-      <Icon size={20} color={isActive ? C.cyan : C.muted} strokeWidth={isActive ? 2.5 : 2} />
+      <View style={[styles.menuIconWrap, isActive && styles.menuIconWrapActive]}>
+        <Icon size={17} color={isActive ? C.cyan : C.muted} strokeWidth={isActive ? 2.4 : 2} />
+      </View>
       <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{tab.label}</Text>
       {tab.label === "Mai mult" && <View style={styles.countBadge}><Text style={styles.countText}>3</Text></View>}
       {isActive && <View style={styles.activeIndicator} />}
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
   inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
 
-  menuScroll: { flex: 1, paddingHorizontal: spacing.sm },
+  menuScroll: { flex: 1, paddingHorizontal: 10 },
   menuSectionLabel: {
     color: C.dim,
     fontSize: 8.5,
@@ -197,13 +199,16 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: 7,
+    paddingLeft: 14,
+    paddingRight: spacing.md,
     borderRadius: radius.md,
-    marginBottom: 3,
-    gap: 12,
+    marginBottom: 4,
+    gap: 11,
     position: "relative"
   },
+  menuIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.04)" },
+  menuIconWrapActive: { backgroundColor: C.cyan + "1F" },
   menuItemActive: {
     backgroundColor: "rgba(255,255,255,0.06)",
   },
@@ -251,14 +256,14 @@ const styles = StyleSheet.create({
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.green, borderWidth: 1.5, borderColor: C.card },
   seasonButton: { marginTop: 8, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   seasonText: { color: C.muted, fontSize: 10, fontWeight: "800" },
-  topbar: { height: 60, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },
+  topbar: { height: 62, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },
   searchBox: { width: 440, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
   searchInput: { flex: 1, color: "white", fontSize: 12, fontWeight: "600" },
   shortcut: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
   shortcutText: { color: C.dim, fontSize: 9, fontWeight: "900" },
   notifyButton: { width: 46, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
-  notifyDot: { position: "absolute", top: 10, right: 10, width: 12, height: 12, borderRadius: 6, backgroundColor: C.cyan, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#020812" },
-  notifyText: { color: "#020812", fontSize: 7.5, fontWeight: "900" },
+  notifyDot: { position: "absolute", top: 10, right: 10, width: 12, height: 12, borderRadius: 6, backgroundColor: C.cyan, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: C.bg },
+  notifyText: { color: C.bg, fontSize: 7.5, fontWeight: "900" },
   profilePill: { height: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(148,163,184,0.12)", backgroundColor: "rgba(15,23,42,0.75)", paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 10 },
   profileTextWrap: { alignItems: 'flex-end' },
   avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },

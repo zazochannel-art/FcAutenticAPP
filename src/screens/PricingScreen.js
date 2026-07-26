@@ -415,7 +415,7 @@ const FeatureLine = ({ label, included }) => (
 const UsageDonut = ({ per, label, sub, color }) => (
   <View style={styles.donutContainer}>
     <Svg width="120" height="120" viewBox="0 0 100 100">
-      <Circle cx="50" cy="50" r="40" stroke="#1e293b" strokeWidth="10" fill="none" />
+      <Circle cx="50" cy="50" r="40" stroke={C.line} strokeWidth="10" fill="none" />
       <Circle
         cx="50" cy="50" r="40"
         stroke={color} strokeWidth="10" fill="none"
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
   pageSub: { color: TEXT_DIM, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   planTabsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30, alignItems: 'stretch' },
-  planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: "rgba(15,23,42,0.4)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
+  planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
   planTabText: { color: TEXT_DIM, fontSize: 12, fontWeight: '800' },
   planTabPrice: { color: TEXT_TH, fontSize: 9.5, fontWeight: '700', marginTop: 1 },
   activePlanIndicator: { position: 'absolute', top: 10, right: 10, backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3 },

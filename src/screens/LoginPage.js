@@ -110,7 +110,7 @@ function InputField({ icon, placeholder, value, onChange, onBlur, error, secure,
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor="#475569"
+          placeholderTextColor={C.dim}
           secureTextEntry={secure && !showPassword}
           value={value}
           onChangeText={onChange}
@@ -329,9 +329,9 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                 </View>
               </View>
               <View style={styles.langSelector}>
-                <Globe size={14} color="#94A3B8" />
+                <Globe size={14} color={C.muted} />
                 <Text style={styles.langText}>Română</Text>
-                <ChevronDown size={12} color="#94A3B8" />
+                <ChevronDown size={12} color={C.muted} />
               </View>
             </View>
 
