@@ -39,6 +39,13 @@ export const palettes = {
     lineStrong: "rgba(255,255,255,0.12)",
     lineFocus: "rgba(6,182,212,0.45)",
 
+    // Navigație: panoul lateral (.tabs @min-width:701px) și bara mobilă
+    // (.mobile-tabs) au fundaluri proprii în Kultura, distincte de --surface.
+    navPanel: "rgba(20,24,43,0.60)",
+    navBarFrom: "rgba(26,31,53,0.92)",
+    navBarTo: "rgba(14,17,32,0.88)",
+    navBorder: "rgba(255,255,255,0.10)",
+
     // paleta Kultura
     accent: ACCENT,
     accent2: ACCENT_2,
@@ -88,6 +95,11 @@ export const palettes = {
     line: "rgba(15,23,42,0.12)",
     lineStrong: "rgba(15,23,42,0.20)",
     lineFocus: "rgba(6,182,212,0.45)",
+
+    navPanel: "rgba(255,255,255,0.72)",
+    navBarFrom: "rgba(255,255,255,0.94)",
+    navBarTo: "rgba(238,242,249,0.90)",
+    navBorder: "rgba(15,23,42,0.10)",
 
     accent: ACCENT,
     accent2: ACCENT_2,
@@ -196,6 +208,22 @@ export const elevation = {
     shadowOpacity: 0.5,
     shadowRadius: 80,
     elevation: 20,
+  },
+  // .mobile-tabs: 0 24px 48px -12px rgba(0,0,0,.55)
+  nav: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 0.55,
+    shadowRadius: 48,
+    elevation: 16,
+  },
+  // .mtab.active: 0 8px 22px var(--accent-glow)
+  navActive: {
+    shadowColor: "#06B6D4",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.30,
+    shadowRadius: 22,
+    elevation: 8,
   },
 };
 

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View, Modal, ScrollView } from "react-native";
-import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, themedStyles } from "../../constants/theme";
+import { colors as C, themedStyles, elevation, gradients } from "../../constants/theme";
 
 const tabIcons = {
   Dashboard: "LayoutGrid",
@@ -41,15 +41,20 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress }) {
   const pick = (label) => { setMenuOpen(false); onTabPress(label); };
 
   return (
-    <View style={styles.wrapper}>
-      <BlurView intensity={30} tint="dark" style={styles.container}>
+    <View style={styles.wrapper} pointerEvents="box-none">
+      <LinearGradient
+        colors={[C.navBarFrom, C.navBarTo]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.container}
+      >
         {mainTabs.map((label) => (
           <BottomItem key={label} label={displayLabel(label)} icon={tabIcons[label]} active={activeTab === label} onPress={() => onTabPress(label)} />
         ))}
         {showMenu && (
           <BottomItem label="Meniu" icon="LayoutGrid" active={!mainTabs.includes(activeTab)} onPress={() => setMenuOpen(true)} />
         )}
-      </BlurView>
+      </LinearGradient>
 
       <Modal visible={menuOpen} transparent animationType="slide" onRequestClose={() => setMenuOpen(false)}>
         <Pressable style={styles.sheetOverlay} onPress={() => setMenuOpen(false)}>
@@ -82,48 +87,56 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress }) {
   );
 }
 
+// .mtab — pastilă; eticheta apare doar pe tabul activ (în Kultura, `max-width`
+// crește de la 0 la 90px). Iconița rămâne mereu vizibilă.
 function BottomItem({ label, icon, active, onPress }) {
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
-    <Pressable onPress={onPress} style={styles.tab}>
-      <View style={[styles.iconWrap, active && styles.iconActive]}>
-        <Icon size={20} color={active ? C.cyan : C.muted} strokeWidth={active ? 2.7 : 2} />
-      </View>
-      <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>{label}</Text>
-      {active && <View style={styles.glow} />}
+    <Pressable onPress={onPress} style={[styles.tab, active && styles.tabActive]}>
+      {active && (
+        <LinearGradient
+          colors={gradients.button}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: 999 }]}
+        />
+      )}
+      <Icon size={21} color={active ? "#fff" : C.muted} strokeWidth={2} />
+      {active && <Text style={styles.labelActive} numberOfLines={1}>{label}</Text>}
     </Pressable>
   );
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
+  // .mobile-tabs — pastilă flotantă, centrată, la 26px de marginea de jos
   wrapper: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: Platform.OS === "ios" ? 34 : 10,
+    alignItems: "center",
+    paddingBottom: Platform.OS === "ios" ? 26 + 34 : 26,
     backgroundColor: "transparent",
   },
   container: {
     flexDirection: "row",
-    height: 70,
-    marginHorizontal: 14,
-    marginBottom: 8,
-    borderRadius: 22,
+    width: "100%",
+    maxWidth: 480,
+    marginHorizontal: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: C.line,
-    backgroundColor: C.card,
-    paddingHorizontal: 8,
+    borderColor: C.navBorder,
+    padding: 5,
+    gap: 2,
     alignItems: "center",
     justifyContent: "space-around",
-    overflow: "hidden",
+    ...elevation.nav,
+    ...(Platform.OS === "web" ? { backdropFilter: "blur(24px) saturate(180%)" } : null),
   },
-  tab: { flex: 1, height: "100%", alignItems: "center", justifyContent: "center" },
-  iconWrap: { width: 42, height: 30, alignItems: "center", justifyContent: "center", borderRadius: 999 },
-  iconActive: { backgroundColor: C.cyan + "1F" },
-  label: { color: C.muted, fontSize: 9, fontWeight: "800", marginTop: 2 },
-  labelActive: { color: C.cyan },
-  glow: { position: "absolute", bottom: 6, width: 16, height: 2.5, borderRadius: 2, backgroundColor: C.cyan },
+  // .mtab / .mtab.active
+  tab: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 8, paddingHorizontal: 7, borderRadius: 999, overflow: "hidden" },
+  tabActive: { paddingVertical: 9, paddingHorizontal: 13, gap: 6, ...elevation.navActive },
+  labelActive: { color: "#fff", fontSize: 12, fontWeight: "600" },
 
   sheetOverlay: { flex: 1, backgroundColor: C.bgSecondary, justifyContent: "flex-end" },
   sheet: { backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === "ios" ? 40 : 24, maxHeight: "75%" },

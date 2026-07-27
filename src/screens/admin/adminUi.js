@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Platform, Alert } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, themedStyles } from "../../constants/theme";
+import { colors as C, themedStyles, elevation } from "../../constants/theme";
 import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface } from "../../components/ui/visuals";
 
 // --- Paletă comună, derivată din tema globală a aplicației ---
@@ -74,11 +75,17 @@ export const StatCard = ({ icon, label, val, sub, iColor = AD.cyan, spark, delay
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
     <FadeInView delay={delay} style={s.statCell}>
-      <Surface accent={iColor} contentStyle={s.statCardInner}>
+      <Surface contentStyle={s.statCardInner}>
         <View style={s.statTop}>
-          <View style={[s.statIconWrap, { backgroundColor: iColor + "15", borderColor: iColor + "35" }]}>
-            <Icon size={19} color={iColor} />
-          </View>
+          {/* .stat-icon — gradient 135° din culoare 0.28 → 0.10 */}
+          <LinearGradient
+            colors={[iColor + "47", iColor + "1A"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.statIconWrap}
+          >
+            <Icon size={20} color={iColor} />
+          </LinearGradient>
           {spark ? <Sparkline data={spark} color={iColor} width={54} height={20} /> : null}
         </View>
         <Text style={s.statVal} numberOfLines={1}>{val}</Text>
@@ -144,24 +151,26 @@ export const s = themedStyles((C) => StyleSheet.create({
 
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 18 },
   statCell: { flexBasis: 180, flexGrow: 1, minWidth: 165 },
-  statCardInner: { padding: 16 },
-  statTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  statIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  statVal: { color: C.text, fontSize: 24, fontWeight: "900", letterSpacing: -0.6 },
-  statLabel: { color: AD.dim, fontSize: 9.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8, marginTop: 4 },
-  statSub: { color: AD.faint, fontSize: 9, fontWeight: "700", marginTop: 3 },
+  // .stat — padding 18, iconiță 40/12, valoare 26/900/-0.5, etichetă 12/500
+  statCardInner: { padding: 18 },
+  statTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  statIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  statVal: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
+  statLabel: { color: AD.dim, fontSize: 12, fontWeight: "500", marginTop: 2 },
+  statSub: { color: AD.faint, fontSize: 11, fontWeight: "500", marginTop: 3 },
 
   actionsList: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 18 },
   actionBtn: { flexBasis: 190, flexGrow: 1, height: 52, backgroundColor: "rgba(15,23,42,0.5)", borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, borderWidth: 1 },
   actionIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   actionBtnText: { color: C.text, fontSize: 11.5, fontWeight: "800", flex: 1 },
 
-  cardOuter: { marginBottom: 14 },
-  cardInner: { padding: 18 },
-  cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
+  // .card — padding 20, margin-bottom 16; .card-head h3 — 15px/900
+  cardOuter: { marginBottom: 16 },
+  cardInner: { padding: 20 },
+  cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   cardTitleRow: { flexDirection: "row", alignItems: "center", gap: 9 },
-  cardAccent: { width: 3, height: 14, borderRadius: 2, backgroundColor: AD.cyan },
-  cardTitle: { color: C.text, fontSize: 12.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8 },
+  cardAccent: { width: 3, height: 15, borderRadius: 2, backgroundColor: AD.cyan },
+  cardTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   cardAction: { color: AD.cyan, fontSize: 11, fontWeight: "800" },
   emptyBox: { alignItems: "center", gap: 10, paddingVertical: 26 },
   emptyText: { color: AD.dim, fontSize: 11, fontWeight: "600", lineHeight: 16, textAlign: "center" },
@@ -182,7 +191,8 @@ export const s = themedStyles((C) => StyleSheet.create({
 
   // Modal (reutilizat de paginile care au dialoguri)
   modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
-  modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: AD.border },
+  // .modal — rază 24, padding 28, --card-grad-strong, umbră 0 30px 80px
+  modalCard: { width: "100%", maxWidth: 480, backgroundColor: C.cardSolid, borderRadius: 24, padding: 28, borderWidth: 1, borderColor: C.line, ...elevation.modal },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: AD.dim, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },

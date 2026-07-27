@@ -1,11 +1,10 @@
 // Primitive vizuale reutilizabile (fără dependențe noi): sparkline, area chart,
 // skeleton, buton cu scale la apăsare, badge de tendință, empty state, fade-in.
 import React, { useEffect, useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
+import { Platform, View, Text, Pressable, StyleSheet, Animated, Easing } from "react-native";
 import Svg, { Polyline, Path, Defs, LinearGradient, RadialGradient, Stop, Circle, Rect, Ellipse } from "react-native-svg";
-import { LinearGradient as ExpoGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius as R, elevation, themedStyles } from "../../constants/theme";
+import { colors as C, radius as R, themedStyles } from "../../constants/theme";
 
 // --- AmbientBackground: lumini difuze foarte fine peste fundal --------------
 // Trei pete radiale (verde / mov / albastru) la opacitate mică, care rup
@@ -38,28 +37,18 @@ export function AmbientBackground({ style }) {
   );
 }
 
-// --- Surface: suprafață cu muchie luminoasă sus + gradient subtil ----------
-// Muchia luminoasă simulează lumina venită de sus și dă senzația de material
-// fizic — detaliul care separă un card „plat" de unul care pare ridicat.
+// --- Surface: cardul de bază, identic cu `.card` din Kultura ----------------
+//   background: var(--surface);  border: 1px solid var(--border);
+//   border-radius: 22px;         backdrop-filter: blur(12px);
+// Suprafața e translucidă și lasă să se vadă aurora din fundal — de aceea nu
+// are umbră: separarea vine din blur + bordură, nu din elevație.
+const blur12 = Platform.OS === "web" ? { backdropFilter: "blur(12px)" } : null;
+
 export function Surface({ children, style, contentStyle, accent, radius = R.xl }) {
   return (
-    <View style={[{ borderRadius: radius, overflow: "hidden", borderWidth: 1, borderColor: C.line, backgroundColor: C.cardSolid, ...elevation.low }, style]}>
-      {/* --card-grad: suprapunere foarte fină, de sus în jos */}
-      <ExpoGradient
-        colors={[C.cardGradFrom, C.cardGradTo]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      {/* bandă de accent opțională */}
-      {accent ? (
-        <ExpoGradient
-          colors={[accent, accent + "00"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.accentBar}
-        />
-      ) : null}
+    <View style={[styles.surface, { borderRadius: radius }, blur12, style]}>
+      {/* .card-stripe::before — bandă verticală de 4px pe muchia din stânga */}
+      {accent ? <View style={[styles.accentStripe, { backgroundColor: accent }]} /> : null}
       <View style={contentStyle}>{children}</View>
     </View>
   );
@@ -227,8 +216,13 @@ export function FadeInView({ children, delay = 0, style }) {
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  topEdge: { position: "absolute", top: 0, left: 0, right: 0, height: 1 },
-  accentBar: { position: "absolute", top: 0, left: 0, right: 0, height: 2.5 },
+  surface: {
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.card,
+  },
+  accentStripe: { position: "absolute", left: 0, top: 0, bottom: 0, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
   chartEmptyText: { color: C.dim, fontSize: 11, fontWeight: "700", textAlign: "center" },
   skelRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 4 },
   trendBadge: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, height: 20, borderRadius: 7 },
