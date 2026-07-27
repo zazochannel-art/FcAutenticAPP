@@ -5,43 +5,58 @@
 // Accentul principal: verde-gazon, potrivit tematic cu fotbalul.
 // Cheia `cyan` rămâne ca alias istoric (e folosită în ~260 de locuri);
 // numele nou și corect este `accent`.
-const ACCENT_DARK = "#4ADE80"; // verde-gazon, pe fundal închis
-const ACCENT_LIGHT = "#16A34A"; // varianta mai închisă, lizibilă pe alb
+// Design transcris din Kultura (zazochannel-art.github.io/Kultura) —
+// aceleași tokenuri de culoare, raze, umbre și gradienți.
+const ACCENT = "#06B6D4";   // --accent
+const ACCENT_2 = "#8B5CF6"; // --accent-2
 
-// --- Paletele celor două teme ------------------------------------------------
 export const palettes = {
   dark: {
-    bg: "#080C09",
-    bgSecondary: "#0C130E",
-    bgElevated: "#101A14",
+    // --bg / --surface / --surface-solid / --surface-elev
+    bg: "#09090B",
+    bgSecondary: "#0F0F12",
+    bgElevated: "#1F1F23",
+    card: "rgba(24,24,27,0.72)",
+    cardSolid: "#18181B",
+    cardHover: "#1F1F23",
+    cardLight: "#212126",
 
-    glowA: "rgba(74, 222, 128, 0.10)",
-    glowB: "rgba(139, 92, 246, 0.09)",
-    glowC: "rgba(56, 189, 248, 0.07)",
+    // --card-grad (suprapunere albă foarte fină peste suprafață)
+    cardGradFrom: "rgba(255,255,255,0.055)",
+    cardGradTo: "rgba(255,255,255,0.022)",
+    cardGradStrongFrom: "rgba(255,255,255,0.08)",
+    cardGradStrongTo: "rgba(255,255,255,0.03)",
 
-    // Suprafețe verzi profunde (gradient de la cardHover spre card)
-    card: "#101A14",
-    cardHover: "#18291F",
-    cardLight: "#1E3327",
-    // Auriu — culoarea care merge cel mai bine cu verdele de gazon
-    // (verde teren + auriu trofeu). Folosit ca accent secundar.
-    companion: "#FBBF24",
+    // --fill-1..5
+    fill1: "rgba(255,255,255,0.03)",
+    fill2: "rgba(255,255,255,0.06)",
+    fill3: "rgba(255,255,255,0.045)",
+    fill4: "rgba(255,255,255,0.07)",
+    fill5: "rgba(255,255,255,0.09)",
 
-    line: "rgba(134, 239, 172, 0.10)",
-    lineStrong: "rgba(134, 239, 172, 0.18)",
-    lineFocus: "rgba(74, 222, 128, 0.45)",
+    // --border / --border-strong
+    line: "rgba(255,255,255,0.06)",
+    lineStrong: "rgba(255,255,255,0.12)",
+    lineFocus: "rgba(6,182,212,0.45)",
 
-    accent: ACCENT_DARK,
-    cyan: ACCENT_DARK, // alias istoric — accentul principal
-    teal: "#06B6D4",
+    // paleta Kultura
+    accent: ACCENT,
+    accent2: ACCENT_2,
+    accentGlow: "rgba(6,182,212,0.30)",
+    cyan: ACCENT, // alias istoric — accentul principal
+    teal: "#14B8A6",
     blue: "#3B82F6",
     purple: "#8B5CF6",
     violet: "#A78BFA",
-    gold: "#FBBF24",
+    pink: "#EC4899",
+    gold: "#F59E0B",
     amber: "#F59E0B",
-    green: "#22C55E",
+    orange: "#F59E0B",
+    green: "#10B981",
     red: "#EF4444",
+    companion: "#8B5CF6",
 
+    // --text / --text-dim / --text-mute
     text: "#FAFAFA",
     muted: "#A1A1AA",
     dim: "#71717A",
@@ -51,37 +66,48 @@ export const palettes = {
     isDark: true,
   },
   light: {
-    bg: "#F7FCF9",
-    bgSecondary: "#EFF7F2",
+    bg: "#EEF1F7",
+    bgSecondary: "#E7EBF3",
     bgElevated: "#FFFFFF",
-
-    glowA: "rgba(22, 163, 74, 0.09)",
-    glowB: "rgba(139, 92, 246, 0.07)",
-    glowC: "rgba(56, 189, 248, 0.06)",
-
-    card: "#F4FBF6",
+    card: "rgba(255,255,255,0.78)",
+    cardSolid: "#FFFFFF",
     cardHover: "#FFFFFF",
-    cardLight: "#E8F5EC",
-    companion: "#D97706",
+    cardLight: "#F4F7FC",
 
-    line: "rgba(22, 101, 52, 0.14)",
-    lineStrong: "rgba(22, 101, 52, 0.22)",
-    lineFocus: "rgba(22, 163, 74, 0.45)",
+    cardGradFrom: "#FFFFFF",
+    cardGradTo: "#F4F7FC",
+    cardGradStrongFrom: "#FFFFFF",
+    cardGradStrongTo: "#EEF2F9",
 
-    accent: ACCENT_LIGHT,
-    cyan: ACCENT_LIGHT,
-    teal: "#0891B2",
-    blue: "#2563EB",
-    purple: "#7C3AED",
+    fill1: "rgba(15,23,42,0.03)",
+    fill2: "rgba(15,23,42,0.06)",
+    fill3: "rgba(15,23,42,0.045)",
+    fill4: "rgba(15,23,42,0.07)",
+    fill5: "rgba(15,23,42,0.09)",
+
+    line: "rgba(15,23,42,0.12)",
+    lineStrong: "rgba(15,23,42,0.20)",
+    lineFocus: "rgba(6,182,212,0.45)",
+
+    accent: ACCENT,
+    accent2: ACCENT_2,
+    accentGlow: "rgba(6,182,212,0.30)",
+    cyan: ACCENT,
+    teal: "#0D9488",
+    blue: "#3B82F6",
+    purple: "#8B5CF6",
     violet: "#8B5CF6",
-    gold: "#D97706",
-    amber: "#D97706",
-    green: "#16A34A",
-    red: "#DC2626",
+    pink: "#EC4899",
+    gold: "#F59E0B",
+    amber: "#F59E0B",
+    orange: "#F59E0B",
+    green: "#10B981",
+    red: "#EF4444",
+    companion: "#8B5CF6",
 
-    text: "#18181B",
-    muted: "#52525B",
-    dim: "#71717A",
+    text: "#0F172A",
+    muted: "#475569",
+    dim: "#94A3B8",
 
     white: "#FFFFFF",
     transparent: "transparent",
@@ -128,31 +154,56 @@ export const spacing = {
   xxl: 36,
 };
 
+// Raze din Kultura: .tab 12, .btn 14, .tabs 16, .card/.stat 22, .modal/.hero 24
 export const radius = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-  xxl: 28,
+  btn: 14,
+  xl: 22,
+  xxl: 24,
   full: 999,
 };
 
 // Umbre moderne, subtile (folosite pe suprafețele ridicate).
+// Umbre din Kultura: tab activ 0 6px 18px rgba(139,92,246,.35);
+// buton 0 10px 24px var(--accent-glow); modal 0 30px 80px rgba(0,0,0,.5)
 export const elevation = {
   low: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.18,
     shadowRadius: 8,
     elevation: 2,
   },
   medium: {
-    shadowColor: "#000",
+    shadowColor: "#8B5CF6",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.32,
+    shadowOpacity: 0.35,
     shadowRadius: 18,
     elevation: 6,
   },
+  button: {
+    shadowColor: "#06B6D4",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.30,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  modal: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 30 },
+    shadowOpacity: 0.5,
+    shadowRadius: 80,
+    elevation: 20,
+  },
+};
+
+// Gradienți din Kultura
+export const gradients = {
+  hero: ["#7C3AED", "#3B82F6", "#06B6D4"],   // .hero 135deg
+  tabActive: ["#3B82F6", "#8B5CF6"],          // .tab.active 90deg
+  button: ["#06B6D4", "#8B5CF6"],             // .btn 90deg (accent → accent-2)
 };
 
 // Scară tipografică — ierarhie consistentă în toată aplicația.

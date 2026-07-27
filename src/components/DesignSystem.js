@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing, elevation, themedStyles } from "../constants/theme";
+import { colors as C, radius, spacing, elevation, themedStyles, gradients } from "../constants/theme";
 import { Sparkline, Surface } from "./ui/visuals";
 
 // --- GlassCard: suprafața de bază. Stratificare prin luminozitate + bordură
@@ -41,7 +41,7 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, s
 // --- NeonButton: Butonul principal cu gradient și glow ---
 export const NeonButton = ({ label, icon, onPress, variant = "primary", fullWidth, style }) => {
   const Icon = icon ? LucideIcons[icon] : null;
-  const gradientColors = variant === "danger" ? [C.red, "#991B1B"] : [C.cyan, C.purple];
+  const gradientColors = variant === "danger" ? [C.red, "#991B1B"] : gradients.button;
 
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [
@@ -85,7 +85,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   trendWrap: { flexDirection: "row", alignItems: "center", gap: 4 },
   trendText: { fontSize: 10, fontWeight: "800" },
 
-  neonBtnContainer: { height: 52, borderRadius: radius.lg, overflow: "hidden", shadowColor: C.cyan, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 5 },
+  neonBtnContainer: { height: 52, borderRadius: radius.btn, overflow: "hidden", ...elevation.button },
   neonBtnGradient: { flex: 1, justifyContent: "center", alignItems: "center" },
   neonBtnContent: { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.xl },
   neonBtnText: { color: C.text, fontWeight: "900", fontSize: 14, letterSpacing: 0.5, textTransform: "uppercase" }
