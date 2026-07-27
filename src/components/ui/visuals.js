@@ -47,12 +47,12 @@ export function Surface({ children, style, contentStyle, accent, radius = R.xl }
       <ExpoGradient
         colors={[C.cardHover, C.card]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
       {/* muchia luminoasă de sus (1px) */}
       <ExpoGradient
-        colors={C.isDark ? ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.03)", "transparent"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.4)", "transparent"]}
+        colors={C.isDark ? ["rgba(134,239,172,0.28)", "rgba(134,239,172,0.06)", "transparent"] : ["rgba(255,255,255,0.95)", "rgba(220,252,231,0.5)", "transparent"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.topEdge}

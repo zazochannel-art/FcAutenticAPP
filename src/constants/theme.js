@@ -11,20 +11,24 @@ const ACCENT_LIGHT = "#16A34A"; // varianta mai închisă, lizibilă pe alb
 // --- Paletele celor două teme ------------------------------------------------
 export const palettes = {
   dark: {
-    bg: "#09090B",
-    bgSecondary: "#0F0F12",
-    bgElevated: "#131316",
+    bg: "#080C09",
+    bgSecondary: "#0C130E",
+    bgElevated: "#101A14",
 
     glowA: "rgba(74, 222, 128, 0.10)",
     glowB: "rgba(139, 92, 246, 0.09)",
     glowC: "rgba(56, 189, 248, 0.07)",
 
-    card: "#18181B",
-    cardHover: "#1F1F23",
-    cardLight: "#212126",
+    // Suprafețe verzi profunde (gradient de la cardHover spre card)
+    card: "#101A14",
+    cardHover: "#18291F",
+    cardLight: "#1E3327",
+    // Auriu — culoarea care merge cel mai bine cu verdele de gazon
+    // (verde teren + auriu trofeu). Folosit ca accent secundar.
+    companion: "#FBBF24",
 
-    line: "rgba(255, 255, 255, 0.07)",
-    lineStrong: "rgba(255, 255, 255, 0.12)",
+    line: "rgba(134, 239, 172, 0.10)",
+    lineStrong: "rgba(134, 239, 172, 0.18)",
     lineFocus: "rgba(74, 222, 128, 0.45)",
 
     accent: ACCENT_DARK,
@@ -47,20 +51,21 @@ export const palettes = {
     isDark: true,
   },
   light: {
-    bg: "#FAFAFA",
-    bgSecondary: "#F4F4F5",
+    bg: "#F7FCF9",
+    bgSecondary: "#EFF7F2",
     bgElevated: "#FFFFFF",
 
     glowA: "rgba(22, 163, 74, 0.09)",
     glowB: "rgba(139, 92, 246, 0.07)",
     glowC: "rgba(56, 189, 248, 0.06)",
 
-    card: "#FFFFFF",
-    cardHover: "#FAFAFA",
-    cardLight: "#F4F4F5",
+    card: "#F4FBF6",
+    cardHover: "#FFFFFF",
+    cardLight: "#E8F5EC",
+    companion: "#D97706",
 
-    line: "rgba(9, 9, 11, 0.10)",
-    lineStrong: "rgba(9, 9, 11, 0.16)",
+    line: "rgba(22, 101, 52, 0.14)",
+    lineStrong: "rgba(22, 101, 52, 0.22)",
     lineFocus: "rgba(22, 163, 74, 0.45)",
 
     accent: ACCENT_LIGHT,
