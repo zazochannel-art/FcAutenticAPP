@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, radius, spacing, themedStyles } from "../constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { colors as C, radius, spacing, themedStyles, gradients, elevation } from "../constants/theme";
 import ProfileSheet from "./ProfileSheet";
 import { AmbientBackground } from "./ui/visuals";
 
@@ -106,13 +107,20 @@ function MenuItem({ tab, activeTab, setTab }) {
   const Icon = LucideIcons[tab.icon] || LucideIcons.Circle;
   const isActive = activeTab === tab.label;
   return (
-    <Pressable onPress={() => setTab(tab.label)} style={[styles.menuItem, isActive && styles.menuItemActive]}>
+    <Pressable onPress={() => setTab(tab.label)} style={styles.menuItem}>
+      {isActive && (
+        <LinearGradient
+          colors={gradients.tabActive}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
       <View style={[styles.menuIconWrap, isActive && styles.menuIconWrapActive]}>
-        <Icon size={17} color={isActive ? C.cyan : C.muted} strokeWidth={isActive ? 2.4 : 2} />
+        <Icon size={17} color={isActive ? "#fff" : C.muted} strokeWidth={isActive ? 2.4 : 2} />
       </View>
       <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{tab.label}</Text>
       {tab.label === "Mai mult" && <View style={styles.countBadge}><Text style={styles.countText}>3</Text></View>}
-      {isActive && <View style={styles.activeIndicator} />}
     </Pressable>
   );
 }
@@ -164,11 +172,11 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
 const styles = themedStyles((C) => StyleSheet.create({
   shell: { flex: 1, flexDirection: "row", backgroundColor: C.bg },
   main: { flex: 1, padding: 12, gap: 10 },
-  pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, borderWidth: 1, borderColor: C.line, backgroundColor: "rgba(15,15,18,0.55)" },
+  pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, backgroundColor: C.transparent },
   sidebar: {
-    width: 260,
-    margin: 6,
-    borderRadius: 20,
+    width: 240,
+    margin: 8,
+    borderRadius: radius.lg,
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.line,
@@ -188,7 +196,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
 
-  menuScroll: { flex: 1, paddingHorizontal: 10 },
+  menuScroll: { flex: 1, paddingHorizontal: 6 },
   menuSectionLabel: {
     color: C.dim,
     fontSize: 8.5,
@@ -201,21 +209,19 @@ const styles = themedStyles((C) => StyleSheet.create({
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 7,
-    paddingLeft: 14,
-    paddingRight: spacing.md,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: radius.md,
-    marginBottom: 4,
+    marginBottom: 6,
     gap: 11,
-    position: "relative"
+    position: "relative",
+    overflow: "hidden",
   },
-  menuIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.04)" },
-  menuIconWrapActive: { backgroundColor: C.cyan + "1F" },
-  menuItemActive: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-  },
-  menuText: { color: C.muted, fontSize: 12.5, fontWeight: "700" },
-  menuTextActive: { color: C.text, fontWeight: "800" },
+  menuIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: C.fill1 },
+  menuIconWrapActive: { backgroundColor: "rgba(255,255,255,0.18)" },
+  menuItemActive: { ...elevation.medium },
+  menuText: { color: C.muted, fontSize: 14, fontWeight: "600" },
+  menuTextActive: { color: "#fff", fontWeight: "700" },
   countBadge: { marginLeft: "auto", backgroundColor: C.cyan, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1.5 },
   countText: { color: C.bg, fontSize: 9, fontWeight: "900" },
   activeIndicator: {

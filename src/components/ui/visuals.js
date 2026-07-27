@@ -17,16 +17,16 @@ export function AmbientBackground({ style }) {
       <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
         <Defs>
           <RadialGradient id="ambA" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={C.accent} stopOpacity={C.isDark ? "0.16" : "0.13"} />
-            <Stop offset="1" stopColor={C.accent} stopOpacity="0" />
+            <Stop offset="0" stopColor="#7C3AED" stopOpacity={C.isDark ? "0.20" : "0.12"} />
+            <Stop offset="1" stopColor="#7C3AED" stopOpacity="0" />
           </RadialGradient>
           <RadialGradient id="ambB" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={C.purple} stopOpacity={C.isDark ? "0.14" : "0.10"} />
-            <Stop offset="1" stopColor={C.purple} stopOpacity="0" />
+            <Stop offset="0" stopColor="#3B82F6" stopOpacity={C.isDark ? "0.16" : "0.10"} />
+            <Stop offset="1" stopColor="#3B82F6" stopOpacity="0" />
           </RadialGradient>
           <RadialGradient id="ambC" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={C.blue} stopOpacity={C.isDark ? "0.10" : "0.08"} />
-            <Stop offset="1" stopColor={C.blue} stopOpacity="0" />
+            <Stop offset="0" stopColor="#06B6D4" stopOpacity={C.isDark ? "0.14" : "0.09"} />
+            <Stop offset="1" stopColor="#06B6D4" stopOpacity="0" />
           </RadialGradient>
         </Defs>
         <Rect x="0" y="0" width="100" height="100" fill={C.bg} />
@@ -43,19 +43,13 @@ export function AmbientBackground({ style }) {
 // fizic — detaliul care separă un card „plat" de unul care pare ridicat.
 export function Surface({ children, style, contentStyle, accent, radius = R.xl }) {
   return (
-    <View style={[{ borderRadius: radius, overflow: "hidden", borderWidth: 1, borderColor: C.line, ...elevation.low }, style]}>
+    <View style={[{ borderRadius: radius, overflow: "hidden", borderWidth: 1, borderColor: C.line, backgroundColor: C.cardSolid, ...elevation.low }, style]}>
+      {/* --card-grad: suprapunere foarte fină, de sus în jos */}
       <ExpoGradient
-        colors={[C.cardHover, C.card]}
+        colors={[C.cardGradFrom, C.cardGradTo]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
-      />
-      {/* muchia luminoasă de sus (1px) */}
-      <ExpoGradient
-        colors={C.isDark ? ["rgba(255,255,255,0.16)", "rgba(255,255,255,0.03)", "transparent"] : ["rgba(255,255,255,0.9)", "rgba(255,255,255,0.4)", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topEdge}
       />
       {/* bandă de accent opțională */}
       {accent ? (
