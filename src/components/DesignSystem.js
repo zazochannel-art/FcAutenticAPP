@@ -20,21 +20,27 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, s
   const Icon = LucideIcons[icon] || LucideIcons.Activity;
 
   return (
-    <GlassCard style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]} accent={color}>
+    <Surface style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]} contentStyle={styles.statContent}>
       <View style={styles.statHeader}>
-        <View style={[styles.statIconWrap, { backgroundColor: color + "15", borderColor: color + "30" }]}>
+        {/* .stat-icon — 40×40, rază 12, gradient 135° din culoare 0.28 → 0.10 */}
+        <LinearGradient
+          colors={[color + "47", color + "1A"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.statIconWrap}
+        >
           <Icon size={isSmallMobile ? 16 : 20} color={color} />
-        </View>
+        </LinearGradient>
         {trend ? (
-          <View style={styles.trendWrap}>
+          <View style={[styles.trendWrap, { backgroundColor: (trendUp ? C.green : C.red) + "26" }]}>
             <LucideIcons.ArrowUpRight size={10} color={trendUp ? C.green : C.red} style={{ transform: [{ rotate: trendUp ? "0deg" : "90deg" }] }} />
             <Text style={[styles.trendText, { color: trendUp ? C.green : C.red }]}>{trend}</Text>
           </View>
         ) : (spark ? <Sparkline data={spark} color={color} width={58} height={22} /> : null)}
       </View>
       <Text style={[styles.statValue, isSmallMobile && { fontSize: 20 }]}>{value}</Text>
-      <Text style={[styles.statLabel, isSmallMobile && { fontSize: 9 }]} numberOfLines={1}>{label}</Text>
-    </GlassCard>
+      <Text style={[styles.statLabel, isSmallMobile && { fontSize: 11 }]} numberOfLines={1}>{label}</Text>
+    </Surface>
   );
 };
 
@@ -66,24 +72,19 @@ export const NeonButton = ({ label, icon, onPress, variant = "primary", fullWidt
 };
 
 const styles = themedStyles((C) => StyleSheet.create({
-  glassWrapper: {
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: C.line,
-    overflow: "hidden",
-    backgroundColor: C.card,
-    ...elevation.low,
-  },
-  glassBlur: { flex: 1 },
-  glassContent: { padding: spacing.lg },
+  // .card — padding 20px
+  glassContent: { padding: 20 },
 
+  // .stat — padding 18px
   statCard: { flex: 1, minWidth: 160, margin: spacing.xs },
-  statHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
-  statIconWrap: { width: 42, height: 42, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  statValue: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.7 },
-  statLabel: { color: C.muted, fontSize: 10, fontWeight: "800", marginTop: spacing.xs, textTransform: "uppercase", letterSpacing: 1 },
-  trendWrap: { flexDirection: "row", alignItems: "center", gap: 4 },
-  trendText: { fontSize: 10, fontWeight: "800" },
+  statContent: { padding: 18 },
+  statHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  statIconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  statValue: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
+  statLabel: { color: C.muted, fontSize: 12, fontWeight: "500", marginTop: 2 },
+  // .stat-trend — 3px 8px, rază 8, 10px/700
+  trendWrap: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm },
+  trendText: { fontSize: 10, fontWeight: "700" },
 
   neonBtnContainer: { height: 52, borderRadius: radius.btn, overflow: "hidden", ...elevation.button },
   neonBtnGradient: { flex: 1, justifyContent: "center", alignItems: "center" },

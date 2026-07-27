@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
+import { Platform, Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors as C, radius, spacing, themedStyles, gradients, elevation } from "../constants/theme";
@@ -107,7 +107,7 @@ function MenuItem({ tab, activeTab, setTab }) {
   const Icon = LucideIcons[tab.icon] || LucideIcons.Circle;
   const isActive = activeTab === tab.label;
   return (
-    <Pressable onPress={() => setTab(tab.label)} style={styles.menuItem}>
+    <Pressable onPress={() => setTab(tab.label)} style={[styles.menuItem, isActive && styles.menuItemActive]}>
       {isActive && (
         <LinearGradient
           colors={gradients.tabActive}
@@ -116,9 +116,7 @@ function MenuItem({ tab, activeTab, setTab }) {
           style={StyleSheet.absoluteFill}
         />
       )}
-      <View style={[styles.menuIconWrap, isActive && styles.menuIconWrapActive]}>
-        <Icon size={17} color={isActive ? "#fff" : C.muted} strokeWidth={isActive ? 2.4 : 2} />
-      </View>
+      <Icon size={18} color={isActive ? "#fff" : C.muted} strokeWidth={2} />
       <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{tab.label}</Text>
       {tab.label === "Mai mult" && <View style={styles.countBadge}><Text style={styles.countText}>3</Text></View>}
     </Pressable>
@@ -173,15 +171,18 @@ const styles = themedStyles((C) => StyleSheet.create({
   shell: { flex: 1, flexDirection: "row", backgroundColor: C.bg },
   main: { flex: 1, padding: 12, gap: 10 },
   pageFrame: { flex: 1, overflow: "hidden", borderRadius: radius.xl, backgroundColor: C.transparent },
+  // .tabs @min-width:701px — panou flotant de 240px, rază 20, fundal propriu
+  // rgba(20,24,43,.6) cu blur(20px) saturate(160%).
   sidebar: {
     width: 240,
     margin: 8,
-    borderRadius: radius.lg,
-    backgroundColor: C.card,
+    borderRadius: 20,
+    backgroundColor: C.navPanel,
     borderWidth: 1,
     borderColor: C.line,
     paddingTop: spacing.md,
     overflow: "hidden",
+    ...(Platform.OS === "web" ? { backdropFilter: "blur(20px) saturate(160%)" } : null),
   },
   sidebarHeader: {
     flexDirection: "row",
@@ -196,7 +197,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
 
-  menuScroll: { flex: 1, paddingHorizontal: 6 },
+  menuScroll: { flex: 1, paddingHorizontal: 10 },
   menuSectionLabel: {
     color: C.dim,
     fontSize: 8.5,
@@ -206,22 +207,22 @@ const styles = themedStyles((C) => StyleSheet.create({
     marginLeft: spacing.lg,
     marginTop: spacing.md
   },
+  // .tab — 12px 14px, rază 12, gap 8, iconiță 18px, text 14/600
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderRadius: radius.md,
-    marginBottom: 6,
-    gap: 11,
+    marginBottom: 4,
+    gap: 8,
     position: "relative",
     overflow: "hidden",
   },
-  menuIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: C.fill1 },
-  menuIconWrapActive: { backgroundColor: "rgba(255,255,255,0.18)" },
+  // .tab.active — box-shadow: 0 6px 18px rgba(139,92,246,.35)
   menuItemActive: { ...elevation.medium },
   menuText: { color: C.muted, fontSize: 14, fontWeight: "600" },
-  menuTextActive: { color: "#fff", fontWeight: "700" },
+  menuTextActive: { color: "#fff", fontWeight: "600" },
   countBadge: { marginLeft: "auto", backgroundColor: C.cyan, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1.5 },
   countText: { color: C.bg, fontSize: 9, fontWeight: "900" },
   activeIndicator: {
