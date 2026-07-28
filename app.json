@@ -4,12 +4,12 @@
     "slug": "fc-autentic",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon-square.png",
+    "icon": "./assets/icon-app.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/icon-square.png",
+      "image": "./assets/icon-app.png",
       "resizeMode": "contain",
-      "backgroundColor": "#07192b"
+      "backgroundColor": "#09090B"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -20,13 +20,21 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon-square.png",
-        "backgroundColor": "#07192b"
+        "foregroundImage": "./assets/icon-adaptive.png",
+        "backgroundColor": "#09090B"
       },
       "package": "com.fcautentic.app"
     },
     "web": {
-      "favicon": "./assets/icon-square.png"
+      "favicon": "./assets/icon-app.png",
+      "name": "Footbal Manager 99",
+      "shortName": "Manager 99",
+      "themeColor": "#09090B",
+      "backgroundColor": "#09090B",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "lang": "ro"
     }
   }
 }
