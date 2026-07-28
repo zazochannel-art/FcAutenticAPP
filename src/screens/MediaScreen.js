@@ -6,13 +6,14 @@ import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
   else Alert.alert(title, msg);
 }
 
-export default function MediaScreen({ clubId, selectedClub, currentUser, openNotifications }) {
+export default function MediaScreen({ clubId, selectedClub, currentUser }) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -37,7 +38,7 @@ export default function MediaScreen({ clubId, selectedClub, currentUser, openNot
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Galerie" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Galerie" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>

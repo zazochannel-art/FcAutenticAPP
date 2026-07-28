@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -13,7 +14,7 @@ function notify(title, msg) {
 
 const CATEGORIES = ["Echipament joc", "Antrenament", "Medical", "Altele"];
 
-export default function EquipmentScreen({ clubId, selectedClub, currentUser, openNotifications }) {
+export default function EquipmentScreen({ clubId, selectedClub, currentUser }) {
   const queryClient = useQueryClient();
   const [editItem, setEditItem] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function EquipmentScreen({ clubId, selectedClub, currentUser, ope
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Echipament" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Echipament" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <View style={styles.statsRow}>
         <View style={styles.statBox}><Text style={styles.statVal}>{items.length}</Text><Text style={styles.statLabel}>Articole</Text></View>

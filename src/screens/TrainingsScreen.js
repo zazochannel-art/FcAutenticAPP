@@ -22,7 +22,7 @@ const attendanceOptions = [
   ["excused", "Circle", "Scutit", C.blue],
 ];
 
-export default function TrainingsScreen({ players, trainings, attendance = {}, setAttendance, currentUser, selectedClub, clubId, openNotifications }) {
+export default function TrainingsScreen({ players, trainings, attendance = {}, setAttendance, currentUser, selectedClub, clubId }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
@@ -77,7 +77,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
           onPress={() => setView("list")}
           style={{ alignSelf: "flex-start", marginBottom: 14 }}
         />
-        <TopBar title={selected.theme} eyebrow={selected.group} openNotifications={openNotifications} />
+        <TopBar title={selected.theme} eyebrow={selected.group} />
 
         <View style={styles.detailHero}>
           <Text style={{color: C.text, opacity: 0.6}}>{selected.date} • {selected.time}</Text>
@@ -115,7 +115,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Antrenamente" eyebrow="CENTRUL DE PREGĂTIRE" openNotifications={openNotifications} />
+        <TopBar title="Antrenamente" eyebrow="CENTRUL DE PREGĂTIRE" />
         {canManage && (
           <BeUIButton
             label="Programează antrenament"

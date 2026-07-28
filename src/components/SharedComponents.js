@@ -1,58 +1,27 @@
-import React, { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import React from "react";
+import { Image, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, themedStyles } from "../constants/theme";
 import { BeUIButton } from "./ui/be-ui-button";
-import { useProfile } from "../context/ProfileContext";
-import ProfileSheet from "./ProfileSheet";
+import { BRAND_NAME } from "../constants/brand";
 
 export function Badge({ size = 48 }) {
   return <Image source={require("../../assets/icon-square.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
 }
 
-export function TopBar({ title, eyebrow = "FOOTBAL MANAGER 99", openNotifications }) {
+// Antetul de pagină: doar eyebrow + titlu. Logoul, clopoțelul și profilul stau
+// în bara globală de sus (`MobileTopBar` pe mobil, `SaaSShell` pe desktop) — le
+// aveam duplicate, iar ecranele de administrare nu le aveau deloc.
+export function TopBar({ title, eyebrow = BRAND_NAME }) {
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
-  const profile = useProfile();
-  const [profileOpen, setProfileOpen] = useState(false);
-
-  const btnSize = isMobile ? 44 : 52;
-  const initial = (profile?.user?.name || "U").slice(0, 1).toUpperCase();
 
   return (
     <View style={styles.topBar}>
-      <View style={styles.logoWrap}><Badge size={isMobile ? 32 : 40} /></View>
       <View style={styles.topTitleWrap}>
         <Text style={styles.eyebrow} numberOfLines={1}>{eyebrow}</Text>
         <Text style={[styles.pageTitle, isMobile && { fontSize: 22 }]} numberOfLines={1}>{title}</Text>
       </View>
-      <BeUIButton
-        variant="secondary"
-        size="icon"
-        icon="Bell"
-        onPress={openNotifications}
-        style={{ width: btnSize, height: btnSize, borderRadius: 12 }}
-        aria-label="Notificări"
-      />
-      {isMobile && profile?.user && (
-        <Pressable
-          onPress={() => setProfileOpen(true)}
-          style={[styles.avatarBtn, { width: btnSize, height: btnSize }]}
-          aria-label="Profil"
-        >
-          <Text style={styles.avatarBtnText}>{initial}</Text>
-        </Pressable>
-      )}
-      {profile?.user && (
-        <ProfileSheet
-          visible={profileOpen}
-          user={profile.user}
-          selectedClub={profile.selectedClub}
-          onClose={() => setProfileOpen(false)}
-          onLogout={profile.onLogout}
-          onNavigate={profile.onNavigate}
-        />
-      )}
     </View>
   );
 }
@@ -108,9 +77,6 @@ const styles = themedStyles((C) => StyleSheet.create({
   topTitleWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   eyebrow: { color: C.cyan, fontSize: 9, fontWeight: "900", letterSpacing: 1.5, textAlign: "center", textTransform: 'uppercase' },
   pageTitle: { color: C.text, fontSize: 26, fontWeight: "900", marginTop: 4, textAlign: "center" },
-  logoWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
-  avatarBtn: { borderRadius: 12, backgroundColor: "rgba(0,212,255,0.14)", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", alignItems: "center", justifyContent: "center" },
-  avatarBtnText: { color: C.cyan, fontSize: 16, fontWeight: "900" },
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 24, marginBottom: 12 },
   sectionTitle: { color: C.text, fontSize: 16, fontWeight: "800", textTransform: 'uppercase', letterSpacing: 0.5 },
   metric: { flex: 1, alignItems: "center" },

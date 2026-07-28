@@ -7,6 +7,7 @@ import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { storageService } from "../services/storageService";
 import RoDateField from "../components/RoDateField";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -16,7 +17,7 @@ function notify(title, msg) {
 const DOC_TYPES = ["Contract", "Medical", "Regulament", "Formular", "Altele"];
 const TYPE_COLORS_ = () => ({ Contract: C.blue, Medical: C.red, Regulament: C.purple, Formular: C.amber, Altele: C.dim });
 
-export default function DocumentsScreen({ clubId, selectedClub, currentUser, openNotifications }) {
+export default function DocumentsScreen({ clubId, selectedClub, currentUser }) {
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [opening, setOpening] = useState(null);
@@ -56,7 +57,7 @@ export default function DocumentsScreen({ clubId, selectedClub, currentUser, ope
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Documente" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Documente" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>

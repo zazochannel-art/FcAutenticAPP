@@ -3,7 +3,6 @@ import {
   Alert,
   Platform,
   Pressable,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -68,7 +67,9 @@ import AISaaSReport from "./src/screens/AISaaSReport";
 import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
 import TasksSaaS from "./src/screens/TasksSaaS";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
+import { MobileTopBar } from "./src/components/ui/mobile-top-bar";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
@@ -147,17 +148,20 @@ export default function App() {
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister }}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-        <StatusBar barStyle={colors.isDark ? "light-content" : "dark-content"} />
-        <MainApp key={themeKey} onThemeChange={() => setThemeKey((k) => k + 1)} />
-        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+          <StatusBar barStyle={colors.isDark ? "light-content" : "dark-content"} />
+          <MainApp key={themeKey} onThemeChange={() => setThemeKey((k) => k + 1)} />
+          {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+        </View>
+      </SafeAreaProvider>
     </PersistQueryClientProvider>
   );
 }
 
 function MainApp({ onThemeChange }) {
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isDesktopLayout = width >= 768;
 
@@ -645,7 +649,6 @@ function MainApp({ onThemeChange }) {
         selectedClub={selectedClub}
         clubId={selectedClubId}
         setTab={setTab}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Antren.": (
@@ -657,7 +660,6 @@ function MainApp({ onThemeChange }) {
         currentUser={effectiveUser}
         selectedClub={selectedClub}
         clubId={selectedClubId}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     Meciuri: (
@@ -666,7 +668,6 @@ function MainApp({ onThemeChange }) {
         matches={matches}
         currentUser={effectiveUser}
         clubId={selectedClubId}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     Calendar: (
@@ -676,7 +677,6 @@ function MainApp({ onThemeChange }) {
         events={events}
         clubId={selectedClubId}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     Sarcini: <TasksSaaS tasks={tasks} clubId={selectedClubId} currentUser={effectiveUser} />,
@@ -685,7 +685,6 @@ function MainApp({ onThemeChange }) {
         selectedClub={selectedClub}
         clubId={selectedClubId}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Finanțe": (
@@ -697,14 +696,12 @@ function MainApp({ onThemeChange }) {
         clubId={selectedClubId}
         currentUser={effectiveUser}
         clubSettings={clubSettings}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     AI: (
       <AISaaSReport
         currentUser={effectiveUser}
         selectedClub={selectedClub}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     Abonamente: (
@@ -728,14 +725,13 @@ function MainApp({ onThemeChange }) {
       <AdminUsersScreen clubs={clubs} onManageClub={enterClubManagement} />
     ),
     "Notif.": (
-      <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} openNotifications={() => setTab("Notif.")} />
+      <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} />
     ),
     "Documente": (
       <DocumentsScreen
         clubId={selectedClubId}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Echipament": (
@@ -743,7 +739,6 @@ function MainApp({ onThemeChange }) {
         clubId={selectedClubId}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Disciplină": (
@@ -752,7 +747,6 @@ function MainApp({ onThemeChange }) {
         players={players}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Scouting": (
@@ -760,7 +754,6 @@ function MainApp({ onThemeChange }) {
         clubId={selectedClubId}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Tactici": (
@@ -769,7 +762,6 @@ function MainApp({ onThemeChange }) {
         players={players}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Statistici": (
@@ -779,7 +771,6 @@ function MainApp({ onThemeChange }) {
         attendance={attendance}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Galerie": (
@@ -787,7 +778,6 @@ function MainApp({ onThemeChange }) {
         clubId={selectedClubId}
         selectedClub={managingClub || selectedClub}
         currentUser={effectiveUser}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Profil": (
@@ -799,7 +789,6 @@ function MainApp({ onThemeChange }) {
         attendance={attendance}
         clubId={selectedClubId}
         selectedClub={selectedClub}
-        openNotifications={() => setTab("Notif.")}
       />
     ),
     "Mai mult": (
@@ -895,7 +884,7 @@ function MainApp({ onThemeChange }) {
 
   if (authView === "pending-approval") {
     return (
-      <SafeAreaView style={styles.safe}>
+      <View style={[styles.safe, { paddingTop: insets.top }]}>
         <StatusBar barStyle="light-content" />
         <View style={styles.pendingWrap}>
           <View style={styles.pendingCard}>
@@ -915,7 +904,7 @@ function MainApp({ onThemeChange }) {
             </Pressable>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -928,38 +917,46 @@ function MainApp({ onThemeChange }) {
         onNavigate: navigateTab,
       }}
     >
-      <SafeAreaView style={styles.safe}>
+      <View style={styles.safe}>
         <StatusBar barStyle="light-content" />
         {isDesktopLayout ? (
-          <SaaSAppShell
-            tabs={activeTabs}
-            activeTab={tab}
-            setTab={navigateTab}
-            user={effectiveUser}
-            selectedClub={managingClub || selectedClub}
-            onLogout={logout}
-          >
-            {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
-          </SaaSAppShell>
+          <View style={{ flex: 1, paddingTop: insets.top }}>
+            <SaaSAppShell
+              tabs={activeTabs}
+              activeTab={tab}
+              setTab={navigateTab}
+              user={effectiveUser}
+              selectedClub={managingClub || selectedClub}
+              onLogout={logout}
+            >
+              {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
+            </SaaSAppShell>
+          </View>
         ) : (
           <>
             <AmbientBackground />
-            <View style={styles.app}>{pages[tab] || pages[activeTabs[0]] || pages.Dashboard}</View>
+            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} />
+            {/* Spațiul de jos ține cont de pastila plutitoare a meniului:
+                înălțimea ei (~49) + distanța până la margine (26) + inset. */}
+            <View style={[styles.app, { paddingBottom: 86 + insets.bottom }]}>
+              {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
+            </View>
             <MobileBottomNav
               tabs={activeTabs}
               activeTab={tab}
               onTabPress={navigateTab}
+              bottomInset={insets.bottom}
             />
           </>
         )}
-      </SafeAreaView>
+      </View>
     </ProfileContext.Provider>
   );
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#020617" },
-  app: { flex: 1, paddingBottom: Platform.OS === "ios" ? 100 : 80 },
+  safe: { flex: 1, backgroundColor: C.bg },
+  app: { flex: 1 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
   pendingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   pendingCard: { width: "100%", maxWidth: 420, backgroundColor: "rgba(15,23,42,0.6)", borderRadius: 24, padding: 28, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", alignItems: "center" },

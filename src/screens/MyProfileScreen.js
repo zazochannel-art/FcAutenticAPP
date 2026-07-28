@@ -30,7 +30,7 @@ const METRICS = [
   ["physical", "Fizic"],
 ];
 
-export default function MyProfileScreen({ currentUser, players = [], trainings = [], matches = [], attendance = {}, clubId, selectedClub, openNotifications }) {
+export default function MyProfileScreen({ currentUser, players = [], trainings = [], matches = [], attendance = {}, clubId, selectedClub }) {
   const isParent = currentUser?.role === "parent";
   // RLS întoarce doar jucătorul propriu (sau copilul, pentru părinte).
   const myPlayer = players[0] || null;
@@ -114,7 +114,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {!myPlayer ? (
         <View style={styles.emptyState}>

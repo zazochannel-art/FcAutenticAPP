@@ -22,7 +22,7 @@ function timeAgo(iso) {
   return d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 }
 
-export default function NotificationsScreen({ currentUser, clubId, selectedClub, openNotifications }) {
+export default function NotificationsScreen({ currentUser, clubId, selectedClub }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -59,7 +59,7 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub,
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Anunțuri" eyebrow="COMUNICARE CLUB" openNotifications={openNotifications} />
+      <TopBar title="Anunțuri" eyebrow="COMUNICARE CLUB" />
 
       {canPost && (
         <View style={styles.composer}>

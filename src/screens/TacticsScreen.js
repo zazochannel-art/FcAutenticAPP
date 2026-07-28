@@ -17,6 +17,7 @@ import {
   slotSuitability,
 } from "../utils/tactics";
 import { SkeletonRow } from "../components/ui/visuals";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -693,7 +694,7 @@ function SavedTacticsList({ tactics, activeId, onLoad, onDuplicate, onDelete, ca
 // ---------------------------------------------------------------------------
 // Ecran principal
 // ---------------------------------------------------------------------------
-export default function TacticsScreen({ clubId, players = [], selectedClub, currentUser, openNotifications }) {
+export default function TacticsScreen({ clubId, players = [], selectedClub, currentUser }) {
   const queryClient = useQueryClient();
   const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
@@ -748,7 +749,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     const vSlots = active ? (FORMATIONS[active.formation] || FORMATIONS["4-3-3"]) : slots;
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <TopBar title="Tactici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+        <TopBar title="Tactici" eyebrow={selectedClub?.name || BRAND_NAME} />
         {isLoading && <View>{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</View>}
         {!isLoading && published.length === 0 && (
           <View style={styles.emptyState}>
@@ -893,7 +894,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Tactici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Tactici" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <View style={styles.topActions}>
         <Pressable style={styles.newBtn} onPress={startNew}>

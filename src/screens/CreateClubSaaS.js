@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   ScrollView,
+  Image,
   Pressable,
   Platform,
   Alert,
@@ -17,7 +18,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as LucideIcons from 'lucide-react-native';
 import { supabaseService } from '../services/supabaseService';
 import { colors as C, themedStyles } from "../constants/theme";
-import { BRAND_NAME } from "../constants/brand";
+import { BRAND_NAME, BRAND_TAGLINE } from "../constants/brand";
 
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
@@ -179,10 +180,10 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
         {/* Header Superior with Stepper */}
         <View style={styles.header}>
            <View style={styles.headerBrand}>
-              <View style={styles.logoBadge}><LucideIcons.Shield size={22} color={C.cyan} /></View>
+              <Image source={require("../../assets/icon-square.png")} style={styles.logoBadge} />
               <View>
-                 <Text style={styles.brandTitle}>FOOTBAL MANAGER 99</Text>
-                 <Text style={styles.brandSub}>ADMIN</Text>
+                 <Text style={styles.brandTitle}>{BRAND_NAME}</Text>
+                 <Text style={styles.brandSub}>{BRAND_TAGLINE}</Text>
               </View>
            </View>
 
@@ -571,9 +572,9 @@ const styles = themedStyles((C) => StyleSheet.create({
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  logoBadge: { width: 40, height: 40, backgroundColor: 'rgba(15,23,42,0.8)', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: BORDER_COLOR },
+  logoBadge: { width: 40, height: 40, borderRadius: 11, resizeMode: 'cover' },
   brandTitle: { color: C.text, fontWeight: '900', fontSize: 16 },
-  brandSub: { color: C.cyan, fontSize: 8, fontWeight: '900', letterSpacing: 2, marginTop: -2 },
+  brandSub: { color: C.muted, fontSize: 7, fontWeight: '800', letterSpacing: 1.1, marginTop: 2 },
 
   stepperContainer: { flexDirection: 'row', alignItems: 'center', gap: 24 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 8 },
