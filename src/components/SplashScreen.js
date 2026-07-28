@@ -7,62 +7,62 @@ import { BRAND_NAME, BRAND_TAGLINE } from "../constants/brand";
 // fost invizibil.
 const BG = "#09090B";
 
-const ENTER_MS = 780;   // mingea intră și se așază
-const MANAGER_MS = 340; // apare personajul în fața mingii
-const FRONT_MS = 320;   // personajul vine în față
-const TEXT_MS = 380;    // urcă numele
+const SPIN_MS = 900;   // mingea zboară în cadru rotindu-se
+const BUILD_MS = 430;  // se construiește restul insignei în jurul ei
+const TEXT_MS = 380;   // urcă numele
 const HOLD_MS = 380;
 const FADE_MS = 400;
 
 const LOGO_SIZE = 150;
+
+// Mingea decupată separat se așază exact peste mingea din insignă, ca sfera să
+// nu se clintească la tranziție. Numerele vin din măsurarea cercului din
+// `splash-manager.png`: centru (256, 198), rază 176, la o insignă de 512px.
+const BALL_SIZE = 136;
+const BALL_REST_Y = -17;
 
 // react-native-web nu are driverul nativ; acolo animăm pe firul JS.
 const NATIVE = Platform.OS !== "web";
 
 export default function SplashScreen({ onDone }) {
   const overlay = useRef(new Animated.Value(1)).current;
-  // Un singur parametru pentru intrare, ca deplasarea, rotația și scalarea să
-  // rămână sincronizate și să împartă aceeași depășire la final.
-  const enter = useRef(new Animated.Value(0)).current;
+  // Un singur parametru pentru zbor, ca rotația, deplasarea și scalarea să
+  // rămână legate — altfel se desincronizează și se vede că sunt trei animații.
+  const flight = useRef(new Animated.Value(0)).current;
   const ballOpacity = useRef(new Animated.Value(0)).current;
-  const managerOpacity = useRef(new Animated.Value(0)).current;
-  const finalOpacity = useRef(new Animated.Value(0)).current;
-  const finalScale = useRef(new Animated.Value(0.93)).current;
+  const badgeOpacity = useRef(new Animated.Value(0)).current;
+  const badgeScale = useRef(new Animated.Value(1.06)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const textShift = useRef(new Animated.Value(18)).current;
 
   useEffect(() => {
     const animation = Animated.sequence([
-      // 1. Mingea vine din stânga-jos, înclinată, și se așază în cadru.
-      //    Dârele de mișcare sunt deja în imagine — de aceea înclinăm doar
-      //    câteva grade, în loc s-o rotim de tot: insigna are ramă, iar o ramă
-      //    care se învârte ar arăta greșit.
+      // 1. Mingea intră din stânga-jos, se rotește de două ture și jumătate și
+      //    frânează până se oprește. E decupată fără ramă, deci se poate roti
+      //    cu adevărat.
       Animated.parallel([
-        Animated.timing(ballOpacity, { toValue: 1, duration: 200, useNativeDriver: NATIVE }),
-        Animated.timing(enter, {
+        Animated.timing(ballOpacity, { toValue: 1, duration: 220, useNativeDriver: NATIVE }),
+        Animated.timing(flight, {
           toValue: 1,
-          duration: ENTER_MS,
-          easing: Easing.out(Easing.back(1.5)),
-          useNativeDriver: NATIVE,
-        }),
-      ]),
-      // 2. Personajul apare în fața mingii.
-      Animated.parallel([
-        Animated.timing(ballOpacity, { toValue: 0, duration: MANAGER_MS, useNativeDriver: NATIVE }),
-        Animated.timing(managerOpacity, { toValue: 1, duration: MANAGER_MS, useNativeDriver: NATIVE }),
-      ]),
-      // 3. Personajul vine în față, mingea rămâne în spate.
-      Animated.parallel([
-        Animated.timing(managerOpacity, { toValue: 0, duration: FRONT_MS, useNativeDriver: NATIVE }),
-        Animated.timing(finalOpacity, { toValue: 1, duration: FRONT_MS, useNativeDriver: NATIVE }),
-        Animated.timing(finalScale, {
-          toValue: 1,
-          duration: FRONT_MS,
+          duration: SPIN_MS,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: NATIVE,
         }),
       ]),
-      // 4. Numele și sloganul urcă de dedesubt.
+      // 2. Insigna se construiește în jurul mingii: stadionul, personajul și
+      //    rama apar, iar mingea liberă se stinge peste cea din insignă. Fiind
+      //    aliniate, sfera rămâne pe loc și nu se vede nicio schimbare de poză.
+      Animated.parallel([
+        Animated.timing(badgeOpacity, { toValue: 1, duration: BUILD_MS, useNativeDriver: NATIVE }),
+        Animated.timing(badgeScale, {
+          toValue: 1,
+          duration: BUILD_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: NATIVE,
+        }),
+        Animated.timing(ballOpacity, { toValue: 0, duration: BUILD_MS, useNativeDriver: NATIVE }),
+      ]),
+      // 3. Numele și sloganul urcă de dedesubt.
       Animated.parallel([
         Animated.timing(textOpacity, { toValue: 1, duration: TEXT_MS, useNativeDriver: NATIVE }),
         Animated.timing(textShift, {
@@ -78,28 +78,24 @@ export default function SplashScreen({ onDone }) {
 
     animation.start(({ finished }) => { if (finished) onDone?.(); });
     return () => animation.stop();
-  }, [overlay, enter, ballOpacity, managerOpacity, finalOpacity, finalScale, textOpacity, textShift, onDone]);
+  }, [overlay, flight, ballOpacity, badgeOpacity, badgeScale, textOpacity, textShift, onDone]);
 
-  const enterTransform = [
-    { translateX: enter.interpolate({ inputRange: [0, 1], outputRange: [-36, 0] }) },
-    { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) },
-    { rotate: enter.interpolate({ inputRange: [0, 1], outputRange: ["-14deg", "0deg"] }) },
-    { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) },
+  const ballTransform = [
+    { translateX: flight.interpolate({ inputRange: [0, 1], outputRange: [-54, 0] }) },
+    { translateY: flight.interpolate({ inputRange: [0, 1], outputRange: [58, BALL_REST_Y] }) },
+    { rotate: flight.interpolate({ inputRange: [0, 1], outputRange: ["-900deg", "0deg"] }) },
+    { scale: flight.interpolate({ inputRange: [0, 1], outputRange: [0.42, 1] }) },
   ];
 
   return (
     <Animated.View style={[styles.overlay, { opacity: overlay }]} pointerEvents="none">
       <View style={styles.stage}>
-        <Animated.View style={[styles.layer, { opacity: ballOpacity, transform: enterTransform }]}>
-          <Image source={require("../../assets/splash-ball.png")} style={styles.logo} />
+        <Animated.View style={[styles.layer, { opacity: badgeOpacity, transform: [{ scale: badgeScale }] }]}>
+          <Image source={require("../../assets/splash-manager.png")} style={styles.badge} />
         </Animated.View>
 
-        <Animated.View style={[styles.layer, { opacity: managerOpacity }]}>
-          <Image source={require("../../assets/splash-manager.png")} style={styles.logo} />
-        </Animated.View>
-
-        <Animated.View style={[styles.layer, { opacity: finalOpacity, transform: [{ scale: finalScale }] }]}>
-          <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
+        <Animated.View style={[styles.layer, { opacity: ballOpacity, transform: ballTransform }]}>
+          <Image source={require("../../assets/splash-ball-loose.png")} style={styles.ball} />
         </Animated.View>
       </View>
 
@@ -132,7 +128,8 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   layer: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
-  logo: { width: LOGO_SIZE, height: LOGO_SIZE, borderRadius: 34 },
+  badge: { width: LOGO_SIZE, height: LOGO_SIZE, borderRadius: 34 },
+  ball: { width: BALL_SIZE, height: BALL_SIZE },
   textWrap: { alignItems: "center" },
   // Raportul wordmark-ului e 663×83.
   wordmark: { width: 224, height: 28 },
