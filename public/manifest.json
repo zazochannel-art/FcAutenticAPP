@@ -1,6 +1,6 @@
 {
-  "name": "Footbal Manager 99",
-  "short_name": "Manager 99",
+  "name": "Team Manager",
+  "short_name": "Team Manager",
   "description": "Platformă de management pentru cluburi sportive: lot, antrenamente, meciuri, tactici, finanțe.",
   "start_url": ".",
   "scope": ".",

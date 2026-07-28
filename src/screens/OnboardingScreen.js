@@ -2,8 +2,9 @@ import React from "react";
 import { Image, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
-import { ArrowRight, ChevronRight, Globe, Info, QrCode, ShieldPlus, UsersRound } from "lucide-react-native";
+import { ArrowRight, ChevronRight, Info, QrCode, ShieldPlus, UsersRound } from "lucide-react-native";
 import { colors as C, themedStyles } from "../constants/theme";
+import { LanguagePicker } from "../components/ui/language-picker";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2200" };
 
@@ -21,11 +22,11 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
               <View style={styles.logoTile}>
                 <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
               </View>
-              <Text style={styles.brandText}>Footbal Manager <Text style={styles.brandAdmin}>99</Text></Text>
+              <Text style={styles.brandText}>Team Manager</Text>
             </View>
             <View style={styles.headerRight}>
               <Pressable onPress={onLogout} style={styles.ghostSmall}><Text style={styles.ghostText}>Ieșire</Text></Pressable>
-              <View style={styles.lang}><Globe size={15} color={C.muted} /><Text style={styles.langText}>Română</Text></View>
+              <LanguagePicker />
             </View>
           </View>
 
@@ -34,7 +35,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
               <Image source={require("../../assets/icon-square.png")} style={styles.heroLogo} />
               <Text style={styles.heroTitle}>Alege cum vrei să{"\n"}<Text style={styles.cyan}>continui</Text></Text>
               <Text style={styles.heroSubtitle}>
-                Creează propriul tău club sau alătură-te unui club existent din platforma Footbal Manager 99.
+                Creează propriul tău club sau alătură-te unui club existent din platforma Team Manager.
               </Text>
               <View style={styles.featureStack}>
                 <Feature icon={ShieldPlus} color={C.cyan} title="Creează și administrează" text="Construiește clubul tău și gestionează jucători, staff și evenimente." />
@@ -124,10 +125,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   logoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
   logo: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
   brandText: { color: C.text, fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
-  brandAdmin: { color: C.cyan, fontSize: 17 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
-  lang: { height: 44, paddingHorizontal: 16, borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 1, borderColor: "rgba(148,163,184,0.18)", backgroundColor: "rgba(15,23,42,0.58)" },
-  langText: { color: C.text, fontSize: 13, fontWeight: "800" },
   ghostSmall: { height: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(148,163,184,0.14)", alignItems: "center", justifyContent: "center" },
   ghostText: { color: C.muted, fontSize: 12, fontWeight: "900" },
   content: { flexGrow: 1, padding: 22, gap: 22 },

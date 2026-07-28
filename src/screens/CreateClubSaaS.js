@@ -211,7 +211,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
            <View style={styles.accentLine} />
            <View style={{ flex: 1 }}>
               <Text style={styles.mainTitle}>Creează clubul tău</Text>
-              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în Footbal Manager 99.</Text>
+              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în Team Manager.</Text>
            </View>
         </View>
 

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Footbal Manager 99",
+    "name": "Team Manager",
     "slug": "fc-autentic",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,8 +27,8 @@
     },
     "web": {
       "favicon": "./assets/icon-square.png",
-      "name": "Footbal Manager 99",
-      "shortName": "Manager 99",
+      "name": "Team Manager",
+      "shortName": "Team Manager",
       "themeColor": "#09090B",
       "backgroundColor": "#09090B",
       "display": "standalone",
