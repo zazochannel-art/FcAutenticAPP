@@ -182,7 +182,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   statCell: { flexGrow: 1, flexBasis: 160, minWidth: 160 },
   actionScroll: { marginHorizontal: -spacing.md, marginBottom: spacing.lg },
   actionContent: { paddingHorizontal: spacing.md, gap: 12 },
-  quickAction: { width: 90, backgroundColor: "rgba(15, 23, 42, 0.4)", borderRadius: radius.lg, padding: 12, alignItems: "center", borderWidth: 1, borderColor: C.line },
+  quickAction: { width: 90, backgroundColor: C.card, borderRadius: radius.lg, padding: 12, alignItems: "center", borderWidth: 1, borderColor: C.line },
   actionIcon: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, marginBottom: 8 },
   actionLabel: { color: C.text, fontSize: 9, fontWeight: "800", textAlign: "center", textTransform: "uppercase" },
   gridMain: { flexDirection: "row", gap: spacing.lg },
