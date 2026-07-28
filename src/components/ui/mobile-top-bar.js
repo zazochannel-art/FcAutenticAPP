@@ -3,6 +3,7 @@ import { Image, View, Text, Pressable, StyleSheet } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, themedStyles } from "../../constants/theme";
 import { BRAND_NAME } from "../../constants/brand";
+import { useTranslation } from "../../i18n";
 import { useProfile } from "../../context/ProfileContext";
 import ProfileSheet from "../ProfileSheet";
 
@@ -13,6 +14,7 @@ import ProfileSheet from "../ProfileSheet";
 // Numele e text, nu wordmark-ul din logo: bara stă pe `colors.bg`, iar pe tema
 // luminoasă literele argintii ale wordmark-ului ar fi fost aproape invizibile.
 export function MobileTopBar({ topInset = 0, onNotifications }) {
+  const { t } = useTranslation();
   const profile = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
   const initial = (profile?.user?.name || "U").slice(0, 1).toUpperCase();
@@ -25,14 +27,14 @@ export function MobileTopBar({ topInset = 0, onNotifications }) {
       </View>
 
       {onNotifications ? (
-        <Pressable onPress={onNotifications} style={styles.action} accessibilityRole="button" accessibilityLabel="Notificări">
+        <Pressable onPress={onNotifications} style={styles.action} accessibilityRole="button" accessibilityLabel={t('nav.notifications')}>
           <LucideIcons.Bell size={18} color={C.muted} />
         </Pressable>
       ) : null}
 
       {profile?.user ? (
         <>
-          <Pressable onPress={() => setProfileOpen(true)} style={[styles.action, styles.avatar]} accessibilityRole="button" accessibilityLabel="Profil">
+          <Pressable onPress={() => setProfileOpen(true)} style={[styles.action, styles.avatar]} accessibilityRole="button" accessibilityLabel={t('nav.profile')}>
             <Text style={styles.avatarText}>{initial}</Text>
           </Pressable>
           <ProfileSheet

@@ -56,15 +56,24 @@ export async function loadSavedLanguage() {
   return current;
 }
 
+// Înlocuiește semnele de poziție `{nume}` cu valorile primite. Ordinea
+// cuvintelor diferă de la o limbă la alta, deci textele nu pot fi lipite din
+// bucăți — trebuie să fie o singură frază cu locuri marcate.
+function interpolate(text, vars) {
+  if (!vars) return text;
+  return text.replace(/\{(\w+)\}/g, (match, name) =>
+    Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match);
+}
+
 // Româna e referința: o cheie lipsă dintr-o altă limbă cade înapoi pe `ro`,
 // iar o cheie inexistentă se întoarce ca atare, ca să fie vizibilă la testare.
-export function translate(key, lang = current) {
+export function translate(key, lang = current, vars) {
   const dict = dictionaries[lang] || ro;
-  return dict[key] ?? ro[key] ?? key;
+  return interpolate(dict[key] ?? ro[key] ?? key, vars);
 }
 
 export function useTranslation() {
   const lang = useSyncExternalStore(subscribe, getLanguage, getLanguage);
-  const t = useCallback((key) => translate(key, lang), [lang]);
+  const t = useCallback((key, vars) => translate(key, lang, vars), [lang]);
   return { t, lang, setLanguage };
 }

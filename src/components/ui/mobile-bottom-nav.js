@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, Text, View, Modal, ScrollView } from "
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, themedStyles, elevation, gradients } from "../../constants/theme";
+import { useTranslation } from "../../i18n";
 
 const tabIcons = {
   Dashboard: "LayoutGrid",
@@ -30,10 +31,8 @@ const tabIcons = {
   "Mai mult": "Settings",
 };
 
-// „Mai mult” e ecranul de setări; îl afișăm cu numele „Setări” în meniu.
-const displayLabel = (label) => (label === "Mai mult" ? "Setări" : label);
-
 export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }) {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const mainTabs = tabs.slice(0, 4);
   const showMenu = tabs.length > 4;
@@ -49,10 +48,10 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
         style={styles.container}
       >
         {mainTabs.map((label) => (
-          <BottomItem key={label} label={displayLabel(label)} icon={tabIcons[label]} active={activeTab === label} onPress={() => onTabPress(label)} />
+          <BottomItem key={label} label={t(`nav.tab.${label}`)} icon={tabIcons[label]} active={activeTab === label} onPress={() => onTabPress(label)} />
         ))}
         {showMenu && (
-          <BottomItem label="Meniu" icon="LayoutGrid" active={!mainTabs.includes(activeTab)} onPress={() => setMenuOpen(true)} />
+          <BottomItem label={t('nav.menu')} icon="LayoutGrid" active={!mainTabs.includes(activeTab)} onPress={() => setMenuOpen(true)} />
         )}
       </LinearGradient>
 
@@ -61,7 +60,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
           <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation?.()}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Toate paginile</Text>
+              <Text style={styles.sheetTitle}>{t('nav.allPages')}</Text>
               <Pressable onPress={() => setMenuOpen(false)} style={styles.sheetClose}>
                 <LucideIcons.X size={18} color={C.dim} />
               </Pressable>
@@ -75,7 +74,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
                     <View style={[styles.tileIcon, active && styles.tileIconActive]}>
                       <Icon size={22} color={active ? C.cyan : C.muted} strokeWidth={active ? 2.6 : 2} />
                     </View>
-                    <Text style={[styles.tileLabel, active && styles.tileLabelActive]} numberOfLines={1}>{displayLabel(label)}</Text>
+                    <Text style={[styles.tileLabel, active && styles.tileLabelActive]} numberOfLines={1}>{t(`nav.tab.${label}`)}</Text>
                   </Pressable>
                 );
               })}

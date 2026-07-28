@@ -8,8 +8,10 @@ import { presenceMap } from "../utils/stats";
 import { parseScore, resultOf } from "../utils/matches";
 import { FadeInView, PressableScale } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTranslation } from "../i18n";
 
 export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications, selectedClub, subscription, memberships = [], attendance = {} }) {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const canSeeClubState = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
@@ -31,36 +33,36 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
     .map((m) => { const r = resultOf(m.score); return r === "V" ? 3 : r === "E" ? 1 : 0; });
   let run = 0;
   const balanceSpark = [...transactions].reverse().slice(-12)
-    .map((t) => { run += t.positive ? Number(t.value || 0) : -Number(t.value || 0); return run; });
+    .map((tx) => { run += tx.positive ? Number(tx.value || 0) : -Number(tx.value || 0); return run; });
   const attSpark = Object.keys(attendance).sort((a, b) => Number(a) - Number(b)).slice(-10)
     .map((tid) => { const bp = attendance[tid] || {}; const vals = Object.values(bp); const pres = vals.filter((s) => s === "present" || s === "late").length; return vals.length ? Math.round((pres / vals.length) * 100) : 0; });
 
   const stats = [
-    { icon: "Users", label: "Jucători", value: players.length, color: C.cyan, spark: [] },
-    { icon: "Dumbbell", label: "Antrenamente", value: trainings.length, color: C.purple, spark: [] },
-    { icon: "Trophy", label: "Meciuri", value: matches.length, color: C.blue, spark: matchesSpark },
-    { icon: "Wallet", label: "Sold", value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red, spark: balanceSpark },
+    { icon: "Users", label: t("dash.players"), value: players.length, color: C.cyan, spark: [] },
+    { icon: "Dumbbell", label: t("dash.trainings"), value: trainings.length, color: C.purple, spark: [] },
+    { icon: "Trophy", label: t("dash.matches"), value: matches.length, color: C.blue, spark: matchesSpark },
+    { icon: "Wallet", label: t("dash.balance"), value: `${balance.toLocaleString("ro-RO")} lei`, color: balance >= 0 ? C.green : C.red, spark: balanceSpark },
   ];
 
   // Cartonașe suplimentare cu starea clubului, doar pentru staff.
   const clubStateStats = canSeeClubState ? [
-    { icon: "CreditCard", label: "Abonament", value: subscription?.planName || selectedClub?.plan || "Free", color: C.amber },
-    { icon: "UserCheck", label: "Membri", value: memberships.length, color: C.violet },
-    { icon: "CalendarCheck", label: "Prezență", value: avgAttendance == null ? "—" : `${avgAttendance}%`, color: C.green, spark: attSpark },
+    { icon: "CreditCard", label: t("dash.subscription"), value: subscription?.planName || selectedClub?.plan || "Free", color: C.amber },
+    { icon: "UserCheck", label: t("dash.members"), value: memberships.length, color: C.violet },
+    { icon: "CalendarCheck", label: t("dash.attendance"), value: avgAttendance == null ? "—" : `${avgAttendance}%`, color: C.green, spark: attSpark },
   ] : [];
 
   // Activitate recentă derivată din datele reale (cele mai noi înregistrări).
   const recentActivity = [
-    ...players.slice(-2).map((p) => ({ icon: "User", title: `${p.name} este în lot`, meta: p.group })),
-    ...trainings.slice(0, 2).map((t) => ({ icon: "Dumbbell", title: t.theme || "Antrenament", meta: `${t.group} • ${t.date}` })),
-    ...matches.slice(0, 2).map((m) => ({ icon: "Trophy", title: `Meci vs ${m.opponent}`, meta: `${m.group} • ${m.date}` })),
+    ...players.slice(-2).map((p) => ({ icon: "User", title: t("dash.inSquad", { name: p.name }), meta: p.group })),
+    ...trainings.slice(0, 2).map((tr) => ({ icon: "Dumbbell", title: tr.theme || t("dash.addTraining"), meta: `${tr.group} • ${tr.date}` })),
+    ...matches.slice(0, 2).map((m) => ({ icon: "Trophy", title: t("dash.matchVs", { opponent: m.opponent }), meta: `${m.group} • ${m.date}` })),
   ].slice(0, 5);
 
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar
-        title={`Salut, ${currentUser?.name?.split(' ')[0] || "Manager"}!`}
+        title={t("dash.greeting", { name: currentUser?.name?.split(' ')[0] || t("dash.manager") })}
         eyebrow={`${BRAND_NAME} • Dashboard`}
       />
 
@@ -76,7 +78,7 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
       {/* Starea clubului (staff) */}
       {clubStateStats.length > 0 && (
         <>
-          <SectionTitle title="Starea clubului" />
+          <SectionTitle title={t("dash.clubState")} />
           <View style={styles.statsGrid}>
             {clubStateStats.map((s, i) => (
               <FadeInView key={i} delay={i * 60} style={styles.statCell}>
@@ -88,22 +90,22 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
       )}
 
       {/* Quick Actions */}
-      <SectionTitle title="Acțiuni rapide" />
+      <SectionTitle title={t("dash.quickActions")} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.actionScroll} contentContainerStyle={styles.actionContent}>
-        <QuickAction icon="UserPlus" label="Jucător" color={C.cyan} onPress={() => setTab?.("Echipă")} />
-        <QuickAction icon="PlusCircle" label="Antrenament" color={C.purple} onPress={() => setTab?.("Antren.")} />
-        <QuickAction icon="Trophy" label="Meci" color={C.blue} onPress={() => setTab?.("Meciuri")} />
-        <QuickAction icon="Send" label="Notificare" color={C.amber} onPress={openNotifications} />
+        <QuickAction icon="UserPlus" label={t("dash.addPlayer")} color={C.cyan} onPress={() => setTab?.("Echipă")} />
+        <QuickAction icon="PlusCircle" label={t("dash.addTraining")} color={C.purple} onPress={() => setTab?.("Antren.")} />
+        <QuickAction icon="Trophy" label={t("dash.addMatch")} color={C.blue} onPress={() => setTab?.("Meciuri")} />
+        <QuickAction icon="Send" label={t("dash.notify")} color={C.amber} onPress={openNotifications} />
       </ScrollView>
 
       <View style={[styles.gridMain, isMobile && styles.mobileGrid]}>
         {/* Activitate Recentă */}
         <GlassCard style={[styles.mainCol, isMobile && { width: "100%" }]}>
            <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>Activitate recentă</Text>
+              <Text style={styles.cardTitle}>{t("dash.recent")}</Text>
            </View>
            {recentActivity.length === 0 && (
-             <Text style={styles.emptyText}>Activitatea clubului va apărea aici după ce adaugi jucători, antrenamente sau meciuri.</Text>
+             <Text style={styles.emptyText}>{t("dash.recentEmpty")}</Text>
            )}
            {recentActivity.map((item, index) => (
              <ActivityItem key={index} icon={item.icon} title={item.title} time="" user={item.meta} />
@@ -113,7 +115,7 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
         {/* Sarcini Urgente */}
         <GlassCard style={[styles.sideCol, isMobile && { width: "100%", marginTop: spacing.lg }]}>
            <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>Sarcini urgente</Text>
+              <Text style={styles.cardTitle}>{t("dash.urgentTasks")}</Text>
            </View>
            {tasks.filter(t => !t.done).slice(0, 3).map(task => (
              <TaskItem
@@ -121,11 +123,11 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
                title={task.title}
                status={task.priority}
                color={task.priority === "URGENT" ? C.red : task.priority === "MEDIU" ? C.amber : C.blue}
-               date={task.dueLabel || task.meta?.split(':')[1]?.trim() || "Fără termen"}
+               date={task.dueLabel || task.meta?.split(':')[1]?.trim() || t("dash.noDueDate")}
              />
            ))}
            {tasks.filter(t => !t.done).length === 0 && (
-             <Text style={styles.emptyText}>Nicio sarcină urgentă.</Text>
+             <Text style={styles.emptyText}>{t("dash.noUrgentTasks")}</Text>
            )}
         </GlassCard>
       </View>

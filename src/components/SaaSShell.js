@@ -6,6 +6,7 @@ import { colors as C, radius, spacing, themedStyles, gradients, elevation } from
 import ProfileSheet from "./ProfileSheet";
 import { AmbientBackground } from "./ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTranslation } from "../i18n";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
 // lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
@@ -65,6 +66,7 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
 }
 
 export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems = [], selectedClub }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.sidebar}>
       <View style={styles.sidebarHeader}>
@@ -73,16 +75,16 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
         </View>
         <View>
           <Text style={styles.sidebarBrand}>{BRAND_NAME}</Text>
-          <Text style={styles.sidebarAdmin}>Platformă cluburi sportive</Text>
+          <Text style={styles.sidebarAdmin}>{t('nav.platform')}</Text>
         </View>
       </View>
 
       <ScrollView style={styles.menuScroll}>
-        <Text style={styles.menuSectionLabel}>MENIU PRINCIPAL</Text>
+        <Text style={styles.menuSectionLabel}>{t('nav.sectionMain')}</Text>
         {primaryItems.map((tab) => <MenuItem key={tab.label} tab={tab} activeTab={activeTab} setTab={setTab} />)}
         {adminItems.length > 0 && (
           <>
-            <Text style={styles.menuSectionLabel}>ADMIN SAAS</Text>
+            <Text style={styles.menuSectionLabel}>{t('nav.sectionAdmin')}</Text>
             {adminItems.map((tab) => <MenuItem key={tab.label} tab={tab} activeTab={activeTab} setTab={setTab} />)}
           </>
         )}
@@ -95,7 +97,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
           </View>
           <View style={{ flex: 1, marginLeft: 10 }}>
             <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || "FC Autentic"}</Text>
-            <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : "Club"}</Text>
+            <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : t('nav.club')}</Text>
           </View>
           <View style={styles.onlineDot} />
         </View>
@@ -105,6 +107,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
 };
 
 function MenuItem({ tab, activeTab, setTab }) {
+  const { t } = useTranslation();
   const Icon = LucideIcons[tab.icon] || LucideIcons.Circle;
   const isActive = activeTab === tab.label;
   return (
@@ -118,13 +121,14 @@ function MenuItem({ tab, activeTab, setTab }) {
         />
       )}
       <Icon size={18} color={isActive ? "#fff" : C.muted} strokeWidth={2} />
-      <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{tab.label}</Text>
+      <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{t(`nav.tab.${tab.label}`)}</Text>
       {tab.label === "Mai mult" && <View style={styles.countBadge}><Text style={styles.countText}>3</Text></View>}
     </Pressable>
   );
 }
 
 function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
+  const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
   return (
     <View style={styles.topbar}>
@@ -134,7 +138,7 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
           value=""
           editable={false}
           pointerEvents="none"
-          placeholder="Caută jucători, meciuri, sarcini..."
+          placeholder={t('nav.search')}
           placeholderTextColor={C.dim}
           style={styles.searchInput}
         />
@@ -149,8 +153,8 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
       </Pressable>
       <Pressable style={styles.profilePill} onPress={() => setProfileOpen(true)}>
         <View style={styles.profileTextWrap}>
-          <Text style={styles.profileName}>{user?.name || "Utilizator"}</Text>
-          <Text style={styles.profileRole}>{user?.role === "super_admin" ? "Administrator" : user?.role || "Admin"}</Text>
+          <Text style={styles.profileName}>{user?.name || t('nav.user')}</Text>
+          <Text style={styles.profileRole}>{user?.role === "super_admin" ? t('nav.administrator') : user?.role || "Admin"}</Text>
         </View>
         <View style={styles.avatar}><Text style={styles.avatarText}>{(user?.name || "A").slice(0, 1)}</Text></View>
         <LucideIcons.ChevronDown size={14} color={C.muted} />
