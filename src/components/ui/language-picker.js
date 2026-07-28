@@ -1,31 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { radius, themedStyles, gradients } from "../../constants/theme";
-
-export const LANGUAGES = ["Ro", "RU", "En"];
+import { LANGUAGES, useTranslation } from "../../i18n";
 
 // Selector compact de limbă, în stilul `.tabs` din Kultura: un container cu
 // bordură și trei segmente, cel activ cu gradientul de accent.
-//
-// Notă: deocamdată schimbă doar segmentul selectat. Textele aplicației sunt
-// scrise direct în română, fără strat de traduceri — traducerea propriu-zisă
-// cere un i18n separat.
-export function LanguagePicker({ value, onChange, style }) {
-  const [internal, setInternal] = useState(LANGUAGES[0]);
-  const active = value ?? internal;
-
-  const pick = (lang) => {
-    if (value === undefined) setInternal(lang);
-    onChange?.(lang);
-  };
+export function LanguagePicker({ style }) {
+  const { lang, setLanguage, t } = useTranslation();
 
   return (
     <View style={[styles.wrap, style]}>
-      {LANGUAGES.map((lang) => {
-        const isActive = lang === active;
+      {LANGUAGES.map((item) => {
+        const isActive = item.key === lang;
         return (
-          <Pressable key={lang} onPress={() => pick(lang)} style={styles.item} accessibilityRole="button">
+          <Pressable
+            key={item.key}
+            onPress={() => setLanguage(item.key)}
+            style={styles.item}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={t("lang.name")}
+          >
             {isActive && (
               <LinearGradient
                 colors={gradients.button}
@@ -34,7 +30,7 @@ export function LanguagePicker({ value, onChange, style }) {
                 style={[StyleSheet.absoluteFill, { borderRadius: radius.sm }]}
               />
             )}
-            <Text style={[styles.label, isActive && styles.labelActive]}>{lang}</Text>
+            <Text style={[styles.label, isActive && styles.labelActive]}>{item.label}</Text>
           </Pressable>
         );
       })}

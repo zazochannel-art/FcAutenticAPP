@@ -33,6 +33,7 @@ import {
 } from 'lucide-react-native';
 import { colors as C, themedStyles } from "../constants/theme";
 import { LanguagePicker } from "../components/ui/language-picker";
+import { useTranslation } from "../i18n";
 
 const BG_DARK = "#020617";
 
@@ -50,20 +51,21 @@ function calculatePasswordStrength(password) {
     special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
   };
   const score = Object.values(requirements).filter(Boolean).length;
-  const feedback = [];
-  if (!requirements.length) feedback.push('Minim 8 caractere');
-  if (!requirements.uppercase) feedback.push('O literă mare');
-  if (!requirements.lowercase) feedback.push('O literă mică');
-  if (!requirements.number) feedback.push('O cifră');
-  if (!requirements.special) feedback.push('Un caracter special');
+  // Întoarcem chei de traducere, nu texte: componenta le traduce la render,
+  // ca lista de cerințe să se schimbe odată cu limba.
+  const feedback = Object.entries(requirements)
+    .filter(([, met]) => !met)
+    .map(([name]) => `strength.${name}`);
   return { score, feedback, requirements };
 }
 
 function PasswordStrengthIndicator({ password }) {
+  const { t } = useTranslation();
   if (!password) return null;
   const { score, feedback } = calculatePasswordStrength(password);
   const color = score <= 1 ? C.red : score <= 2 ? '#F97316' : score <= 3 ? '#EAB308' : score <= 4 ? '#3B82F6' : C.green;
-  const label = score <= 1 ? 'Foarte slabă' : score <= 2 ? 'Slabă' : score <= 3 ? 'Acceptabilă' : score <= 4 ? 'Bună' : 'Puternică';
+  const labelKey = score <= 1 ? 'veryWeak' : score <= 2 ? 'weak' : score <= 3 ? 'fair' : score <= 4 ? 'good' : 'strong';
+  const label = t(`strength.${labelKey}`);
   return (
     <View style={styles.strengthWrap}>
       <View style={styles.strengthRow}>
@@ -77,7 +79,7 @@ function PasswordStrengthIndicator({ password }) {
           {feedback.map((item) => (
             <View key={item} style={styles.strengthHint}>
               <AlertTriangle size={10} color="#F59E0B" />
-              <Text style={styles.strengthHintText}>{item}</Text>
+              <Text style={styles.strengthHintText}>{t(item)}</Text>
             </View>
           ))}
         </View>
@@ -97,6 +99,7 @@ function FieldError({ message, center }) {
 }
 
 function InputField({ icon, placeholder, value, onChange, onBlur, error, secure, showPassword, onToggleShow, keyboardType, autoCapitalize }) {
+  const { t } = useTranslation();
   const Icon = { Mail, Lock, User, Phone, Shield }[icon];
   return (
     <View>
@@ -114,7 +117,7 @@ function InputField({ icon, placeholder, value, onChange, onBlur, error, secure,
           autoCapitalize={autoCapitalize ?? 'none'}
         />
         {secure && (
-          <Pressable onPress={onToggleShow} accessibilityLabel={showPassword ? 'Ascunde parola' : 'Arată parola'}>
+          <Pressable onPress={onToggleShow} accessibilityLabel={t(showPassword ? 'a11y.hidePassword' : 'a11y.showPassword')}>
             {showPassword ? <EyeOff size={18} color="#64748B" /> : <Eye size={18} color="#64748B" />}
           </Pressable>
         )}
@@ -145,6 +148,7 @@ function BenefitItem({ icon, color, title }) {
 }
 
 export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onForgot, loading, error }) {
+  const { t, lang } = useTranslation();
   const { width } = useWindowDimensions();
   const isDesktop = width > 768;
 
@@ -185,32 +189,32 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
   const validateField = useCallback((field, value) => {
     switch (field) {
       case 'name':
-        if (mode === 'signup' && !String(value).trim()) return 'Numele este obligatoriu';
+        if (mode === 'signup' && !String(value).trim()) return t('validation.nameRequired');
         return '';
       case 'email':
-        if (!String(value).trim()) return 'Emailul este obligatoriu';
-        if (!EMAIL_RE.test(String(value).trim())) return 'Introdu o adresă de email validă';
+        if (!String(value).trim()) return t('validation.emailRequired');
+        if (!EMAIL_RE.test(String(value).trim())) return t('validation.emailInvalid');
         return '';
       case 'password':
-        if (!value) return 'Parola este obligatorie';
+        if (!value) return t('validation.passwordRequired');
         if (mode === 'signup') {
-          if (String(value).length < 8) return 'Parola trebuie să aibă minim 8 caractere';
-          if (calculatePasswordStrength(String(value)).score < 3) return 'Parola este prea slabă';
+          if (String(value).length < 8) return t('validation.passwordMin');
+          if (calculatePasswordStrength(String(value)).score < 3) return t('validation.passwordWeak');
         }
         return '';
       case 'confirmPassword':
-        if (mode === 'signup' && value !== form.password) return 'Parolele nu coincid';
+        if (mode === 'signup' && value !== form.password) return t('validation.passwordMismatch');
         return '';
       case 'phone':
-        if (String(value) && !PHONE_RE.test(String(value))) return 'Introdu un număr de telefon valid';
+        if (String(value) && !PHONE_RE.test(String(value))) return t('validation.phoneInvalid');
         return '';
       case 'agreeToTerms':
-        if (mode === 'signup' && !value) return 'Trebuie să accepți termenii și condițiile';
+        if (mode === 'signup' && !value) return t('validation.termsRequired');
         return '';
       default:
         return '';
     }
-  }, [mode, form.password]);
+  }, [mode, form.password, t]);
 
   const handleChange = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -235,6 +239,21 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
     setTouched((prev) => ({ ...prev, ...Object.fromEntries(fields.map((f) => [f, true])) }));
     return Object.keys(newErrors).length === 0;
   };
+
+  // Textele deja afișate au fost produse în limba anterioară. La comutare
+  // recalculăm erorile câmpurilor atinse și golim mesajele generale, ca să nu
+  // rămână un amestec de limbi pe ecran.
+  useEffect(() => {
+    setErrors((prev) => {
+      const next = {};
+      Object.keys(prev).forEach((field) => {
+        if (prev[field]) next[field] = validateField(field, form[field]);
+      });
+      return next;
+    });
+    setSuccessMessage('');
+    setGeneralError('');
+  }, [lang]);
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
@@ -268,12 +287,12 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
     setGeneralError('');
     try {
       await onSignup?.({ name: form.name.trim(), email: form.email.trim(), password: form.password, phone: form.phone.trim() });
-      setSuccessMessage('Cont creat! Verifică emailul pentru confirmare, apoi autentifică-te.');
+      setSuccessMessage(t('login.signupSuccess'));
       setMode('login');
       setForm((prev) => ({ ...prev, password: '', confirmPassword: '' }));
       setErrors({});
     } catch (e) {
-      setGeneralError(e.message || 'Crearea contului a eșuat. Încearcă din nou.');
+      setGeneralError(e.message || t('login.signupFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -285,10 +304,10 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
     setGeneralError('');
     try {
       await onForgot?.(form.email.trim());
-      setSuccessMessage('Ți-am trimis un link de resetare pe email.');
+      setSuccessMessage(t('login.resetSent'));
       setMode('login');
     } catch (e) {
-      setGeneralError(e.message || 'Nu am putut trimite emailul de resetare.');
+      setGeneralError(e.message || t('login.resetFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -320,7 +339,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                 </View>
                 <View>
                   <Text style={styles.logoText}>TEAM MANAGER</Text>
-                  <Text style={styles.adminBadge}>ADMIN</Text>
+                  <Text style={styles.adminBadge}>{t('login.adminBadge')}</Text>
                 </View>
               </View>
               <LanguagePicker />
@@ -334,17 +353,15 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                    <Shield size={60} color="white" strokeWidth={1.5} />
                 </View>
                 <Text style={styles.mainTitle}>
-                  Administrează clubul{"\n"}
-                  tău <Text style={{ color: C.cyan }}>inteligent</Text>
+                  {t('login.heroTitle')}
+                  <Text style={{ color: C.cyan }}>{t('login.heroAccent')}</Text>
                 </Text>
-                <Text style={styles.subtitle}>
-                  Gestionează jucători, antrenamente, meciuri și finanțe într-o platformă de performanță.
-                </Text>
+                <Text style={styles.subtitle}>{t('login.heroSubtitle')}</Text>
 
                 <View style={styles.benefitList}>
-                  <BenefitItem icon="Users" color={C.cyan} title="Gestionează jucătorii" />
-                  <BenefitItem icon="Dumbbell" color={C.purple} title="Planifică antrenamente" />
-                  <BenefitItem icon="Trophy" color={C.green} title="Controlează clubul" />
+                  <BenefitItem icon="Users" color={C.cyan} title={t('login.benefitPlayers')} />
+                  <BenefitItem icon="Dumbbell" color={C.purple} title={t('login.benefitTrainings')} />
+                  <BenefitItem icon="Trophy" color={C.green} title={t('login.benefitClub')} />
                 </View>
               </View>
 
@@ -370,10 +387,10 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
 
                   {/* Header */}
                   <Text style={styles.loginTitle}>
-                    {mode === 'login' ? 'Bine ai revenit' : mode === 'reset' ? 'Resetare parolă' : 'Creează cont'}
+                    {t(mode === 'login' ? 'login.titleLogin' : mode === 'reset' ? 'login.titleReset' : 'login.titleSignup')}
                   </Text>
                   <Text style={styles.loginSubtitle}>
-                    {mode === 'login' ? 'Autentifică-te în contul tău' : mode === 'reset' ? 'Recuperează accesul la cont' : 'Creează un cont nou'}
+                    {t(mode === 'login' ? 'login.subtitleLogin' : mode === 'reset' ? 'login.subtitleReset' : 'login.subtitleSignup')}
                   </Text>
 
                   {/* Mode Toggle Tabs */}
@@ -383,13 +400,13 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                         onPress={() => switchMode('login')}
                         style={[styles.tab, mode === 'login' && styles.tabActive]}
                       >
-                        <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>Autentificare</Text>
+                        <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>{t('login.tabLogin')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => switchMode('signup')}
                         style={[styles.tab, mode === 'signup' && styles.tabActive]}
                       >
-                        <Text style={[styles.tabText, mode === 'signup' && styles.tabTextActive]}>Cont nou</Text>
+                        <Text style={[styles.tabText, mode === 'signup' && styles.tabTextActive]}>{t('login.tabSignup')}</Text>
                       </Pressable>
                     </View>
                   )}
@@ -399,14 +416,12 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                     <View style={styles.form}>
                       <View style={styles.resetHeader}>
                         <KeyRound size={44} color={C.cyan} />
-                        <Text style={styles.resetText}>
-                          Introdu adresa de email și îți trimitem un link pentru resetarea parolei.
-                        </Text>
+                        <Text style={styles.resetText}>{t('login.resetHint')}</Text>
                       </View>
 
                       <InputField
                         icon="Mail"
-                        placeholder="Adresă de email"
+                        placeholder={t('field.email')}
                         value={form.email}
                         onChange={(v) => handleChange('email', v)}
                         onBlur={() => handleBlur('email')}
@@ -419,14 +434,14 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                           {submitting ? <ActivityIndicator color="white" size="small" /> : (
                             <>
                               <KeyRound size={18} color="white" />
-                              <Text style={styles.loginBtnText}>Trimite link de resetare</Text>
+                              <Text style={styles.loginBtnText}>{t('login.resetSubmit')}</Text>
                             </>
                           )}
                         </LinearGradient>
                       </Pressable>
 
                       <Pressable onPress={() => switchMode('login')}>
-                        <Text style={styles.linkCenter}>Înapoi la autentificare</Text>
+                        <Text style={styles.linkCenter}>{t('login.backToLogin')}</Text>
                       </Pressable>
                     </View>
                   )}
@@ -437,7 +452,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                       {mode === 'signup' && (
                         <InputField
                           icon="User"
-                          placeholder="Nume complet"
+                          placeholder={t('field.fullName')}
                           value={form.name}
                           onChange={(v) => handleChange('name', v)}
                           onBlur={() => handleBlur('name')}
@@ -448,7 +463,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
 
                       <InputField
                         icon="Mail"
-                        placeholder="Adresă de email"
+                        placeholder={t('field.email')}
                         value={form.email}
                         onChange={(v) => handleChange('email', v)}
                         onBlur={() => handleBlur('email')}
@@ -459,7 +474,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                       <View>
                         <InputField
                           icon="Lock"
-                          placeholder="Parolă"
+                          placeholder={t('field.password')}
                           value={form.password}
                           onChange={(v) => handleChange('password', v)}
                           onBlur={() => handleBlur('password')}
@@ -475,7 +490,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                         <>
                           <InputField
                             icon="Shield"
-                            placeholder="Confirmă parola"
+                            placeholder={t('field.confirmPassword')}
                             value={form.confirmPassword}
                             onChange={(v) => handleChange('confirmPassword', v)}
                             onBlur={() => handleBlur('confirmPassword')}
@@ -487,7 +502,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
 
                           <InputField
                             icon="Phone"
-                            placeholder="Telefon (opțional)"
+                            placeholder={t('field.phoneOptional')}
                             value={form.phone}
                             onChange={(v) => handleChange('phone', v)}
                             onBlur={() => handleBlur('phone')}
@@ -502,10 +517,10 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                         <View style={styles.formOptions}>
                           <Pressable style={styles.rememberRow} onPress={() => handleChange('rememberMe', !form.rememberMe)}>
                             <CheckBox checked={form.rememberMe} onToggle={() => handleChange('rememberMe', !form.rememberMe)} />
-                            <Text style={styles.optionText}>Ține-mă minte</Text>
+                            <Text style={styles.optionText}>{t('login.rememberMe')}</Text>
                           </Pressable>
                           <Pressable onPress={() => switchMode('reset')}>
-                            <Text style={[styles.optionText, { color: C.cyan }]}>Ai uitat parola?</Text>
+                            <Text style={[styles.optionText, { color: C.cyan }]}>{t('login.forgotPassword')}</Text>
                           </Pressable>
                         </View>
                       ) : (
@@ -513,7 +528,10 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                           <Pressable style={styles.termsRow} onPress={() => handleChange('agreeToTerms', !form.agreeToTerms)}>
                             <CheckBox checked={form.agreeToTerms} onToggle={() => handleChange('agreeToTerms', !form.agreeToTerms)} />
                             <Text style={[styles.optionText, { flex: 1 }]}>
-                              Sunt de acord cu <Text style={{ color: C.cyan }}>Termenii și condițiile</Text> și <Text style={{ color: C.cyan }}>Politica de confidențialitate</Text>
+                              {t('login.termsPrefix')}
+                              <Text style={{ color: C.cyan }}>{t('login.termsLink')}</Text>
+                              {t('login.termsAnd')}
+                              <Text style={{ color: C.cyan }}>{t('login.privacyLink')}</Text>
                             </Text>
                           </Pressable>
                           <FieldError message={errors.agreeToTerms} />
@@ -530,7 +548,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                         >
                           {busy ? <ActivityIndicator color="white" size="small" /> : (
                             <>
-                              <Text style={styles.loginBtnText}>{mode === 'login' ? 'Conectează-te' : 'Creează cont'}</Text>
+                              <Text style={styles.loginBtnText}>{t(mode === 'login' ? 'login.submitLogin' : 'login.submitSignup')}</Text>
                               <ArrowRight size={20} color="white" />
                             </>
                           )}
@@ -541,12 +559,12 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                         <>
                           <View style={styles.separator}>
                             <View style={styles.line} />
-                            <Text style={styles.sepText}>SAU</Text>
+                            <Text style={styles.sepText}>{t('login.or')}</Text>
                             <View style={styles.line} />
                           </View>
 
                           <Pressable style={styles.googleBtn} onPress={onGoogle}>
-                            <Text style={styles.googleBtnText}>Continuă cu Google</Text>
+                            <Text style={styles.googleBtnText}>{t('login.google')}</Text>
                           </Pressable>
                         </>
                       )}
@@ -554,18 +572,18 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                       {/* Bottom toggle */}
                       <View style={styles.footerLinks}>
                         <Text style={styles.footerText}>
-                          {mode === 'login' ? 'Nu ai cont? ' : 'Ai deja cont? '}
+                          {t(mode === 'login' ? 'login.noAccount' : 'login.hasAccount')}
                         </Text>
                         <Pressable onPress={() => switchMode(mode === 'login' ? 'signup' : 'login')}>
                           <Text style={[styles.footerText, { color: C.cyan, fontWeight: 'bold' }]}>
-                            {mode === 'login' ? 'Creează cont' : 'Autentifică-te'}
+                            {t(mode === 'login' ? 'login.goSignup' : 'login.goLogin')}
                           </Text>
                         </Pressable>
                       </View>
 
                       {mode === 'signup' && !!onRegister && (
                         <Pressable onPress={onRegister}>
-                          <Text style={styles.linkCenter}>Înregistrare jucător cu detalii complete</Text>
+                          <Text style={styles.linkCenter}>{t('login.playerRegister')}</Text>
                         </Pressable>
                       )}
                     </View>

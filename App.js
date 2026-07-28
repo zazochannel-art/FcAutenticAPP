@@ -73,6 +73,7 @@ import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
 import { themedStyles, colors, applyTheme } from "./src/constants/theme";
+import { loadSavedLanguage } from "./src/i18n";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
@@ -126,16 +127,20 @@ export default function App() {
   // `themeKey` forțează remontarea întregului arbore după schimbarea temei, ca
   // stilurile regenerate de `applyTheme` să fie preluate de toate ecranele.
   const [themeKey, setThemeKey] = useState(0);
-  const [themeReady, setThemeReady] = useState(false);
+  // Tema și limba se citesc împreună, înainte de primul render, ca să nu se
+  // vadă o clipire pe tema sau limba implicită.
+  const [prefsReady, setPrefsReady] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem("fc_theme")
-      .then((saved) => { if (saved === "light") applyTheme("light"); })
-      .catch(() => {})
-      .finally(() => setThemeReady(true));
+    Promise.all([
+      AsyncStorage.getItem("fc_theme")
+        .then((saved) => { if (saved === "light") applyTheme("light"); })
+        .catch(() => {}),
+      loadSavedLanguage(),
+    ]).finally(() => setPrefsReady(true));
   }, []);
 
-  if (!themeReady) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  if (!prefsReady) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
     <PersistQueryClientProvider
