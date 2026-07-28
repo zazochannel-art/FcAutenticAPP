@@ -40,3 +40,13 @@ export function parseRoDate(label) {
   if (month === undefined) return null;
   return new Date(m[3] ? Number(m[3]) : new Date().getFullYear(), month, Number(m[1]));
 }
+
+// Vârsta în ani dintr-o dată de naștere scrisă în oricare din formatele
+// aplicației. Întoarce „—” când data lipsește sau nu poate fi citită.
+export function ageFromRoDate(birthdate, now = new Date()) {
+  const parsed = parseRoDate(birthdate);
+  if (!parsed) return "—";
+  const diff = now.getTime() - parsed.getTime();
+  const age = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+  return age > 0 && age < 100 ? String(age) : "—";
+}

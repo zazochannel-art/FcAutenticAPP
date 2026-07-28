@@ -158,19 +158,27 @@ export function SkeletonRow({ style }) {
 }
 
 // --- PressableScale: micro-interacțiune la apăsare --------------------------
+// Un singur element, animat și apăsabil. Înainte erau două — `Pressable` în
+// afară și `Animated.View` înăuntru — iar `style` ajungea pe cel interior.
+// Proprietățile de aranjare (`flexBasis`, `flexGrow`) nimereau astfel pe un
+// element care nu participa la rândul părintelui, iar butoanele ieșeau înalte
+// și goale în listele cu `flexWrap`.
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function PressableScale({ children, onPress, style, disabled, ...rest }) {
   const scale = useRef(new Animated.Value(1)).current;
   const to = (v) => Animated.spring(scale, { toValue: v, useNativeDriver: true, speed: 40, bounciness: 6 }).start();
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
       disabled={disabled}
       onPressIn={() => to(0.97)}
       onPressOut={() => to(1)}
+      style={[style, { transform: [{ scale }] }]}
       {...rest}
     >
-      <Animated.View style={[{ transform: [{ scale }] }, style]}>{children}</Animated.View>
-    </Pressable>
+      {children}
+    </AnimatedPressable>
   );
 }
 
