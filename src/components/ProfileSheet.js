@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, View, Text, Pressable, StyleSheet } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, themedStyles } from "../constants/theme";
+import { useTranslation } from "../i18n";
 
 const ROLE_LABELS = {
   super_admin: "Administrator platformă",
@@ -15,6 +16,7 @@ const ROLE_LABELS = {
 
 // Fișă de profil + setări, deschisă din cardul de profil (dreapta sus).
 export default function ProfileSheet({ visible, user, selectedClub, onClose, onLogout, onNavigate }) {
+  const { t } = useTranslation();
   if (!visible) return null;
 
   const role = user?.role || "viewer";
@@ -30,7 +32,7 @@ export default function ProfileSheet({ visible, user, selectedClub, onClose, onL
           <View style={styles.header}>
             <View style={styles.avatar}><Text style={styles.avatarText}>{initial}</Text></View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.name} numberOfLines={1}>{user?.name || "Utilizator"}</Text>
+              <Text style={styles.name} numberOfLines={1}>{user?.name || t('nav.user')}</Text>
               {!!user?.email && <Text style={styles.email} numberOfLines={1}>{user.email}</Text>}
             </View>
             <Pressable onPress={onClose} style={styles.closeBtn}><LucideIcons.X size={18} color={C.dim} /></Pressable>

@@ -78,32 +78,36 @@ import { loadSavedLanguage } from "./src/i18n";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
+// Rezervă folosită doar când utilizatorul nu are încă niciun club. Nu conține
+// date inventate — numele, orașul, emailul și telefonul rămân goale, ca să nu
+// arătăm un club care nu există. Grupele sunt cele implicite din schema bazei.
 const defaultClub = {
   id: DEFAULT_CLUB_ID,
-  name: "FC Autentic",
+  name: "",
   logo: "",
-  city: "Chisinau",
-  country: "Moldova",
-  email: "contact@fcautentic.md",
-  phone: "+373 600 00 000",
-  description: "Club de fotbal organizat profesionist.",
+  city: "",
+  country: "",
+  email: "",
+  phone: "",
+  description: "",
   groups: ["U13", "U16", "U19", "Juniori", "Seniori"],
   status: "active",
   blocked: false,
   plan: "Free",
   plan_name: "Free",
-  createdAt: "29 iunie 2026",
+  createdAt: "",
 };
 
+// Idem: fără date de abonament inventate.
 const defaultSubscription = {
   id: DEFAULT_SUBSCRIPTION_ID,
   clubId: DEFAULT_CLUB_ID,
   planName: "Free",
   status: "active",
-  maxPlayers: 20,
-  startedAt: "29 iunie 2026",
+  maxPlayers: null,
+  startedAt: "",
   expiresAt: "",
-  createdAt: "29 iunie 2026",
+  createdAt: "",
 };
 
 // Taburile de administrare a platformei (super-admin în mod platformă).
@@ -168,7 +172,6 @@ function MainApp({ onThemeChange }) {
   const [authView, setAuthView] = useState("login");
   const [currentUser, setCurrentUser] = useState(null);
   const [tab, setTab] = useState("Dashboard");
-  const [clubSettings] = useState({ clubName: "FC Autentic" });
   const [selectedClubId, setSelectedClubId] = useState(null);
   // Când super-adminul intră în gestiunea unui club anume (null = mod platformă).
   const [managingClubId, setManagingClubId] = useState(null);
@@ -224,6 +227,13 @@ function MainApp({ onThemeChange }) {
   const { data: tasks = [] } = useQuery({
     queryKey: ["tasks", selectedClubId],
     queryFn: () => supabaseService.getTasks(selectedClubId),
+    enabled: isSupabaseConfigured && !!selectedClubId,
+  });
+  // Aceeași cheie ca ecranul de anunțuri, ca insigna și lista să împartă cache-ul
+  // și să fie reîmprospătate de aceeași notificare realtime (`chat_messages`).
+  const { data: chatMessages = [] } = useQuery({
+    queryKey: ["announcements", selectedClubId],
+    queryFn: () => supabaseService.getChatMessages(selectedClubId),
     enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: events = [] } = useQuery({
@@ -629,7 +639,6 @@ function MainApp({ onThemeChange }) {
           matches={matches}
           attendance={attendance}
           transactions={transactions}
-          clubSettings={clubSettings}
           currentUser={effectiveUser}
           setTab={setTab}
           selectedClub={selectedClub}
@@ -695,7 +704,6 @@ function MainApp({ onThemeChange }) {
         selectedClub={selectedClub}
         clubId={selectedClubId}
         currentUser={effectiveUser}
-        clubSettings={clubSettings}
       />
     ),
     AI: (
@@ -928,6 +936,7 @@ function MainApp({ onThemeChange }) {
               user={effectiveUser}
               selectedClub={managingClub || selectedClub}
               onLogout={logout}
+              notificationsCount={chatMessages.length}
             >
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </SaaSAppShell>
@@ -935,7 +944,7 @@ function MainApp({ onThemeChange }) {
         ) : (
           <>
             <AmbientBackground />
-            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} />
+            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
             {/* Spațiul de jos ține cont de pastila plutitoare a meniului:
                 înălțimea ei (~49) + distanța până la margine (26) + inset. */}
             <View style={[styles.app, { paddingBottom: 86 + insets.bottom }]}>

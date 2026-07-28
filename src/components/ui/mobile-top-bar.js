@@ -13,7 +13,7 @@ import ProfileSheet from "../ProfileSheet";
 //
 // Numele e text, nu wordmark-ul din logo: bara stă pe `colors.bg`, iar pe tema
 // luminoasă literele argintii ale wordmark-ului ar fi fost aproape invizibile.
-export function MobileTopBar({ topInset = 0, onNotifications }) {
+export function MobileTopBar({ topInset = 0, onNotifications, notificationsCount = 0 }) {
   const { t } = useTranslation();
   const profile = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -29,6 +29,11 @@ export function MobileTopBar({ topInset = 0, onNotifications }) {
       {onNotifications ? (
         <Pressable onPress={onNotifications} style={styles.action} accessibilityRole="button" accessibilityLabel={t('nav.notifications')}>
           <LucideIcons.Bell size={18} color={C.muted} />
+          {notificationsCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{notificationsCount > 9 ? "9+" : notificationsCount}</Text>
+            </View>
+          )}
         </Pressable>
       ) : null}
 
@@ -73,5 +78,11 @@ const styles = themedStyles((C) => StyleSheet.create({
     justifyContent: "center",
   },
   avatar: { borderColor: C.accent + "40", backgroundColor: C.accent + "14" },
+  badge: {
+    position: "absolute", top: -4, right: -4, minWidth: 16, height: 16,
+    borderRadius: 8, paddingHorizontal: 4, backgroundColor: C.accent,
+    alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: C.bg,
+  },
+  badgeText: { color: C.bg, fontSize: 8.5, fontWeight: "900" },
   avatarText: { color: C.accent, fontSize: 14, fontWeight: "900" },
 }));
