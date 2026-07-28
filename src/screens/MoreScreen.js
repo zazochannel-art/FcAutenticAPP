@@ -35,7 +35,7 @@ async function copyText(text) {
   return false;
 }
 
-export default function MoreScreen({ currentUser, onLogout, selectedClub, openNotifications, switchClub, onCreateClub, clubs = [], onThemeChange }) {
+export default function MoreScreen({ currentUser, onLogout, selectedClub, switchClub, onCreateClub, clubs = [], onThemeChange }) {
   const [darkMode, setDarkMode] = useState(themeName !== "light");
 
   // Comută tema: aplicăm paleta, salvăm preferința și cerem remontarea
@@ -95,7 +95,7 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, openNo
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Setări" eyebrow="CONT, CLUB ȘI PREFERINȚE" openNotifications={openNotifications} />
+      <TopBar title="Setări" eyebrow="CONT, CLUB ȘI PREFERINȚE" />
 
       {/* Contul meu */}
       <SectionTitle title="Contul meu" />

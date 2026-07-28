@@ -7,6 +7,7 @@ import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { presenceMap } from "../utils/stats";
 import { parseScore, resultOf } from "../utils/matches";
 import { FadeInView, PressableScale } from "../components/ui/visuals";
+import { BRAND_NAME } from "../constants/brand";
 
 export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications, selectedClub, subscription, memberships = [], attendance = {} }) {
   const { width } = useWindowDimensions();
@@ -60,8 +61,7 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <TopBar
         title={`Salut, ${currentUser?.name?.split(' ')[0] || "Manager"}!`}
-        eyebrow="FOOTBAL MANAGER • DASHBOARD"
-        openNotifications={openNotifications}
+        eyebrow={`${BRAND_NAME} • Dashboard`}
       />
 
       {/* Grid Statistici */}

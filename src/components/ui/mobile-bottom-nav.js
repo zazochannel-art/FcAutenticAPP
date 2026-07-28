@@ -33,7 +33,7 @@ const tabIcons = {
 // „Mai mult” e ecranul de setări; îl afișăm cu numele „Setări” în meniu.
 const displayLabel = (label) => (label === "Mai mult" ? "Setări" : label);
 
-export function MobileBottomNav({ tabs, activeTab, onTabPress }) {
+export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const mainTabs = tabs.slice(0, 4);
   const showMenu = tabs.length > 4;
@@ -41,7 +41,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress }) {
   const pick = (label) => { setMenuOpen(false); onTabPress(label); };
 
   return (
-    <View style={styles.wrapper} pointerEvents="box-none">
+    <View style={[styles.wrapper, { paddingBottom: 26 + bottomInset }]} pointerEvents="box-none">
       <LinearGradient
         colors={[C.navBarFrom, C.navBarTo]}
         start={{ x: 0, y: 0 }}
@@ -115,14 +115,13 @@ const styles = themedStyles((C) => StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    paddingBottom: Platform.OS === "ios" ? 26 + 34 : 26,
+    paddingHorizontal: 8,
     backgroundColor: "transparent",
   },
   container: {
     flexDirection: "row",
     width: "100%",
     maxWidth: 480,
-    marginHorizontal: 8,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: C.navBorder,

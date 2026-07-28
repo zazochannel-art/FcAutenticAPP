@@ -5,6 +5,7 @@ import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { computePlayerStats } from "../utils/stats";
 import { AreaChart, FadeInView } from "../components/ui/visuals";
+import { BRAND_NAME } from "../constants/brand";
 
 const SORTS = [
   { key: "goals", label: "Goluri", icon: "Goal" },
@@ -13,7 +14,7 @@ const SORTS = [
   { key: "rating", label: "Rating", icon: "Star" },
 ];
 
-export default function StatsScreen({ players = [], matches = [], attendance = {}, selectedClub, openNotifications }) {
+export default function StatsScreen({ players = [], matches = [], attendance = {}, selectedClub }) {
   const [sortBy, setSortBy] = useState("goals");
   const [groupFilter, setGroupFilter] = useState("Toate");
 
@@ -61,7 +62,7 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Statistici" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Statistici" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <FadeInView style={styles.summaryRow}>
         <SummaryCard icon="Trophy" color={C.blue} value={String(matches.length)} label="Meciuri" />

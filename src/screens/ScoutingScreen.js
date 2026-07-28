@@ -6,6 +6,7 @@ import { colors as C, themedStyles } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { SkeletonRow, EmptyState } from "../components/ui/visuals";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -15,7 +16,7 @@ function notify(title, msg) {
 const DECISIONS = ["De urmărit", "Invită la probe", "Ofertă", "Respins"];
 const DECISION_COLORS_ = () => ({ "De urmărit": C.blue, "Invită la probe": C.amber, "Ofertă": C.green, "Respins": C.red });
 
-export default function ScoutingScreen({ clubId, selectedClub, currentUser, openNotifications }) {
+export default function ScoutingScreen({ clubId, selectedClub, currentUser }) {
   const queryClient = useQueryClient();
   const [editItem, setEditItem] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function ScoutingScreen({ clubId, selectedClub, currentUser, open
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <TopBar title="Scouting" eyebrow={selectedClub?.name || "FOOTBAL MANAGER 99"} openNotifications={openNotifications} />
+      <TopBar title="Scouting" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (
         <Pressable style={styles.addBtn} onPress={() => setAddOpen(true)}>
