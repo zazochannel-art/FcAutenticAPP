@@ -63,3 +63,19 @@ describe("isSupported", () => {
     expect(isSupported(undefined)).toBe(false);
   });
 });
+
+describe("interpolare", () => {
+  it("înlocuiește semnele de poziție", () => {
+    expect(translate("dash.greeting", "ro", { name: "Ion" })).toBe("Salut, Ion!");
+    expect(translate("dash.greeting", "ru", { name: "Иван" })).toBe("Привет, Иван!");
+    expect(translate("dash.greeting", "en", { name: "John" })).toBe("Hi, John!");
+  });
+
+  it("lasă neatins un semn fără valoare", () => {
+    expect(translate("dash.greeting", "ro", {})).toBe("Salut, {name}!");
+  });
+
+  it("nu strică textele fără semne de poziție", () => {
+    expect(translate("dash.players", "ro", { name: "x" })).toBe("Jucători");
+  });
+});

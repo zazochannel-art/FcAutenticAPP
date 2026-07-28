@@ -356,9 +356,11 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
 
               {/* Left Column: Branding */}
               <View style={styles.leftCol}>
-                <View style={styles.bigShield}>
-                   <Shield size={60} color="white" strokeWidth={1.5} />
-                </View>
+                <Image
+                  source={require('../../assets/icon-square.png')}
+                  style={styles.heroLogo}
+                  accessibilityLabel={BRAND_NAME}
+                />
                 <Text style={styles.mainTitle}>
                   {t('login.heroTitle')}
                   <Text style={{ color: C.cyan }}>{t('login.heroAccent')}</Text>
@@ -627,7 +629,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   mainLayout: { padding: 24, alignItems: 'center' },
   desktopLayout: { flexDirection: 'row', justifyContent: 'center', gap: 60, paddingTop: 60 },
   leftCol: { alignItems: 'center', marginBottom: 40, width: '100%', maxWidth: 500 },
-  bigShield: { padding: 20, backgroundColor: 'rgba(15,23,42,0.4)', borderRadius: 24, borderWidth: 1, borderColor: C.cyan + '30', marginBottom: 20 },
+  heroLogo: { width: 96, height: 96, borderRadius: 24, marginBottom: 20, resizeMode: 'cover' },
   mainTitle: { color: C.text, fontSize: 32, fontWeight: '900', textAlign: 'center', lineHeight: 40 },
   subtitle: { color: '#94A3B8', fontSize: 14, textAlign: 'center', marginTop: 15, lineHeight: 22, maxWidth: 300 },
   benefitList: { marginTop: 30, gap: 12, width: '100%' },
