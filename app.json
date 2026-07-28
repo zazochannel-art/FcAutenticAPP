@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Team Manager",
+    "name": "SportTeam One",
     "slug": "fc-autentic",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,8 +27,8 @@
     },
     "web": {
       "favicon": "./assets/icon-square.png",
-      "name": "Team Manager",
-      "shortName": "Team Manager",
+      "name": "SportTeam One",
+      "shortName": "SportTeam One",
       "themeColor": "#09090B",
       "backgroundColor": "#09090B",
       "display": "standalone",

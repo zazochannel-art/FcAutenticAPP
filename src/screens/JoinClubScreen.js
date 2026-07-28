@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Mail, Shield, Users
 import { colors as C, themedStyles } from "../constants/theme";
 import { supabaseService } from "../services/supabaseService";
 import { LanguagePicker } from "../components/ui/language-picker";
+import { BRAND_NAME } from "../constants/brand";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000" };
 
@@ -62,7 +63,7 @@ export default function JoinClubScreen({ onBack, onSuccess }) {
               </Pressable>
               <View style={styles.brand}>
                 <Shield size={26} color={C.cyan} />
-                <Text style={styles.brandText}>Team Manager</Text>
+                <Text style={styles.brandText}>{BRAND_NAME}</Text>
               </View>
               <LanguagePicker />
             </View>

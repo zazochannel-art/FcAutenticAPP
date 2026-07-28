@@ -5,6 +5,7 @@ import { BlurView } from "expo-blur";
 import { ArrowRight, ChevronRight, Info, QrCode, ShieldPlus, UsersRound } from "lucide-react-native";
 import { colors as C, themedStyles } from "../constants/theme";
 import { LanguagePicker } from "../components/ui/language-picker";
+import { BRAND_NAME } from "../constants/brand";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2200" };
 
@@ -22,7 +23,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
               <View style={styles.logoTile}>
                 <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
               </View>
-              <Text style={styles.brandText}>Team Manager</Text>
+              <Text style={styles.brandText}>{BRAND_NAME}</Text>
             </View>
             <View style={styles.headerRight}>
               <Pressable onPress={onLogout} style={styles.ghostSmall}><Text style={styles.ghostText}>Ieșire</Text></Pressable>
@@ -35,7 +36,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
               <Image source={require("../../assets/icon-square.png")} style={styles.heroLogo} />
               <Text style={styles.heroTitle}>Alege cum vrei să{"\n"}<Text style={styles.cyan}>continui</Text></Text>
               <Text style={styles.heroSubtitle}>
-                Creează propriul tău club sau alătură-te unui club existent din platforma Team Manager.
+                Creează propriul tău club sau alătură-te unui club existent din platforma {BRAND_NAME}.
               </Text>
               <View style={styles.featureStack}>
                 <Feature icon={ShieldPlus} color={C.cyan} title="Creează și administrează" text="Construiește clubul tău și gestionează jucători, staff și evenimente." />

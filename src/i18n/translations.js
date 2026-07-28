@@ -7,9 +7,6 @@
 export const ro = {
   "lang.name": "Română",
 
-  // Antet
-  "login.adminBadge": "ADMIN",
-
   // Coloana de prezentare
   "login.heroTitle": "Administrează clubul\ntău ",
   "login.heroAccent": "inteligent",
@@ -94,8 +91,6 @@ export const ro = {
 export const ru = {
   "lang.name": "Русский",
 
-  "login.adminBadge": "АДМИН",
-
   "login.heroTitle": "Управляй своим\nклубом ",
   "login.heroAccent": "разумно",
   "login.heroSubtitle": "Управляйте игроками, тренировками, матчами и финансами на одной платформе.",
@@ -170,8 +165,6 @@ export const ru = {
 
 export const en = {
   "lang.name": "English",
-
-  "login.adminBadge": "ADMIN",
 
   "login.heroTitle": "Manage your club\n",
   "login.heroAccent": "intelligently",

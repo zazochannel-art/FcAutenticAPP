@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Image, StyleSheet, Text } from "react-native";
 import { colors as C, themedStyles } from "../constants/theme";
+import { BRAND_NAME } from "../constants/brand";
 
 const HOLD_MS = 1400;
 const FADE_MS = 450;
@@ -35,7 +36,7 @@ export default function SplashScreen({ onDone }) {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.title}>Team Manager</Text>
+        <Text style={styles.title}>{BRAND_NAME}</Text>
         <Text style={styles.subtitle}>Administrare club sportiv</Text>
       </Animated.View>
     </Animated.View>
