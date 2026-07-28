@@ -17,6 +17,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as LucideIcons from 'lucide-react-native';
 import { supabaseService } from '../services/supabaseService';
 import { colors as C, themedStyles } from "../constants/theme";
+import { BRAND_NAME } from "../constants/brand";
 
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
@@ -211,7 +212,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
            <View style={styles.accentLine} />
            <View style={{ flex: 1 }}>
               <Text style={styles.mainTitle}>Creează clubul tău</Text>
-              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în Team Manager.</Text>
+              <Text style={styles.mainSub}>Completează informațiile de bază pentru a-ți crea clubul și a începe călătoria în {BRAND_NAME}.</Text>
            </View>
         </View>
 

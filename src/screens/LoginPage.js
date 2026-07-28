@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   ScrollView,
+  Image,
   ImageBackground,
   Pressable,
   SafeAreaView,
@@ -34,6 +35,7 @@ import {
 import { colors as C, themedStyles } from "../constants/theme";
 import { LanguagePicker } from "../components/ui/language-picker";
 import { useTranslation } from "../i18n";
+import { BRAND_NAME, BRAND_TAGLINE } from "../constants/brand";
 
 const BG_DARK = "#020617";
 
@@ -334,12 +336,17 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLogo}>
-                <View style={styles.logoBadge}>
-                   <Shield size={20} color={C.cyan} />
-                </View>
+                <Image source={require('../../assets/icon-square.png')} style={styles.logoBadge} />
                 <View>
-                  <Text style={styles.logoText}>TEAM MANAGER</Text>
-                  <Text style={styles.adminBadge}>{t('login.adminBadge')}</Text>
+                  {/* Wordmark-ul decupat din logo — fontul lui nu e disponibil
+                      ca fișier, deci îl folosim ca imagine, pentru fidelitate. */}
+                  <Image
+                    source={require('../../assets/wordmark.png')}
+                    style={styles.wordmark}
+                    resizeMode="contain"
+                    accessibilityLabel={BRAND_NAME}
+                  />
+                  <Text style={styles.tagline}>{BRAND_TAGLINE}</Text>
                 </View>
               </View>
               <LanguagePicker />
@@ -613,9 +620,10 @@ const styles = themedStyles((C) => StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.05)',
   },
   headerLogo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logoBadge: { width: 36, height: 36, backgroundColor: '#0f172a', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  logoText: { color: C.text, fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
-  adminBadge: { color: C.cyan, fontSize: 8, fontWeight: '900', letterSpacing: 1.5, marginTop: -3 },
+  logoBadge: { width: 40, height: 40, borderRadius: 11, resizeMode: 'cover' },
+  // Raportul wordmark-ului e 663×83; la 152px lățime iese 19px înălțime.
+  wordmark: { width: 152, height: 19 },
+  tagline: { color: C.muted, fontSize: 7, fontWeight: '800', letterSpacing: 1.1, marginTop: 3 },
   mainLayout: { padding: 24, alignItems: 'center' },
   desktopLayout: { flexDirection: 'row', justifyContent: 'center', gap: 60, paddingTop: 60 },
   leftCol: { alignItems: 'center', marginBottom: 40, width: '100%', maxWidth: 500 },

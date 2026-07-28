@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors as C, radius, spacing, themedStyles, gradients, elevation } from "../constants/theme";
 import ProfileSheet from "./ProfileSheet";
 import { AmbientBackground } from "./ui/visuals";
+import { BRAND_NAME } from "../constants/brand";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
 // lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
@@ -71,7 +72,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
           <Image source={require("../../assets/icon-square.png")} style={styles.sidebarLogoImage} />
         </View>
         <View>
-          <Text style={styles.sidebarBrand}>Team Manager</Text>
+          <Text style={styles.sidebarBrand}>{BRAND_NAME}</Text>
           <Text style={styles.sidebarAdmin}>Platformă cluburi sportive</Text>
         </View>
       </View>

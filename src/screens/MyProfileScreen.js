@@ -8,6 +8,7 @@ import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { notificationService } from "../services/notificationService";
 import { parseRoDate } from "../utils/dates";
+import { BRAND_NAME } from "../constants/brand";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -88,7 +89,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
 
   const enableReminders = async () => {
     if (Platform.OS === "web") {
-      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația Team Manager (iOS/Android).");
+      notify("Disponibil în aplicația mobilă", `Reminderele push locale funcționează în aplicația ${BRAND_NAME} (iOS/Android).`);
       return;
     }
     if (upcoming.length === 0) {
