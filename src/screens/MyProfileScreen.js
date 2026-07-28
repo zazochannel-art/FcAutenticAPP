@@ -88,7 +88,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
 
   const enableReminders = async () => {
     if (Platform.OS === "web") {
-      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația Footbal Manager 99 (iOS/Android).");
+      notify("Disponibil în aplicația mobilă", "Reminderele push locale funcționează în aplicația Team Manager (iOS/Android).");
       return;
     }
     if (upcoming.length === 0) {

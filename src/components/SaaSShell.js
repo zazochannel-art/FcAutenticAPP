@@ -71,7 +71,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
           <Image source={require("../../assets/icon-square.png")} style={styles.sidebarLogoImage} />
         </View>
         <View>
-          <Text style={styles.sidebarBrand}>Footbal Manager <Text style={styles.inlineAdmin}>99</Text></Text>
+          <Text style={styles.sidebarBrand}>Team Manager</Text>
           <Text style={styles.sidebarAdmin}>Platformă cluburi sportive</Text>
         </View>
       </View>
@@ -194,7 +194,6 @@ const styles = themedStyles((C) => StyleSheet.create({
   sidebarLogoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.35)", overflow: "hidden" },
   sidebarLogoImage: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
   sidebarBrand: { color: C.text, fontSize: 16, fontWeight: "900", letterSpacing: -0.3 },
-  inlineAdmin: { color: C.cyan, fontSize: 12 },
   sidebarAdmin: { color: C.muted, fontSize: 9, fontWeight: "700", marginTop: 1 },
 
   menuScroll: { flex: 1, paddingHorizontal: 10 },

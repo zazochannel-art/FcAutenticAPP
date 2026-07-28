@@ -26,14 +26,13 @@ import {
   Users,
   Dumbbell,
   Trophy,
-  Globe,
-  ChevronDown,
   AlertTriangle,
   KeyRound,
   Check,
   CheckCircle2
 } from 'lucide-react-native';
 import { colors as C, themedStyles } from "../constants/theme";
+import { LanguagePicker } from "../components/ui/language-picker";
 
 const BG_DARK = "#020617";
 
@@ -320,15 +319,11 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
                    <Shield size={20} color={C.cyan} />
                 </View>
                 <View>
-                  <Text style={styles.logoText}>FOOTBAL MANAGER 99</Text>
+                  <Text style={styles.logoText}>TEAM MANAGER</Text>
                   <Text style={styles.adminBadge}>ADMIN</Text>
                 </View>
               </View>
-              <View style={styles.langSelector}>
-                <Globe size={14} color={C.muted} />
-                <Text style={styles.langText}>Română</Text>
-                <ChevronDown size={12} color={C.muted} />
-              </View>
+              <LanguagePicker />
             </View>
 
             <View style={[styles.mainLayout, isDesktop && styles.desktopLayout]}>
@@ -603,8 +598,6 @@ const styles = themedStyles((C) => StyleSheet.create({
   logoBadge: { width: 36, height: 36, backgroundColor: '#0f172a', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   logoText: { color: C.text, fontWeight: '900', fontSize: 16, fontStyle: 'italic' },
   adminBadge: { color: C.cyan, fontSize: 8, fontWeight: '900', letterSpacing: 1.5, marginTop: -3 },
-  langSelector: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(15,23,42,0.5)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  langText: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
   mainLayout: { padding: 24, alignItems: 'center' },
   desktopLayout: { flexDirection: 'row', justifyContent: 'center', gap: 60, paddingTop: 60 },
   leftCol: { alignItems: 'center', marginBottom: 40, width: '100%', maxWidth: 500 },

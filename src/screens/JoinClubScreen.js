@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { ActivityIndicator, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
-import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Globe, Mail, Shield, Users } from "lucide-react-native";
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Mail, Shield, Users } from "lucide-react-native";
 import { colors as C, themedStyles } from "../constants/theme";
 import { supabaseService } from "../services/supabaseService";
+import { LanguagePicker } from "../components/ui/language-picker";
 
 const stadium = { uri: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000" };
 
@@ -61,9 +62,9 @@ export default function JoinClubScreen({ onBack, onSuccess }) {
               </Pressable>
               <View style={styles.brand}>
                 <Shield size={26} color={C.cyan} />
-                <Text style={styles.brandText}>Footbal Manager <Text style={styles.brandAdmin}>99</Text></Text>
+                <Text style={styles.brandText}>Team Manager</Text>
               </View>
-              <View style={styles.lang}><Globe size={14} color={C.muted} /><Text style={styles.langText}>Română</Text></View>
+              <LanguagePicker />
             </View>
 
             <BlurView intensity={24} tint="dark" style={styles.card}>
@@ -150,9 +151,6 @@ const styles = themedStyles((C) => StyleSheet.create({
   backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(15,23,42,0.65)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
   brandText: { color: C.text, fontSize: 18, fontWeight: "900" },
-  brandAdmin: { color: C.cyan, fontSize: 14 },
-  lang: { flexDirection: "row", alignItems: "center", gap: 7, borderRadius: 14, paddingHorizontal: 14, height: 44, borderWidth: 1, borderColor: "rgba(148,163,184,0.16)", backgroundColor: "rgba(15,23,42,0.65)" },
-  langText: { color: C.muted, fontSize: 12, fontWeight: "800" },
   card: { width: "100%", maxWidth: 620, borderRadius: 30, overflow: "hidden", padding: 30, borderWidth: 1, borderColor: "rgba(124,58,237,0.45)", backgroundColor: "rgba(15,23,42,0.58)" },
   iconHero: { alignSelf: "center", width: 84, height: 84, borderRadius: 42, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(124,58,237,0.16)", borderWidth: 1, borderColor: "rgba(124,58,237,0.42)", marginBottom: 18 },
   title: { color: C.text, fontSize: 30, fontWeight: "900", textAlign: "center" },
