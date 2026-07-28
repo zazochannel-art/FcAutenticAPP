@@ -1,4 +1,4 @@
-import { parseRoDate, MONTH_PREFIXES, formatRoDate } from "../dates";
+import { parseRoDate, MONTH_PREFIXES, formatRoDate, ageFromRoDate } from "../dates";
 
 describe("parseRoDate", () => {
   test("parsează o dată românească completă", () => {
@@ -62,5 +62,32 @@ describe("formatRoDate", () => {
     expect(d.getDate()).toBe(15);
     expect(d.getMonth()).toBe(8);
     expect(d.getFullYear()).toBe(2026);
+  });
+});
+
+describe("ageFromRoDate", () => {
+  const NOW = new Date(2026, 6, 28); // 28 iulie 2026
+
+  it("citește formatul numeric folosit în aplicație", () => {
+    expect(ageFromRoDate("15.03.2010", NOW)).toBe("16");
+  });
+
+  it("citește eticheta în română", () => {
+    expect(ageFromRoDate("15 martie 2010", NOW)).toBe("16");
+  });
+
+  it("citește formatul ISO", () => {
+    expect(ageFromRoDate("2010-03-15", NOW)).toBe("16");
+  });
+
+  it("întoarce „—” pentru lipsă sau text neinteligibil", () => {
+    expect(ageFromRoDate("", NOW)).toBe("—");
+    expect(ageFromRoDate(null, NOW)).toBe("—");
+    expect(ageFromRoDate("necunoscut", NOW)).toBe("—");
+  });
+
+  it("întoarce „—” pentru date din viitor sau absurde", () => {
+    expect(ageFromRoDate("15.03.2030", NOW)).toBe("—");
+    expect(ageFromRoDate("15.03.1850", NOW)).toBe("—");
   });
 });

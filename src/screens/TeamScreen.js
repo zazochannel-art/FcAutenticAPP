@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import PlayerDetailModal from "../components/PlayerDetailModal";
 import { colors as C, themedStyles } from "../constants/theme";
+import { ageFromRoDate } from "../utils/dates";
 
 // --- Premium Palette ---
 
@@ -25,15 +26,6 @@ const GROUP_COLORS_ = () => ([C.blue, C.purple, C.amber, C.green, C.cyan, C.red]
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
   else Alert.alert(title, msg);
-}
-
-function ageFromBirthdate(birthdate) {
-  if (!birthdate) return "—";
-  const parsed = new Date(birthdate);
-  if (Number.isNaN(parsed.getTime())) return "—";
-  const diff = Date.now() - parsed.getTime();
-  const age = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
-  return age > 0 && age < 100 ? String(age) : "—";
 }
 
 function positionBucket(role) {
@@ -241,7 +233,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                              <Text style={[styles.rowMainText, { marginLeft: 10 }]} numberOfLines={1}>{player.name}</Text>
                           </View>
                           <Text style={[styles.posLabel, { color: C.blue, flex: 1.5 }]} numberOfLines={1}>{player.role || "—"}</Text>
-                          <Text style={[styles.rowSubText, { width: 50, textAlign: 'center' }]}>{ageFromBirthdate(player.birthdate)}</Text>
+                          <Text style={[styles.rowSubText, { width: 50, textAlign: 'center' }]}>{ageFromRoDate(player.birthdate)}</Text>
                           <View style={{ flex: 1.5, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                              <View style={[styles.statusDot, { backgroundColor: s.color }]} />
                              <Text style={[styles.rowSubText, { color: s.color === C.green ? C.muted : s.color }]} numberOfLines={1}>{s.label}</Text>
