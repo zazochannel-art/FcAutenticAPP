@@ -40,7 +40,7 @@ const TAB_ICONS = {
 // Taburile care aparțin secțiunii de administrare a platformei.
 const ADMIN_LABELS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori"];
 
-export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout }) {
+export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout, notificationsCount = 0 }) {
   const toItem = (label) => ({ label, icon: TAB_ICONS[label] || "Circle" });
   // „Mai mult” nu se mai afișează în sidebar; setările/cluburile sunt accesibile
   // din cardul de profil (dreapta sus).
@@ -58,7 +58,7 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
         selectedClub={selectedClub}
       />
       <View style={styles.main}>
-        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} />
+        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} notificationsCount={notificationsCount} />
         <View style={styles.pageFrame}>{children}</View>
       </View>
     </View>
@@ -96,7 +96,7 @@ export const SaaSSidebar = ({ activeTab, setTab, primaryItems = [], adminItems =
             <Image source={require("../../assets/logo.png")} style={styles.clubLogoSmall} />
           </View>
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || "FC Autentic"}</Text>
+            <Text style={styles.clubName} numberOfLines={1}>{selectedClub?.name || t('nav.club')}</Text>
             <Text style={styles.clubSeason}>{selectedClub?.plan ? `Plan ${selectedClub.plan}` : t('nav.club')}</Text>
           </View>
           <View style={styles.onlineDot} />
@@ -129,12 +129,11 @@ function MenuItem({ tab, activeTab, setTab }) {
       )}
       <Icon size={18} color={isActive ? "#fff" : C.muted} strokeWidth={2} />
       <Text style={[styles.menuText, isActive && styles.menuTextActive]}>{label}</Text>
-      {tab.label === "Mai mult" && <View style={styles.countBadge}><Text style={styles.countText}>3</Text></View>}
     </Pressable>
   );
 }
 
-function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
+function Topbar({ user, selectedClub, setTab, onLogout, onNotifications, notificationsCount = 0 }) {
   const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
   return (
@@ -156,7 +155,11 @@ function Topbar({ user, selectedClub, setTab, onLogout, onNotifications }) {
 
       <Pressable onPress={onNotifications} style={styles.notifyButton} accessibilityRole="button" accessibilityLabel={t('nav.notifications')}>
         <LucideIcons.Bell size={19} color="white" />
-        <View style={styles.notifyDot}><Text style={styles.notifyText}>3</Text></View>
+        {notificationsCount > 0 && (
+          <View style={styles.notifyDot}>
+            <Text style={styles.notifyText}>{notificationsCount > 9 ? "9+" : notificationsCount}</Text>
+          </View>
+        )}
       </Pressable>
       <Pressable style={styles.profilePill} onPress={() => setProfileOpen(true)} accessibilityRole="button" accessibilityLabel={t('nav.profile')}>
         <View style={styles.profileTextWrap}>
