@@ -95,7 +95,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   field: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 42, marginBottom: 12 },
   fieldText: { color: C.text, fontSize: 12, fontWeight: "600", flex: 1 },
   overlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
-  card: { width: "100%", maxWidth: 360, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.12)" },
+  card: { width: "100%", maxWidth: 360, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.cyan + "1F" },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   title: { color: C.text, fontSize: 15, fontWeight: "900" },
   columns: { flexDirection: "row", gap: 8, height: 200 },

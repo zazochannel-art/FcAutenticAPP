@@ -23,11 +23,11 @@ import { BRAND_NAME, BRAND_TAGLINE } from "../constants/brand";
 const VIOLET = "#6A3CFF";
 const BG_DARK = "#020617";
 const CARD_BG = "rgba(15, 23, 42, 0.65)";
-const BORDER_COLOR = "rgba(0, 212, 255, 0.15)";
+const BORDER_COLOR = C.cyan + "26";
 const COUNTRY_OPTIONS = ['România', 'Moldova', 'Italia', 'Spania', 'Germania', 'Franța'];
 const SEASON_OPTIONS = ['2025 / 2026', '2026 / 2027', '2027 / 2028'];
 const COLOR_PRESETS = [
-  { label: 'Cyan', value: '#00D4FF' },
+  { label: 'Cyan', value: C.cyan },
   { label: 'Violet', value: '#6A3CFF' },
   { label: 'Portocaliu', value: '#F97316' },
   { label: 'Verde', value: '#22C55E' },
@@ -64,7 +64,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
     country: 'România',
     season: '2025 / 2026',
     ageGroups: ['U13', 'U15', 'U17'],
-    primaryColor: '#00D4FF',
+    primaryColor: C.cyan,
     secondaryColor: '#6A3CFF',
     clubType: 'Amator',
     logo: '',
@@ -180,7 +180,7 @@ export default function CreateClubSaaS({ userId, currentUser, onBack, onSuccess 
         {/* Header Superior with Stepper */}
         <View style={styles.header}>
            <View style={styles.headerBrand}>
-              <Image source={require("../../assets/icon-square.png")} style={styles.logoBadge} />
+              <Image source={require("../../assets/logo.png")} style={styles.logoBadge} />
               <View>
                  <Text style={styles.brandTitle}>{BRAND_NAME}</Text>
                  <Text style={styles.brandSub}>{BRAND_TAGLINE}</Text>

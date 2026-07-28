@@ -6,7 +6,7 @@ import { BeUIButton } from "./ui/be-ui-button";
 import { BRAND_NAME } from "../constants/brand";
 
 export function Badge({ size = 48 }) {
-  return <Image source={require("../../assets/icon-square.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
+  return <Image source={require("../../assets/logo.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
 }
 
 // Antetul de pagină: doar eyebrow + titlu. Logoul, clopoțelul și profilul stau

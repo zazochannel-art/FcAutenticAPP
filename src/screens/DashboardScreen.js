@@ -138,7 +138,7 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
 const QuickAction = ({ icon, label, color, onPress }) => {
   const Icon = LucideIcons[icon];
   return (
-    <PressableScale style={styles.quickAction} onPress={onPress}>
+    <PressableScale style={styles.quickAction} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
       <View style={[styles.actionIcon, { backgroundColor: color + "10", borderColor: color + "30" }]}>
         <Icon size={20} color={color} />
       </View>
@@ -192,12 +192,12 @@ const styles = themedStyles((C) => StyleSheet.create({
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
   cardTitle: { color: C.text, fontSize: 12, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.5 },
   cardAction: { color: C.cyan, fontSize: 10, fontWeight: "700" },
-  activityItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
-  activityIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: "rgba(0,212,255,0.1)", alignItems: "center", justifyContent: "center" },
+  activityItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
+  activityIcon: { width: 28, height: 28, borderRadius: radius.sm, backgroundColor: C.cyan + "1A", alignItems: "center", justifyContent: "center" },
   activityTitle: { color: C.text, fontSize: 12, fontWeight: "700" },
   activityMeta: { color: C.dim, fontSize: 10, marginTop: 2, fontWeight: "600" },
-  taskItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
-  taskCheck: { width: 16, height: 16, borderRadius: 4, borderWidth: 2, borderColor: "rgba(255,255,255,0.1)" },
+  taskItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
+  taskCheck: { width: 16, height: 16, borderRadius: 4, borderWidth: 2, borderColor: C.lineStrong },
   taskTitle: { color: C.text, fontSize: 12, fontWeight: "700" },
   taskMetaRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   taskDate: { color: C.muted, fontSize: 9, fontWeight: "700" },

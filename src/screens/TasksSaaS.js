@@ -267,7 +267,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   controlsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' },
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.blue, paddingHorizontal: 16, height: 38, borderRadius: 10 },
   addBtnText: { color: C.text, fontSize: 11, fontWeight: '900' },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginRight: 6 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1, borderColor: C.line, marginRight: 6 },
   filterChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + "10" },
   filterChipText: { color: C.muted, fontSize: 10, fontWeight: '800' },
 
@@ -275,8 +275,8 @@ const styles = themedStyles((C) => StyleSheet.create({
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 30 },
   emptyText: { color: C.muted, fontSize: 11.5, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
-  taskRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
-  checkBox: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)", alignItems: 'center', justifyContent: 'center' },
+  taskRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.line },
+  checkBox: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: C.lineStrong, alignItems: 'center', justifyContent: 'center' },
   checkBoxDone: { backgroundColor: C.green, borderColor: C.green },
   taskTitle: { color: C.text, fontSize: 12.5, fontWeight: '800' },
   taskDetail: { color: C.muted, fontSize: 10.5, fontWeight: '600', marginTop: 2, lineHeight: 15 },
@@ -293,7 +293,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   modalTitle: { color: C.text, fontSize: 15, fontWeight: '900' },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 6, marginTop: 4 },
   modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: '600', marginBottom: 12 },
-  priorityChip: { flex: 1, height: 36, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: 'center', justifyContent: 'center' },
+  priorityChip: { flex: 1, height: 36, borderRadius: 10, borderWidth: 1, borderColor: C.lineStrong, alignItems: 'center', justifyContent: 'center' },
   priorityChipText: { color: C.muted, fontSize: 9.5, fontWeight: '900' },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: C.blue, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   modalSaveText: { color: C.text, fontSize: 12, fontWeight: '900' },

@@ -152,9 +152,9 @@ export default function AdminUsersScreen({ clubs = [], onManageClub }) {
 }
 
 const styles = {
-  pendRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  pendRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line },
   pendIcon: { width: 32, height: 32, borderRadius: 9, backgroundColor: AD.amber + "15", alignItems: "center", justifyContent: "center" },
-  roleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  roleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: C.line },
   roleLabel: { color: AD.dim, fontSize: 11, fontWeight: "700" },
   roleVal: { color: C.text, fontSize: 12, fontWeight: "900" },
 };

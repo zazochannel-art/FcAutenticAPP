@@ -102,9 +102,9 @@ const SummaryLine = ({ icon, label, value, highlight }) => {
 
 const styles = {
   distLabelRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  distBarBg: { height: 8, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" },
+  distBarBg: { height: 8, backgroundColor: C.fill2, borderRadius: 4, overflow: "hidden" },
   distBarFill: { height: "100%", borderRadius: 4 },
-  summaryLine: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  summaryLine: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: C.line },
   summaryLabel: { flex: 1, color: AD.dim, fontSize: 10.5, fontWeight: "700" },
   summaryValue: { color: C.text, fontSize: 12, fontWeight: "900" },
 };

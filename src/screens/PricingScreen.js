@@ -343,7 +343,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
                 <Text style={styles.cardTitle}>Abonamentul clubului tău</Text>
              </View>
              <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}>
-                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.06)", alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.fill2, alignItems: 'center', justifyContent: 'center' }}>
                    <LucideIcons.Shield size={16} color={C.cyan} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
@@ -445,12 +445,12 @@ const styles = themedStyles((C) => StyleSheet.create({
   pageSub: { color: C.muted, fontSize: 13, fontWeight: '600', marginTop: 3 },
 
   planTabsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 30, alignItems: 'stretch' },
-  planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", padding: 12, justifyContent: 'center' },
+  planTab: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.line, padding: 12, justifyContent: 'center' },
   planTabText: { color: C.muted, fontSize: 12, fontWeight: '800' },
   planTabPrice: { color: C.dim, fontSize: 9.5, fontWeight: '700', marginTop: 1 },
-  activePlanIndicator: { position: 'absolute', top: 10, right: 10, backgroundColor: "rgba(255,255,255,0.05)", paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3 },
+  activePlanIndicator: { position: 'absolute', top: 10, right: 10, backgroundColor: C.fill3, paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3 },
   activePlanText: { color: C.muted, fontSize: 7.5, fontWeight: '900' },
-  compareBtn: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: "rgba(0, 212, 255, 0.05)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.2)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  compareBtn: { flexBasis: 150, flexGrow: 1, minHeight: 68, backgroundColor: C.cyan + "0D", borderRadius: 14, borderWidth: 1, borderColor: C.cyan + "33", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   compareBtnText: { color: C.cyan, fontSize: 11, fontWeight: '900' },
 
   topGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
@@ -469,14 +469,14 @@ const styles = themedStyles((C) => StyleSheet.create({
   freeBadgeText: { fontSize: 9, fontWeight: '900' },
 
   limitsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 25 },
-  limitBox: { flexBasis: 150, flexGrow: 1, minHeight: 74, backgroundColor: "rgba(255,255,255,0.02)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)", flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
+  limitBox: { flexBasis: 150, flexGrow: 1, minHeight: 74, backgroundColor: C.fill1, borderRadius: 14, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   limitIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   limitLabel: { color: C.dim, fontSize: 9.5, fontWeight: '800' },
   limitVal: { color: C.text, fontSize: 13, fontWeight: '900', marginTop: 1 },
 
   cardActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionBtn: { flex: 1.2, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  actionBtnOutline: { flex: 1, height: 44, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  actionBtnOutline: { flex: 1, height: 44, backgroundColor: C.fill1, borderRadius: 10, borderWidth: 1, borderColor: C.line, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   actionBtnText: { color: C.text, fontSize: 12, fontWeight: '800' },
   actionBtnTextDark: { color: C.bg, fontSize: 12, fontWeight: '900' },
 
@@ -484,15 +484,15 @@ const styles = themedStyles((C) => StyleSheet.create({
   sideHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   sideTitle: { fontSize: 15, fontWeight: '900', color: C.text },
   sideSub: { color: C.muted, fontSize: 11.5, fontWeight: '600', marginTop: 3 },
-  iconBox: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: "rgba(255,255,255,0.03)" },
+  iconBox: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.fill1 },
   benefitList: { gap: 12, marginBottom: 25 },
   benefitLine: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   benefitText: { color: C.text, fontSize: 12.5, fontWeight: '600' },
-  upgradeLink: { height: 44, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 },
+  upgradeLink: { height: 44, backgroundColor: C.fill1, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14 },
   upgradeLinkText: { fontSize: 11, fontWeight: '900' },
 
   compareTable: { marginTop: 12 },
-  compareRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)", alignItems: 'center' },
+  compareRow: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line, alignItems: 'center' },
   compareLabel: { flex: 1.2, color: C.muted, fontSize: 10.5, fontWeight: '700' },
   compareVal: { flex: 1, color: C.dim, fontSize: 9.5, fontWeight: '700', textAlign: 'center' },
 
@@ -506,7 +506,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   featureText: { color: C.text, fontSize: 11.5, fontWeight: '600' },
 
   eliteBenefitsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  eliteBenefitCard: { width: '47%', flexDirection: 'row', alignItems: 'center', backgroundColor: "rgba(255,255,255,0.02)", padding: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  eliteBenefitCard: { width: '47%', flexDirection: 'row', alignItems: 'center', backgroundColor: C.fill1, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: C.line },
   benefitIconWrap: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   benefitTitle: { color: C.text, fontSize: 11.5, fontWeight: '800' },
   benefitSub: { color: C.dim, fontSize: 8.5, fontWeight: '600', marginTop: 1 },
@@ -527,17 +527,17 @@ const styles = themedStyles((C) => StyleSheet.create({
   usageBarLabel: { flex: 1, color: C.muted, fontSize: 10.5, fontWeight: '800' },
   usageBarVal: { color: C.text, fontSize: 10.5, fontWeight: '900', marginRight: 8 },
   usageBarPer: { color: C.dim, fontSize: 9.5, fontWeight: '700', width: 32, textAlign: 'right' },
-  usageBarBg: { height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 2.5, overflow: 'hidden' },
+  usageBarBg: { height: 5, backgroundColor: C.fill3, borderRadius: 2.5, overflow: 'hidden' },
   usageBarFill: { height: '100%', borderRadius: 2.5 },
   viewDetailsBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   viewDetailsText: { color: C.dim, fontSize: 10.5, fontWeight: '800' },
 
   seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   seeAllText: { fontSize: 11, fontWeight: '900' },
-  tableHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)", marginBottom: 4 },
+  tableHeader: { flexDirection: 'row', paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 4 },
   th: { color: C.dim, fontSize: 9.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
-  tableRow: { flexDirection: 'row', alignItems: 'center', height: 58, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
-  miniClubCrest: { width: 28, height: 28, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  tableRow: { flexDirection: 'row', alignItems: 'center', height: 58, borderBottomWidth: 1, borderBottomColor: C.line },
+  miniClubCrest: { width: 28, height: 28, borderRadius: 6, backgroundColor: C.fill1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
   rowMainText: { color: C.text, fontSize: 12, fontWeight: '800' },
   rowSubText: { color: C.dim, fontSize: 9.5, fontWeight: '600', marginTop: 1 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, minWidth: 60, alignItems: 'center' },

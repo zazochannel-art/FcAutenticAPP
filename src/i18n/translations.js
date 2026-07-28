@@ -6,6 +6,9 @@
 // scrise direct în componente; se mută aici ecran cu ecran, după același tipar.
 
 export const ro = {
+  // Comune
+  "common.close": "Închide",
+
   // Dashboard
   "dash.greeting": "Salut, {name}!",
   "dash.manager": "Manager",
@@ -151,6 +154,9 @@ export const ro = {
 };
 
 export const ru = {
+  // Comune
+  "common.close": "Закрыть",
+
   // Dashboard
   "dash.greeting": "Привет, {name}!",
   "dash.manager": "Менеджер",
@@ -287,6 +293,9 @@ export const ru = {
 };
 
 export const en = {
+  // Comune
+  "common.close": "Close",
+
   // Dashboard
   "dash.greeting": "Hi, {name}!",
   "dash.manager": "Manager",

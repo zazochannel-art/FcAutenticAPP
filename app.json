@@ -4,10 +4,10 @@
     "slug": "fc-autentic",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon-square.png",
+    "icon": "./assets/icon-master.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/icon-square.png",
+      "image": "./assets/icon-master.png",
       "resizeMode": "contain",
       "backgroundColor": "#09090B"
     },
@@ -26,7 +26,7 @@
       "package": "com.fcautentic.app"
     },
     "web": {
-      "favicon": "./assets/icon-square.png",
+      "favicon": "./assets/icon-master.png",
       "name": "SportTeam One",
       "shortName": "SportTeam One",
       "themeColor": "#09090B",
