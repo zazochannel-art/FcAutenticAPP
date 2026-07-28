@@ -22,7 +22,7 @@ export function MobileTopBar({ topInset = 0, onNotifications }) {
   return (
     <View style={[styles.bar, { paddingTop: topInset + 10 }]}>
       <View style={styles.brand}>
-        <Image source={require("../../../assets/icon-square.png")} style={styles.logo} />
+        <Image source={require("../../../assets/logo.png")} style={styles.logo} />
         <Text style={styles.name} numberOfLines={1}>{BRAND_NAME}</Text>
       </View>
 

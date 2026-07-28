@@ -308,7 +308,7 @@ function ClubSettingsModal({ visible, club, onClose, onSaved }) {
               <View style={{ flex: 1 }}><Text style={styles.modalLabel}>TELEFON</Text><TextInput style={styles.modalInput} value={form.phone} onChangeText={(v) => set("phone", v)} placeholder="+373..." placeholderTextColor={C.dim} /></View>
             </View>
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>CULOARE PRIMARĂ</Text><TextInput style={styles.modalInput} value={form.primaryColor} onChangeText={(v) => set("primaryColor", v)} placeholder="#00D4FF" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>CULOARE PRIMARĂ</Text><TextInput style={styles.modalInput} value={form.primaryColor} onChangeText={(v) => set("primaryColor", v)} placeholder="#06B6D4" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
               <View style={{ flex: 1 }}><Text style={styles.modalLabel}>CULOARE SECUNDARĂ</Text><TextInput style={styles.modalInput} value={form.secondaryColor} onChangeText={(v) => set("secondaryColor", v)} placeholder="#7C3AED" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
             </View>
             <Text style={styles.modalLabel}>LOGO (URL, opțional)</Text>
@@ -412,13 +412,13 @@ const SaveButton = ({ saving, onPress, label }) => (
 );
 
 const styles = themedStyles((C) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020617" },
+  container: { flex: 1, backgroundColor: C.bg },
   content: { padding: spacing.md, paddingBottom: 120 },
 
-  card: { backgroundColor: C.card, borderRadius: 18, padding: 6, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  card: { backgroundColor: C.card, borderRadius: 18, padding: 6, marginBottom: 8, borderWidth: 1, borderColor: C.line },
   row: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 14, gap: 4 },
-  rowActive: { backgroundColor: "rgba(0,212,255,0.08)" },
-  rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#030712", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line, marginRight: 12 },
+  rowActive: { backgroundColor: C.cyan + "14" },
+  rowIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: C.cardSolid, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line, marginRight: 12 },
   rowHint: { color: C.dim, fontSize: 10.5, fontWeight: "600", marginTop: 2 },
   rowLabel: { flex: 1, color: C.text, fontWeight: "800", fontSize: 13 },
   infoValue: { color: C.muted, fontSize: 12, fontWeight: "700" },
@@ -432,12 +432,12 @@ const styles = themedStyles((C) => StyleSheet.create({
   copyText: { color: C.cyan, fontSize: 11, fontWeight: "800" },
   hint: { color: C.dim, fontSize: 10.5, fontWeight: "600", paddingHorizontal: 12, paddingBottom: 8, lineHeight: 15 },
 
-  clubIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#030712", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
+  clubIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: C.cardSolid, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   clubInitial: { color: C.cyan, fontWeight: "900", fontSize: 16 },
   clubPlan: { color: C.dim, fontSize: 10, fontWeight: "600", marginTop: 2 },
 
   modalOverlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.72)" : "rgba(9,9,11,0.45)", alignItems: "center", justifyContent: "center", padding: 20 },
-  modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: "rgba(0,212,255,0.14)" },
+  modalCard: { width: "100%", maxWidth: 420, backgroundColor: C.card, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: C.cyan + "24" },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: C.muted, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },

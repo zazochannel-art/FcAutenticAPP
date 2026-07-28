@@ -79,7 +79,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   statCard: { flex: 1, minWidth: 160, margin: spacing.xs },
   statContent: { padding: 18 },
   statHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  statIconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  statIconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   statValue: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
   statLabel: { color: C.muted, fontSize: 12, fontWeight: "500", marginTop: 2 },
   // .stat-trend — 3px 8px, rază 8, 10px/700

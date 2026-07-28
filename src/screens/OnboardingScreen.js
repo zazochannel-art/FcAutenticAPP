@@ -21,7 +21,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
           <View style={styles.header}>
             <View style={styles.brand}>
               <View style={styles.logoTile}>
-                <Image source={require("../../assets/icon-square.png")} style={styles.logo} />
+                <Image source={require("../../assets/logo.png")} style={styles.logo} />
               </View>
               <Text style={styles.brandText}>{BRAND_NAME}</Text>
             </View>
@@ -33,7 +33,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
 
           <ScrollView contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]} showsVerticalScrollIndicator={false}>
             <View style={[styles.left, isDesktop && styles.leftDesktop]}>
-              <Image source={require("../../assets/icon-square.png")} style={styles.heroLogo} />
+              <Image source={require("../../assets/logo.png")} style={styles.heroLogo} />
               <Text style={styles.heroTitle}>Alege cum vrei să{"\n"}<Text style={styles.cyan}>continui</Text></Text>
               <Text style={styles.heroSubtitle}>
                 Creează propriul tău club sau alătură-te unui club existent din platforma {BRAND_NAME}.
@@ -123,7 +123,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   bg: { flex: 1 },
   header: { minHeight: 86, paddingHorizontal: 28, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "rgba(148,163,184,0.1)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 12 },
-  logoTile: { width: 46, height: 46, borderRadius: 13, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(0,212,255,0.3)", overflow: "hidden" },
+  logoTile: { width: 46, height: 46, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.cyan + "4C", overflow: "hidden" },
   logo: { width: 44, height: 44, borderRadius: 11, resizeMode: "cover" },
   brandText: { color: C.text, fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },

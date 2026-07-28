@@ -10,7 +10,7 @@ import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface
 export const AD = {
   bg: C.bg,
   card: C.card,
-  border: "rgba(255, 255, 255, 0.06)",
+  border: C.line,
   cyan: C.cyan,
   violet: C.purple,
   amber: C.amber,
@@ -154,13 +154,13 @@ export const s = themedStyles((C) => StyleSheet.create({
   // .stat — padding 18, iconiță 40/12, valoare 26/900/-0.5, etichetă 12/500
   statCardInner: { padding: 18 },
   statTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  statIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  statIconWrap: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   statVal: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
   statLabel: { color: AD.dim, fontSize: 12, fontWeight: "500", marginTop: 2 },
   statSub: { color: AD.faint, fontSize: 11, fontWeight: "500", marginTop: 3 },
 
   actionsList: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 18 },
-  actionBtn: { flexBasis: 190, flexGrow: 1, height: 52, backgroundColor: "rgba(15,23,42,0.5)", borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, borderWidth: 1 },
+  actionBtn: { flexBasis: 190, flexGrow: 1, height: 52, backgroundColor: C.card, borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, borderWidth: 1 },
   actionIconWrap: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   actionBtnText: { color: C.text, fontSize: 11.5, fontWeight: "800", flex: 1 },
 
@@ -177,8 +177,8 @@ export const s = themedStyles((C) => StyleSheet.create({
 
   th: { color: AD.faint, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.8 },
   tableHeader: { flexDirection: "row", paddingBottom: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 10 },
-  tableRow: { flexDirection: "row", alignItems: "center", minHeight: 64, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
-  miniLogo: { width: 34, height: 34, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.07)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
+  tableRow: { flexDirection: "row", alignItems: "center", minHeight: 64, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: C.fill1, borderWidth: 1, borderColor: C.line },
+  miniLogo: { width: 34, height: 34, borderRadius: 11, backgroundColor: C.fill4, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   rowMainText: { color: C.text, fontSize: 11, fontWeight: "800" },
   rowSubText: { color: AD.faint, fontSize: 9.5, fontWeight: "600" },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
@@ -197,7 +197,7 @@ export const s = themedStyles((C) => StyleSheet.create({
   modalTitle: { color: C.text, fontSize: 15, fontWeight: "900" },
   modalLabel: { color: AD.dim, fontSize: 9, fontWeight: "900", letterSpacing: 1, marginBottom: 6, marginTop: 4 },
   modalInput: { backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, color: C.text, borderRadius: 10, paddingHorizontal: 12, height: 42, fontSize: 12, fontWeight: "600", marginBottom: 12 },
-  optionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, height: 40, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  optionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, height: 40, borderRadius: 10, borderWidth: 1, borderColor: C.line },
   modalSaveBtn: { height: 46, borderRadius: 12, backgroundColor: AD.blue, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   modalSaveText: { color: C.text, fontSize: 12, fontWeight: "900" },
 }));

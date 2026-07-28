@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, TextInput, ActivityIndicator } from "reac
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../../services/supabaseService";
+import { colors as C } from "../../constants/theme";
 import { AD, PLAN_PRICES, PLAN_COLORS, PLAN_OPTIONS, AdminPage, StatCard, Card, EmptyBox, PlanBadge, formatDate, notify, s } from "./adminUi";
 
 export default function AdminSubscriptionsScreen({ clubs = [] }) {
@@ -132,5 +133,5 @@ export default function AdminSubscriptionsScreen({ clubs = [] }) {
 }
 
 const styles = {
-  subRow: { flexDirection: "row", alignItems: "center", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.03)" },
+  subRow: { flexDirection: "row", alignItems: "center", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: C.line },
 };

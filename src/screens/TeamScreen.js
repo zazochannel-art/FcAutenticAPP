@@ -586,7 +586,7 @@ const styles = themedStyles((C) => StyleSheet.create({
 
   actionsRow: { marginBottom: 25 },
   actionsList: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
-  actionBtn: { flexGrow: 1, height: 38, borderRadius: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: "rgba(0, 212, 255, 0.12)" },
+  actionBtn: { flexGrow: 1, height: 38, borderRadius: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, gap: 8, borderWidth: 1, borderColor: C.cyan + "1F" },
   actionBtnText: { color: C.text, fontSize: 10.5, fontWeight: '800' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
@@ -599,32 +599,32 @@ const styles = themedStyles((C) => StyleSheet.create({
   cardTitle: { color: C.text, fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
 
   tableControls: { flexDirection: 'row', gap: 10 },
-  smallSearch: { width: 170, height: 28, backgroundColor: "rgba(255,255,255,0.03)", borderRadius: 7, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.05)" },
+  smallSearch: { width: 170, height: 28, backgroundColor: C.fill1, borderRadius: 7, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: C.line },
   smallSearchInput: { flex: 1, color: C.text, fontSize: 10, fontWeight: '600', marginLeft: 6 },
 
-  groupChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginRight: 6 },
+  groupChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: C.line, marginRight: 6 },
   groupChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + "10" },
   groupChipText: { color: C.muted, fontSize: 10, fontWeight: '800' },
 
   tableHeader: { flexDirection: 'row', paddingBottom: 10, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: C.line, marginBottom: 10 },
   th: { color: C.dim, fontSize: 8.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
-  tableRow: { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.025)", borderWidth: 1, borderColor: C.line },
+  tableRow: { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 12, marginBottom: 6, borderRadius: 14, backgroundColor: C.fill1, borderWidth: 1, borderColor: C.line },
   rowNum: { color: C.muted, fontSize: 11, fontWeight: '900', width: 30 },
-  miniAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.07)", alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
+  miniAvatar: { width: 34, height: 34, borderRadius: 11, backgroundColor: C.fill4, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.line },
   rowMainText: { color: C.text, fontSize: 11, fontWeight: '800' },
   rowSubText: { color: C.dim, fontSize: 9.5, fontWeight: '600' },
   posLabel: { fontSize: 10, fontWeight: '900' },
   statusDot: { width: 5, height: 5, borderRadius: 2.5 },
-  ratingBarBg: { flex: 1, height: 5, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 2.5, overflow: 'hidden' },
+  ratingBarBg: { flex: 1, height: 5, backgroundColor: C.fill3, borderRadius: 2.5, overflow: 'hidden' },
   ratingBarFill: { height: '100%', borderRadius: 2.5 },
   ratingVal: { color: C.text, fontSize: 10, fontWeight: '900', width: 34, textAlign: 'right' },
 
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 26, paddingHorizontal: 12 },
   emptyText: { color: C.muted, fontSize: 11, fontWeight: '600', textAlign: 'center', lineHeight: 17 },
 
-  groupItem: { flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 10, marginBottom: 5, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.02)" },
+  groupItem: { flexDirection: 'row', alignItems: 'center', height: 50, paddingHorizontal: 10, marginBottom: 5, borderRadius: 12, backgroundColor: C.fill1 },
   groupIndicator: { width: 3, height: 18, borderRadius: 2 },
-  groupCount: { minWidth: 24, height: 18, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.03)", alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  groupCount: { minWidth: 24, height: 18, borderRadius: 6, backgroundColor: C.fill1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   countText: { fontSize: 9, fontWeight: '900' },
 
   attendanceFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 },

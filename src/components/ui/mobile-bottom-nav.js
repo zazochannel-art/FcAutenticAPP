@@ -61,7 +61,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{t('nav.allPages')}</Text>
-              <Pressable onPress={() => setMenuOpen(false)} style={styles.sheetClose}>
+              <Pressable onPress={() => setMenuOpen(false)} style={styles.sheetClose} accessibilityRole="button" accessibilityLabel={t('common.close')}>
                 <LucideIcons.X size={18} color={C.dim} />
               </Pressable>
             </View>
@@ -70,7 +70,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
                 const Icon = LucideIcons[tabIcons[label]] || LucideIcons.Circle;
                 const active = activeTab === label;
                 return (
-                  <Pressable key={label} style={[styles.tile, active && styles.tileActive]} onPress={() => pick(label)}>
+                  <Pressable key={label} style={[styles.tile, active && styles.tileActive]} onPress={() => pick(label)} accessibilityRole="button" accessibilityLabel={t(`nav.tab.${label}`)}>
                     <View style={[styles.tileIcon, active && styles.tileIconActive]}>
                       <Icon size={22} color={active ? C.cyan : C.muted} strokeWidth={active ? 2.6 : 2} />
                     </View>
@@ -91,7 +91,13 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
 function BottomItem({ label, icon, active, onPress }) {
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
-    <Pressable onPress={onPress} style={[styles.tab, active && styles.tabActive]}>
+    <Pressable
+      onPress={onPress}
+      style={[styles.tab, active && styles.tabActive]}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={label}
+    >
       {active && (
         <LinearGradient
           colors={gradients.button}
@@ -143,10 +149,10 @@ const styles = themedStyles((C) => StyleSheet.create({
   sheetTitle: { color: C.text, fontSize: 16, fontWeight: "900" },
   sheetClose: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 6 },
-  tile: { width: "22%", minWidth: 74, flexGrow: 1, alignItems: "center", paddingVertical: 14, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.03)", borderWidth: 1, borderColor: C.line },
+  tile: { width: "22%", minWidth: 74, flexGrow: 1, alignItems: "center", paddingVertical: 14, borderRadius: 18, backgroundColor: C.fill1, borderWidth: 1, borderColor: C.line },
   tileActive: { borderColor: C.cyan + "45", backgroundColor: C.cyan + "12" },
-  tileIcon: { width: 46, height: 46, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center", marginBottom: 8 },
-  tileIconActive: { backgroundColor: "rgba(255,255,255,0.09)" },
+  tileIcon: { width: 46, height: 46, borderRadius: 15, backgroundColor: C.fill3, alignItems: "center", justifyContent: "center", marginBottom: 8 },
+  tileIconActive: { backgroundColor: C.fill5 },
   tileLabel: { color: C.muted, fontSize: 10, fontWeight: "800", textAlign: "center" },
   tileLabelActive: { color: C.cyan },
 }));

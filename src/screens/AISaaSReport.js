@@ -192,7 +192,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   resultHeader: { flexDirection: 'row', gap: 10 },
   resultIcon: { width: 26, height: 26, borderRadius: 8, backgroundColor: C.amber + "12", alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   resultQuestion: { flex: 1, color: C.muted, fontSize: 11.5, fontWeight: '800', lineHeight: 17 },
-  resultDivider: { height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginVertical: 12 },
+  resultDivider: { height: 1, backgroundColor: C.fill3, marginVertical: 12 },
   resultAnswer: { flex: 1, color: C.text, fontSize: 12, fontWeight: '600', lineHeight: 19 },
   missingBox: { marginTop: 12, backgroundColor: C.amber + "08", borderWidth: 1, borderColor: C.amber + "20", borderRadius: 10, padding: 10 },
   missingTitle: { color: C.amber, fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, marginBottom: 6 },

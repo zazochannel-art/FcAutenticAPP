@@ -405,12 +405,12 @@ const RadarChart = ({ scores }) => {
 const styles = themedStyles((C) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: C.isDark ? "rgba(0,0,0,0.75)" : "rgba(9,9,11,0.45)", justifyContent: "flex-end" },
   sheet: { backgroundColor: C.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: C.line, maxWidth: 560, width: "100%", alignSelf: "center" },
-  header: { flexDirection: "row", alignItems: "center", padding: 18, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
+  header: { flexDirection: "row", alignItems: "center", padding: 18, borderBottomWidth: 1, borderBottomColor: C.line },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.fill4, alignItems: "center", justifyContent: "center" },
   name: { color: C.text, fontSize: 16, fontWeight: "900" },
   meta: { color: C.dim, fontSize: 10.5, fontWeight: "700", marginTop: 2 },
   exportBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: C.cyan + "12", borderWidth: 1, borderColor: C.cyan + "35", alignItems: "center", justifyContent: "center", marginRight: 8 },
-  closeBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
+  closeBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: C.fill3, alignItems: "center", justifyContent: "center" },
   tabs: { flexDirection: "row", padding: 8, gap: 6 },
   tab: { flex: 1, height: 36, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   tabActive: { backgroundColor: C.cyan + "12", borderWidth: 1, borderColor: C.cyan + "30" },
@@ -418,10 +418,10 @@ const styles = themedStyles((C) => StyleSheet.create({
 
   metricRow: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 10 },
   metricLabel: { color: C.text, fontSize: 11, fontWeight: "800", width: 78 },
-  metricBarBg: { flex: 1, height: 6, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" },
+  metricBarBg: { flex: 1, height: 6, backgroundColor: C.fill2, borderRadius: 3, overflow: "hidden" },
   metricBarFill: { height: "100%", backgroundColor: C.cyan, borderRadius: 3 },
   stepper: { flexDirection: "row", alignItems: "center", gap: 8 },
-  stepBtn: { width: 26, height: 26, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
+  stepBtn: { width: 26, height: 26, borderRadius: 8, backgroundColor: C.fill2, alignItems: "center", justifyContent: "center" },
   stepTxt: { color: C.text, fontSize: 16, fontWeight: "900" },
   metricVal: { color: C.text, fontSize: 13, fontWeight: "900", width: 22, textAlign: "center" },
 
@@ -431,11 +431,11 @@ const styles = themedStyles((C) => StyleSheet.create({
 
   obsAdd: { marginBottom: 14 },
   obsTypeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
-  obsTypeChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  obsTypeChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: C.line },
   obsTypeChipActive: { borderColor: C.cyan, backgroundColor: C.cyan + "10" },
   obsTypeText: { color: C.muted, fontSize: 10, fontWeight: "800" },
   obsInput: { minHeight: 64, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 12, padding: 12, color: C.text, fontSize: 12, fontWeight: "600", textAlignVertical: "top" },
-  obsItem: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
+  obsItem: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: C.line },
   obsItemType: { color: C.cyan, fontSize: 9.5, fontWeight: "900", letterSpacing: 0.4 },
   obsItemText: { color: C.text, fontSize: 12, fontWeight: "600", marginTop: 3, lineHeight: 17 },
 
@@ -445,7 +445,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   ratingInput: { flex: 1, backgroundColor: C.bgSecondary, borderWidth: 1, borderColor: C.line, borderRadius: 10, paddingHorizontal: 12, height: 44, color: C.text, fontSize: 14, fontWeight: "800", textAlign: "center" },
   primaryPos: { color: C.blue, fontSize: 14, fontWeight: "900" },
   posGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
-  posChip: { width: 52, height: 34, borderRadius: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
+  posChip: { width: 52, height: 34, borderRadius: 10, borderWidth: 1, borderColor: C.lineStrong, alignItems: "center", justifyContent: "center" },
   posChipOn: { borderColor: C.cyan, backgroundColor: C.cyan + "12" },
   posChipText: { color: C.muted, fontSize: 11, fontWeight: "800" },
 

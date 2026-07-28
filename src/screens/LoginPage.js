@@ -336,7 +336,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLogo}>
-                <Image source={require('../../assets/icon-square.png')} style={styles.logoBadge} />
+                <Image source={require('../../assets/logo.png')} style={styles.logoBadge} />
                 <View>
                   {/* Wordmark-ul decupat din logo — fontul lui nu e disponibil
                       ca fișier, deci îl folosim ca imagine, pentru fidelitate. */}
@@ -357,7 +357,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
               {/* Left Column: Branding */}
               <View style={styles.leftCol}>
                 <Image
-                  source={require('../../assets/icon-square.png')}
+                  source={require('../../assets/logo.png')}
                   style={styles.heroLogo}
                   accessibilityLabel={BRAND_NAME}
                 />
