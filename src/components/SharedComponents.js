@@ -7,7 +7,7 @@ import { useProfile } from "../context/ProfileContext";
 import ProfileSheet from "./ProfileSheet";
 
 export function Badge({ size = 48 }) {
-  return <Image source={require("../../assets/icon.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
+  return <Image source={require("../../assets/icon-square.png")} style={{ width: size, height: size, borderRadius: size * 0.24, resizeMode: "cover" }} />;
 }
 
 export function TopBar({ title, eyebrow = "FOOTBAL MANAGER 99", openNotifications }) {
