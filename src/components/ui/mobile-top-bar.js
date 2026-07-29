@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Image, View, Text, Pressable, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, themedStyles } from "../../constants/theme";
 import { BRAND_NAME } from "../../constants/brand";
@@ -21,6 +22,25 @@ export function MobileTopBar({ topInset = 0, onNotifications, notificationsCount
 
   return (
     <View style={[styles.bar, { paddingTop: topInset + 10 }]}>
+      {/* Pagina acoperă tot ecranul, deci conținutul trece pe sub bară și pe
+          sub bara de stare. Estomparea îl stinge înainte să ajungă în dreptul
+          logoului, în loc să-l lase să se ciocnească de el. */}
+      <LinearGradient
+        colors={[C.bg, C.bg, C.bg + "00"]}
+        locations={[0, 0.65, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      {/* Când pagina acoperă bara de stare, iOS scrie ceasul și bateria cu alb,
+          indiferent de temă. Pe tema luminoasă ar fi alb pe aproape alb, deci
+          punem o umbrire discretă exact pe înălțimea barei de stare. */}
+      {!C.isDark && topInset > 0 ? (
+        <LinearGradient
+          colors={["rgba(15, 23, 42, 0.45)", "rgba(15, 23, 42, 0)"]}
+          style={[styles.statusScrim, { height: topInset }]}
+          pointerEvents="none"
+        />
+      ) : null}
       <View style={styles.brand}>
         <Image source={require("../../../assets/logo.png")} style={styles.logo} />
         <Text style={styles.name} numberOfLines={1}>{BRAND_NAME}</Text>
@@ -64,6 +84,7 @@ const styles = themedStyles((C) => StyleSheet.create({
     paddingBottom: 10,
     gap: 8,
   },
+  statusScrim: { position: "absolute", top: 0, left: 0, right: 0 },
   brand: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
   logo: { width: 34, height: 34, borderRadius: 10, resizeMode: "cover" },
   name: { color: C.text, fontSize: 16, fontWeight: "900", letterSpacing: -0.3, flexShrink: 1 },

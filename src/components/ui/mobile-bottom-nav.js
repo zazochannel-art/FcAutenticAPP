@@ -41,6 +41,13 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
 
   return (
     <View style={[styles.wrapper, { paddingBottom: 26 + bottomInset }]} pointerEvents="box-none">
+      {/* Aceeași estompare ca sus: conținutul se stinge înainte de pastilă,
+          în loc să se vadă tăiat pe sub ea. */}
+      <LinearGradient
+        colors={[C.bg + "00", C.bg]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <LinearGradient
         colors={[C.navBarFrom, C.navBarTo]}
         start={{ x: 0, y: 0 }}
