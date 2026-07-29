@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, Switch, Modal, TextInput
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { colors as C, spacing, themedStyles, applyTheme, themeName } from "../constants/theme";
+import { colors as C, spacing, themedStyles, applyTheme, themeName, layout } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { authService } from "../services/authService";
@@ -413,7 +413,7 @@ const SaveButton = ({ saving, onPress, label }) => (
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: spacing.md, paddingBottom: 120 },
+  content: { padding: spacing.md, paddingBottom: layout.navClearance },
 
   card: { backgroundColor: C.card, borderRadius: 18, padding: 6, marginBottom: 8, borderWidth: 1, borderColor: C.line },
   row: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 14, gap: 4 },

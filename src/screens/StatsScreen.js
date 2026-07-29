@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { computePlayerStats } from "../utils/stats";
 import { AreaChart, FadeInView } from "../components/ui/visuals";
@@ -166,7 +166,7 @@ function SummaryCard({ icon, color, value, label }) {
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  content: { padding: 18, paddingBottom: 120 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
 
   summaryRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
   chartCard: { backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: C.line },

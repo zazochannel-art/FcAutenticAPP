@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { supabaseService } from "../services/supabaseService";
@@ -210,7 +210,7 @@ function AddTrainingModal({ visible, onClose, onSave, groups }) {
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  content: { padding: 18, paddingBottom: 32 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
   filterChip: { paddingVertical: 7, paddingHorizontal: 15, borderRadius: 18, borderWidth: 1, borderColor: C.line, marginRight: 8 },
   filterChipActive: { backgroundColor: C.red, borderColor: C.red },
   filterChipText: { color: C.muted, fontSize: 11, fontWeight: "800" },

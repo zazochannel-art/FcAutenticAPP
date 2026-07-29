@@ -13,7 +13,7 @@ import {
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 
 // --- Premium Palette ---
 
@@ -309,7 +309,7 @@ const StatCard = ({ icon, label, val, iColor }) => {
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  scrollContent: { padding: 18, paddingBottom: 60 },
+  scrollContent: { padding: 18, paddingBottom: layout.navClearance },
 
   pageHeader: { marginBottom: 24 },
   pageTitle: { color: C.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },

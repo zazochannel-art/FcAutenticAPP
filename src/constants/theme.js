@@ -179,6 +179,14 @@ export function applyTheme(name) {
 // `theme-color` din app.json, care e mereu varianta întunecată.
 syncThemeColorMeta(colors.bg);
 
+// Conținutul derulabil trece pe sub pastila meniului, deci trebuie să lase
+// liber la bază cât ține ea: înălțimea pastilei (~52) + distanța ei față de
+// marginea de jos (până la ~22 pe telefoanele cu indicator de gesturi) + o
+// respirație. Altfel ultimul card rămâne definitiv ascuns sub ea.
+export const layout = {
+  navClearance: 96,
+};
+
 export const spacing = {
   xs: 4,
   sm: 8,

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View, Pressable, TextInput, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 
@@ -106,7 +106,7 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  content: { padding: 18, paddingBottom: 120 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
   composer: { backgroundColor: C.card, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: C.line, marginBottom: 18 },
   input: { minHeight: 60, color: C.text, fontSize: 13, fontWeight: "600", textAlignVertical: "top", backgroundColor: C.bgSecondary, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.line },
   postBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 42, borderRadius: 12, backgroundColor: C.blue, marginTop: 10 },

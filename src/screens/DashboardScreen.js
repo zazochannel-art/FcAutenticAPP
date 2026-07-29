@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, spacing, radius, themedStyles } from "../constants/theme";
+import { colors as C, spacing, radius, themedStyles, layout } from "../constants/theme";
 import { GlassCard, StatCard } from "../components/DesignSystem";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { presenceMap } from "../utils/stats";
@@ -177,7 +177,7 @@ const TaskItem = ({ title, status, color, date }) => (
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  content: { padding: spacing.md, paddingBottom: 120 },
+  content: { padding: spacing.md, paddingBottom: layout.navClearance },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -spacing.xs, marginBottom: spacing.lg },
   statCell: { flexGrow: 1, flexBasis: 160, minWidth: 160 },
   actionScroll: { marginHorizontal: -spacing.md, marginBottom: spacing.lg },

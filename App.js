@@ -68,7 +68,7 @@ import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
 import TasksSaaS from "./src/screens/TasksSaaS";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { MobileBottomNav, navBottomOffset } from "./src/components/ui/mobile-bottom-nav";
+import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
 import { MobileTopBar } from "./src/components/ui/mobile-top-bar";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
@@ -945,11 +945,12 @@ function MainApp({ onThemeChange }) {
           <>
             <AmbientBackground />
             <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
-            {/* Spațiul de jos ține cont de pastila plutitoare a meniului:
-                înălțimea ei (~60) + o distanță până la ea (16) + cât rămâne
-                sub ea. Ultimul termen vine din aceeași funcție pe care o
-                folosește și pastila, ca cele două să nu se dezacordeze. */}
-            <View style={[styles.app, { paddingBottom: 76 + navBottomOffset(insets.bottom) }]}>
+            {/* Fără spațiu de jos aici. Pus pe containerul paginii, el
+                scurta zona de derulare, deci conținutul se oprea tăiat
+                deasupra pastilei în loc să treacă pe sub ea. Locul lui e în
+                conținutul derulabil al fiecărui ecran — `layout.navClearance`
+                — ca ultimul card să poată fi urcat deasupra pastilei. */}
+            <View style={styles.app}>
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </View>
             <MobileBottomNav
