@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Modal, TextInput, Platform, Alert } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { BRAND_NAME } from "../constants/brand";
@@ -154,7 +154,7 @@ function EquipmentModal({ visible, item, clubId, onClose, onSaved }) {
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  content: { padding: 18, paddingBottom: 120 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
   statsRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 16 },
   statBox: { flexBasis: 96, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: C.line },
   statVal: { color: C.text, fontSize: 20, fontWeight: "900" },

@@ -17,7 +17,7 @@ import { supabaseService } from "../services/supabaseService";
 import { parseScore, resultOf, seasonSummary } from "../utils/matches";
 import { suspendedPlayerIds } from "../utils/tactics";
 import RoDateField from "../components/RoDateField";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 
 // --- Premium Palette ---
 
@@ -719,7 +719,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 50 },
+  scrollContent: { padding: 16, paddingBottom: layout.navClearance },
 
   pageHeader: { marginBottom: 25 },
   pageTitle: { color: C.text, fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, Platform, Alert } from "react-nativ
 import * as LucideIcons from "lucide-react-native";
 import Svg, { Polygon, Line } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { notificationService } from "../services/notificationService";
@@ -227,7 +227,7 @@ const RadarChart = ({ evalRow }) => {
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  content: { padding: 18, paddingBottom: 120 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 50, gap: 12 },
   emptyText: { color: C.muted, fontSize: 12.5, fontWeight: "600", textAlign: "center", lineHeight: 18, paddingHorizontal: 24 },
 

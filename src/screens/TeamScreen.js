@@ -15,7 +15,7 @@ import Svg, { Circle, Rect, G, Text as SvgText } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import PlayerDetailModal from "../components/PlayerDetailModal";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { ageFromRoDate } from "../utils/dates";
 
 // --- Premium Palette ---
@@ -561,7 +561,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
   mainWrapper: { flex: 1 },
   mainScroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 50 },
+  scrollContent: { padding: 16, paddingBottom: layout.navClearance },
 
   pageHeader: { marginBottom: 25 },
   pageTitleContainer: {},

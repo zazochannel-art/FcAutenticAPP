@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, ScrollView, StyleSheet, Pressable, Platform, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import { colors as C, themedStyles, elevation } from "../../constants/theme";
+import { colors as C, themedStyles, elevation, layout } from "../../constants/theme";
 import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface } from "../../components/ui/visuals";
 
 // --- Paletă comună, derivată din tema globală a aplicației ---
@@ -140,7 +140,7 @@ export const PlanBadge = ({ plan }) => (
 
 export const s = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  scroll: { padding: 18, paddingBottom: 80 },
+  scroll: { padding: 18, paddingBottom: layout.navClearance },
 
   pageHeader: { marginBottom: 24 },
   eyebrowRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },

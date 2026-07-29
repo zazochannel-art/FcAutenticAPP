@@ -6,7 +6,7 @@ import {
 import Svg, { Rect, Line, Circle } from "react-native-svg";
 import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { colors as C, themedStyles } from "../constants/theme";
+import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import {
@@ -1019,7 +1019,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
 
 const styles = themedStyles((C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: "transparent" },
-  content: { padding: 18, paddingBottom: 140 },
+  content: { padding: 18, paddingBottom: layout.navClearance },
 
   topActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   newBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 40, borderRadius: 12, borderWidth: 1, borderColor: C.cyan + "40", backgroundColor: C.cyan + "10" },
