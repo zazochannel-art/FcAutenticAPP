@@ -8,6 +8,7 @@ import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { authService } from "../services/authService";
 import { supabaseService } from "../services/supabaseService";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 const APP_VERSION = "1.0.0";
 const NOTIF_KEY = "fc_notif_prefs";
@@ -36,6 +37,7 @@ async function copyText(text) {
 }
 
 export default function MoreScreen({ currentUser, onLogout, selectedClub, switchClub, onCreateClub, clubs = [], onThemeChange }) {
+  const topClearance = useTopClearance();
   const [darkMode, setDarkMode] = useState(themeName !== "light");
 
   // Comută tema: aplicăm paleta, salvăm preferința și cerem remontarea
@@ -94,7 +96,7 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, switch
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Setări" eyebrow="CONT, CLUB ȘI PREFERINȚE" />
 
       {/* Contul meu */}

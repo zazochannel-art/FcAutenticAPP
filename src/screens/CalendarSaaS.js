@@ -14,6 +14,7 @@ import * as LucideIcons from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { colors as C, themedStyles, layout } from "../constants/theme";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 // --- Premium Palette ---
 
@@ -54,6 +55,7 @@ const EVENT_TYPE_COLORS = {
 };
 
 export default function CalendarSaaS({ trainings = [], matches = [], events = [], clubId, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -151,7 +153,7 @@ export default function CalendarSaaS({ trainings = [], matches = [], events = []
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Calendar</Text>

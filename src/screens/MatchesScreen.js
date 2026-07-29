@@ -18,6 +18,7 @@ import { parseScore, resultOf, seasonSummary } from "../utils/matches";
 import { suspendedPlayerIds } from "../utils/tactics";
 import RoDateField from "../components/RoDateField";
 import { colors as C, themedStyles, layout } from "../constants/theme";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 // --- Premium Palette ---
 
@@ -29,6 +30,7 @@ function notify(title, msg) {
 const RESULT_COLORS_ = () => ({ V: C.green, E: C.amber, "Î": C.red });
 
 export default function MatchesScreen({ players = [], matches = [], currentUser, clubId }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [scoreFor, setScoreFor] = useState(null);
@@ -144,7 +146,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
   return (
     <View style={styles.container}>
       <View style={styles.mainWrapper}>
-        <ScrollView style={styles.mainScroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
           {/* Page Header */}
           <View style={styles.pageHeader}>

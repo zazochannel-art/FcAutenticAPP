@@ -6,6 +6,7 @@ import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { supabaseService } from "../services/supabaseService";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
 
@@ -23,6 +24,7 @@ const attendanceOptions = [
 ];
 
 export default function TrainingsScreen({ players, trainings, attendance = {}, setAttendance, currentUser, selectedClub, clubId }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [view, setView] = useState("list");
   const [selected, setSelected] = useState(null);
@@ -68,7 +70,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
 
   if (view === "detail" && selected) {
     return (
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, topClearance]}>
         <BeUIButton
           label="Toate antrenamentele"
           variant="ghost"
@@ -114,7 +116,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
         <TopBar title="Antrenamente" eyebrow="CENTRUL DE PREGĂTIRE" />
         {canManage && (
           <BeUIButton

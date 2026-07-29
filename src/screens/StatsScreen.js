@@ -6,6 +6,7 @@ import { TopBar } from "../components/SharedComponents";
 import { computePlayerStats } from "../utils/stats";
 import { AreaChart, FadeInView } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 const SORTS = [
   { key: "goals", label: "Goluri", icon: "Goal" },
@@ -15,6 +16,7 @@ const SORTS = [
 ];
 
 export default function StatsScreen({ players = [], matches = [], attendance = {}, selectedClub }) {
+  const topClearance = useTopClearance();
   const [sortBy, setSortBy] = useState("goals");
   const [groupFilter, setGroupFilter] = useState("Toate");
 
@@ -61,7 +63,7 @@ export default function StatsScreen({ players = [], matches = [], attendance = {
     });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Statistici" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <FadeInView style={styles.summaryRow}>

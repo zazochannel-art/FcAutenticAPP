@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, themedStyles, elevation, layout } from "../../constants/theme";
 import { Sparkline, FadeInView, PressableScale, EmptyState, SkeletonRow, Surface } from "../../components/ui/visuals";
+import { useTopClearance } from "../../hooks/useTopClearance";
 
 // --- Paletă comună, derivată din tema globală a aplicației ---
 // (înainte era o paletă paralelă; acum admin și club folosesc aceleași culori)
@@ -53,9 +54,10 @@ export function formatDate(value) {
 }
 
 export function AdminPage({ title, subtitle, eyebrow = "ADMINISTRARE PLATFORMĂ", children }) {
+  const topClearance = useTopClearance();
   return (
     <View style={s.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.scroll, topClearance]} showsVerticalScrollIndicator={false}>
         <FadeInView style={s.pageHeader}>
           <View style={s.eyebrowRow}>
             <View style={s.eyebrowBar} />

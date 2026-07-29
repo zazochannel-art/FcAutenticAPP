@@ -7,6 +7,7 @@ import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -14,6 +15,7 @@ function notify(title, msg) {
 }
 
 export default function MediaScreen({ clubId, selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -37,7 +39,7 @@ export default function MediaScreen({ clubId, selectedClub, currentUser }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Galerie" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (

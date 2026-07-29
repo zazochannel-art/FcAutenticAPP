@@ -8,6 +8,7 @@ import { supabaseService } from "../services/supabaseService";
 import { storageService } from "../services/storageService";
 import RoDateField from "../components/RoDateField";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -18,6 +19,7 @@ const DOC_TYPES = ["Contract", "Medical", "Regulament", "Formular", "Altele"];
 const TYPE_COLORS_ = () => ({ Contract: C.blue, Medical: C.red, Regulament: C.purple, Formular: C.amber, Altele: C.dim });
 
 export default function DocumentsScreen({ clubId, selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [opening, setOpening] = useState(null);
@@ -56,7 +58,7 @@ export default function DocumentsScreen({ clubId, selectedClub, currentUser }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Documente" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (
