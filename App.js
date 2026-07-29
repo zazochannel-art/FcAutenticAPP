@@ -68,7 +68,7 @@ import PricingScreen from "./src/screens/PricingScreen";
 import StaffSaaS from "./src/screens/StaffSaaS";
 import TasksSaaS from "./src/screens/TasksSaaS";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { MobileBottomNav } from "./src/components/ui/mobile-bottom-nav";
+import { MobileBottomNav, navBottomOffset } from "./src/components/ui/mobile-bottom-nav";
 import { MobileTopBar } from "./src/components/ui/mobile-top-bar";
 import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
@@ -946,8 +946,10 @@ function MainApp({ onThemeChange }) {
             <AmbientBackground />
             <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
             {/* Spațiul de jos ține cont de pastila plutitoare a meniului:
-                înălțimea ei (~49) + distanța până la margine (26) + inset. */}
-            <View style={[styles.app, { paddingBottom: 86 + insets.bottom }]}>
+                înălțimea ei (~60) + o distanță până la ea (16) + cât rămâne
+                sub ea. Ultimul termen vine din aceeași funcție pe care o
+                folosește și pastila, ca cele două să nu se dezacordeze. */}
+            <View style={[styles.app, { paddingBottom: 76 + navBottomOffset(insets.bottom) }]}>
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </View>
             <MobileBottomNav
