@@ -31,6 +31,14 @@ const tabIcons = {
   "Mai mult": "Settings",
 };
 
+// Cât rămâne sub pastilă. Marginea de siguranță a telefonului se ia doar
+// parțial: luată întreagă, pastila plutea la vreo 60pt de marginea de jos și
+// golul de sub ea se citea ca un fundal în plus. O treime lasă indicatorul de
+// gesturi liber, fără să împingă pastila departe de margine.
+export function navBottomOffset(bottomInset = 0) {
+  return 10 + Math.round(bottomInset * 0.35);
+}
+
 export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,7 +48,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
   const pick = (label) => { setMenuOpen(false); onTabPress(label); };
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: 26 + bottomInset }]} pointerEvents="box-none">
+    <View style={[styles.wrapper, { paddingBottom: navBottomOffset(bottomInset) }]} pointerEvents="box-none">
       {/* Nimic în spatele pastilei: aurora trebuie să ajungă până în ultimul
           rând de pixeli. O umplere cu `C.bg` sub ea se citea ca o bandă lipită
           de marginea de jos. Pastila are deja fundal propriu și neclaritate. */}
@@ -116,7 +124,8 @@ function BottomItem({ label, icon, active, onPress }) {
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  // .mobile-tabs — pastilă flotantă, centrată, la 26px de marginea de jos
+  // .mobile-tabs — pastilă flotantă, centrată, lipită de marginea de jos
+  // (distanța vine din `navBottomOffset`, care ține cont de telefon)
   wrapper: {
     position: "absolute",
     bottom: 0,
