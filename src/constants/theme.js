@@ -145,6 +145,23 @@ export function themedStyles(factory) {
 
 export let themeName = "dark";
 
+// Instalată pe ecranul principal, aplicația nu primește tot ecranul: iOS
+// citește `manifest.json` și vopsește singur zona barei de stare și pe cea a
+// indicatorului de jos, cu `theme_color`. Culoarea aia e fixă în manifest, deci
+// pe tema greșită ieșeau două benzi care nu se potriveau cu fundalul.
+// `<meta name="theme-color">` schimbat din cod are prioritate față de manifest
+// și se aplică imediat, așa că îl ținem sincronizat cu fundalul curent.
+function syncThemeColorMeta(bg) {
+  if (typeof document === "undefined") return;
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", "theme-color");
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", bg);
+}
+
 export function applyTheme(name) {
   const next = palettes[name] || palettes.dark;
   themeName = name;
@@ -155,7 +172,12 @@ export function applyTheme(name) {
     Object.keys(holder).forEach((k) => { delete holder[k]; });
     Object.assign(holder, fresh);
   });
+  syncThemeColorMeta(colors.bg);
 }
+
+// Și la prima încărcare, nu doar la schimbarea temei: Expo injectează
+// `theme-color` din app.json, care e mereu varianta întunecată.
+syncThemeColorMeta(colors.bg);
 
 export const spacing = {
   xs: 4,

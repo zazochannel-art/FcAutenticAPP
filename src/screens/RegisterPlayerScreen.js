@@ -160,7 +160,7 @@ export default function RegisterPlayerScreen({ onBack, onRegister, loading, erro
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#020617" },
+  safe: { flex: 1, backgroundColor: C.bg },
   loginContent: { padding: spacing.md, paddingBottom: 40 },
   loginHero: { alignItems: 'center', backgroundColor: C.card, borderRadius: 24, padding: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)", marginBottom: 16 },
   loginTitle: { color: C.text, fontSize: 27, fontWeight: '900', marginTop: 10 },

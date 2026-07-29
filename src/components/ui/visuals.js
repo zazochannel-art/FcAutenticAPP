@@ -28,6 +28,10 @@ export function AmbientBackground({ style }) {
             <Stop offset="1" stopColor="#06B6D4" stopOpacity="0" />
           </RadialGradient>
         </Defs>
+        {/* Instalată pe ecranul principal, pagina chiar acoperă tot ecranul,
+            inclusiv zona ceasului și pe cea a indicatorului de jos. Aurora
+            merge deci până în marginea fizică: orice stingere spre `C.bg` pe
+            capete s-ar vedea ca o bandă lipită de margine. */}
         <Rect x="0" y="0" width="100" height="100" fill={C.bg} />
         <Ellipse cx="12" cy="6" rx="52" ry="42" fill="url(#ambA)" />
         <Ellipse cx="92" cy="20" rx="46" ry="40" fill="url(#ambB)" />

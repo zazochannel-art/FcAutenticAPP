@@ -326,7 +326,7 @@ export default function LoginPage({ onLogin, onRegister, onSignup, onGoogle, onF
         imageStyle={{ opacity: 0.2 }}
       >
         <LinearGradient
-          colors={[BG_DARK, 'transparent', BG_DARK]}
+          colors={[C.bg, 'transparent', C.bg]}
           style={StyleSheet.absoluteFill}
         />
 
