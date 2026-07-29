@@ -9,8 +9,10 @@ import { parseScore, resultOf } from "../utils/matches";
 import { FadeInView, PressableScale } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
 import { useTranslation } from "../i18n";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 export default function DashboardScreen({ tasks, players, trainings, matches, transactions, currentUser, setTab, openNotifications, selectedClub, subscription, memberships = [], attendance = {} }) {
+  const topClearance = useTopClearance();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
@@ -60,7 +62,7 @@ export default function DashboardScreen({ tasks, players, trainings, matches, tr
 
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar
         title={t("dash.greeting", { name: currentUser?.name?.split(' ')[0] || t("dash.manager") })}
         eyebrow={`${BRAND_NAME} • Dashboard`}

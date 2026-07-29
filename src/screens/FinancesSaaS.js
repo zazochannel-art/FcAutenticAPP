@@ -14,6 +14,7 @@ import * as LucideIcons from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { colors as C, themedStyles, layout } from "../constants/theme";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 const MONTH_NAMES = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
 
@@ -40,6 +41,7 @@ function money(value) {
 }
 
 export default function FinancesSaaS({ transactions = [], players = [], selectedClub, clubId, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [view, setView] = useState("transactions");
   const [addOpen, setAddOpen] = useState(false);
@@ -100,7 +102,7 @@ export default function FinancesSaaS({ transactions = [], players = [], selected
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Finanțe</Text>

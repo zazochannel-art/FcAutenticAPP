@@ -18,6 +18,7 @@ import {
 } from "../utils/tactics";
 import { SkeletonRow } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -695,6 +696,7 @@ function SavedTacticsList({ tactics, activeId, onLoad, onDuplicate, onDelete, ca
 // Ecran principal
 // ---------------------------------------------------------------------------
 export default function TacticsScreen({ clubId, players = [], selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const canManage = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
@@ -748,7 +750,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
     const active = published.find((t) => t.id === viewTacticId) || published[0];
     const vSlots = active ? (FORMATIONS[active.formation] || FORMATIONS["4-3-3"]) : slots;
     return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
         <TopBar title="Tactici" eyebrow={selectedClub?.name || BRAND_NAME} />
         {isLoading && <View>{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</View>}
         {!isLoading && published.length === 0 && (
@@ -893,7 +895,7 @@ export default function TacticsScreen({ clubId, players = [], selectedClub, curr
   const menuPlayerId = menuSlot ? draft.assignments[menuSlot.id] : null;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Tactici" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <View style={styles.topActions}>

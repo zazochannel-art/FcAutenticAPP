@@ -7,6 +7,7 @@ import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { SkeletonRow, EmptyState } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -17,6 +18,7 @@ const DECISIONS = ["De urmărit", "Invită la probe", "Ofertă", "Respins"];
 const DECISION_COLORS_ = () => ({ "De urmărit": C.blue, "Invită la probe": C.amber, "Ofertă": C.green, "Respins": C.red });
 
 export default function ScoutingScreen({ clubId, selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [editItem, setEditItem] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -39,7 +41,7 @@ export default function ScoutingScreen({ clubId, selectedClub, currentUser }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Scouting" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (

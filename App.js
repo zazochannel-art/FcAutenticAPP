@@ -944,15 +944,16 @@ function MainApp({ onThemeChange }) {
         ) : (
           <>
             <AmbientBackground />
-            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
-            {/* Fără spațiu de jos aici. Pus pe containerul paginii, el
-                scurta zona de derulare, deci conținutul se oprea tăiat
-                deasupra pastilei în loc să treacă pe sub ea. Locul lui e în
-                conținutul derulabil al fiecărui ecran — `layout.navClearance`
-                — ca ultimul card să poată fi urcat deasupra pastilei. */}
+            {/* Nici sus, nici jos containerul paginii nu ia spațiu pentru
+                bare. Pus aici, el ar scurta zona de derulare, deci conținutul
+                s-ar opri tăiat pe o muchie dreaptă în loc să treacă pe sub
+                bară. Spațiul stă în conținutul derulabil al fiecărui ecran —
+                `layout.topBarClearance` și `layout.navClearance`. */}
             <View style={styles.app}>
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </View>
+            {/* Bara de sus vine după pagină, ca să stea peste ea. */}
+            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
             <MobileBottomNav
               tabs={activeTabs}
               activeTab={tab}

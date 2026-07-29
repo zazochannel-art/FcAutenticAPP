@@ -13,6 +13,7 @@ import {
 import * as LucideIcons from "lucide-react-native";
 import { supabaseService } from "../services/supabaseService";
 import { colors as C, themedStyles, layout } from "../constants/theme";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 // --- Premium Palette ---
 
@@ -29,6 +30,7 @@ function notify(title, msg) {
 }
 
 export default function AISaaSReport({ currentUser, selectedClub }) {
+  const topClearance = useTopClearance();
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +79,7 @@ export default function AISaaSReport({ currentUser, selectedClub }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>Rapoarte AI</Text>

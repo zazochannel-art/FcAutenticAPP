@@ -73,7 +73,13 @@ export function MobileTopBar({ topInset = 0, onNotifications, notificationsCount
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
+  // Bara plutește peste pagină, ca ea să poată derula pe dedesubt. Dacă ar sta
+  // în flux, ar împinge conținutul mai jos și l-ar tăia la marginea ei.
   bar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,

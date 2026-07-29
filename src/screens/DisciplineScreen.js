@@ -8,6 +8,7 @@ import { supabaseService } from "../services/supabaseService";
 import RoDateField from "../components/RoDateField";
 import { SkeletonRow, EmptyState } from "../components/ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -18,6 +19,7 @@ const TYPES = ["Cartonaș galben", "Cartonaș roșu", "Suspendare", "Avertisment
 const TYPE_COLORS_ = () => ({ "Cartonaș galben": C.amber, "Cartonaș roșu": C.red, "Suspendare": C.purple, "Avertisment": C.dim });
 
 export default function DisciplineScreen({ clubId, players = [], selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -41,7 +43,7 @@ export default function DisciplineScreen({ clubId, players = [], selectedClub, c
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Disciplină" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {canManage && (

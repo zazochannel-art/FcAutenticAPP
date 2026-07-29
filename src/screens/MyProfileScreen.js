@@ -9,6 +9,7 @@ import { supabaseService } from "../services/supabaseService";
 import { notificationService } from "../services/notificationService";
 import { parseRoDate } from "../utils/dates";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -31,6 +32,7 @@ const METRICS = [
 ];
 
 export default function MyProfileScreen({ currentUser, players = [], trainings = [], matches = [], attendance = {}, clubId, selectedClub }) {
+  const topClearance = useTopClearance();
   const isParent = currentUser?.role === "parent";
   // RLS întoarce doar jucătorul propriu (sau copilul, pentru părinte).
   const myPlayer = players[0] || null;
@@ -113,7 +115,7 @@ export default function MyProfileScreen({ currentUser, players = [], trainings =
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title={isParent ? "Copilul meu" : "Profilul meu"} eyebrow={selectedClub?.name || BRAND_NAME} />
 
       {!myPlayer ? (

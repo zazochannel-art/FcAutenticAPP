@@ -185,6 +185,11 @@ syncThemeColorMeta(colors.bg);
 // respirație. Altfel ultimul card rămâne definitiv ascuns sub ea.
 export const layout = {
   navClearance: 96,
+  // Cadrul barei de sus (58) plus o respirație, fără marginea de siguranță a
+  // telefonului — aceea se adaugă la randare, fiindcă diferă de la un model la
+  // altul. Conținutul derulabil lasă atâta liber sus ca primul card să nu
+  // pornească ascuns sub logo; restul, la derulare, trece pe sub bară.
+  topBarClearance: 70,
 };
 
 export const spacing = {

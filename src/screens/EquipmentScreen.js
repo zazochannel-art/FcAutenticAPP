@@ -6,6 +6,7 @@ import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { BRAND_NAME } from "../constants/brand";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -15,6 +16,7 @@ function notify(title, msg) {
 const CATEGORIES = ["Echipament joc", "Antrenament", "Medical", "Altele"];
 
 export default function EquipmentScreen({ clubId, selectedClub, currentUser }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [editItem, setEditItem] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -39,7 +41,7 @@ export default function EquipmentScreen({ clubId, selectedClub, currentUser }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Echipament" eyebrow={selectedClub?.name || BRAND_NAME} />
 
       <View style={styles.statsRow}>

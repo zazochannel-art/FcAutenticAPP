@@ -13,6 +13,7 @@ import Svg, { Circle } from "react-native-svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabaseService } from "../services/supabaseService";
 import { colors as C, themedStyles, layout } from "../constants/theme";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 
 // --- Premium Palette ---
@@ -137,6 +138,7 @@ function notify(title, msg) {
 }
 
 export default function PricingScreen({ selectedClub, subscription, currentUser, players = [] }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   // Planul activ al clubului vine din abonamentul real.
   const currentPlanId = String(subscription?.planName || selectedClub?.plan || "free").toLowerCase();
@@ -171,7 +173,7 @@ export default function PricingScreen({ selectedClub, subscription, currentUser,
   return (
     <View style={styles.container}>
       <View style={styles.mainWrapper}>
-        <ScrollView style={styles.mainScroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
           {/* Page Header */}
           <View style={styles.pageHeader}>

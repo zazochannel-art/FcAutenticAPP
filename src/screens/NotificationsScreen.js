@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
@@ -23,6 +24,7 @@ function timeAgo(iso) {
 }
 
 export default function NotificationsScreen({ currentUser, clubId, selectedClub }) {
+  const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -58,7 +60,7 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
       <TopBar title="Anunțuri" eyebrow="COMUNICARE CLUB" />
 
       {canPost && (

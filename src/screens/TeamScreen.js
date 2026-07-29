@@ -17,6 +17,7 @@ import { supabaseService } from "../services/supabaseService";
 import PlayerDetailModal from "../components/PlayerDetailModal";
 import { colors as C, themedStyles, layout } from "../constants/theme";
 import { ageFromRoDate } from "../utils/dates";
+import { useTopClearance } from "../hooks/useTopClearance";
 
 // --- Premium Palette ---
 
@@ -46,6 +47,7 @@ function statusInfo(status) {
 }
 
 export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, setTab }) {
+  const topClearance = useTopClearance();
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
   const [addOpen, setAddOpen] = useState(false);
@@ -143,7 +145,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
   return (
     <View style={styles.container}>
       <View style={styles.mainWrapper}>
-        <ScrollView style={styles.mainScroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.mainScroll} contentContainerStyle={[styles.scrollContent, topClearance]} showsVerticalScrollIndicator={false}>
 
           {/* Page Header */}
           <View style={styles.pageHeader}>
