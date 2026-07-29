@@ -15,11 +15,16 @@
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Instalare pe ecranul principal (iOS / Safari nu citește manifest.json).
-         Bara de stare rămâne opacă („black"), ca antetul aplicației să nu
-         alunece sub crestătură. -->
+         `black-translucent` lasă pagina să acopere tot ecranul, inclusiv zona
+         barei de stare și cea a indicatorului de jos. Cu „black", iOS îngusta
+         pagina și umplea marginile cu negru — se vedeau ca două benzi care nu
+         se potriveau cu fundalul aplicației.
+         Conținutul nu ajunge sub crestătură: antetul și bara de jos își iau
+         spațiul din `useSafeAreaInsets`, care pe web citește
+         `env(safe-area-inset-*)`. -->
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SportTeam One" />
     <meta name="mobile-web-app-capable" content="yes" />
 
