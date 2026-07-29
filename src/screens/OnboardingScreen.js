@@ -16,7 +16,7 @@ export default function OnboardingScreen({ onCreateClub, onJoinClub, onLogout })
   return (
     <View style={styles.container}>
       <ImageBackground source={stadium} style={styles.bg} imageStyle={{ opacity: 0.22 }}>
-        <LinearGradient colors={["#020617", "rgba(2,6,23,0.84)", "#020617"]} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[C.bg, C.bg + "d6", C.bg]} style={StyleSheet.absoluteFill} />
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.header}>
             <View style={styles.brand}>
@@ -119,7 +119,7 @@ function OptionCard({ icon: Icon, color, title, text, cta, onPress, primary }) {
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020617" },
+  container: { flex: 1, backgroundColor: C.bg },
   bg: { flex: 1 },
   header: { minHeight: 86, paddingHorizontal: 28, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "rgba(148,163,184,0.1)" },
   brand: { flexDirection: "row", alignItems: "center", gap: 12 },

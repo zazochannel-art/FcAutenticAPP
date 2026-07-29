@@ -54,7 +54,7 @@ export default function JoinClubScreen({ onBack, onSuccess }) {
   return (
     <View style={styles.container}>
       <ImageBackground source={stadium} style={styles.bg} imageStyle={{ opacity: 0.18 }}>
-        <LinearGradient colors={["#020617", "rgba(2,6,23,0.82)", "#020617"]} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[C.bg, C.bg + "d1", C.bg]} style={StyleSheet.absoluteFill} />
         <SafeAreaView style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.header}>
@@ -145,7 +145,7 @@ function Field(props) {
 }
 
 const styles = themedStyles((C) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020617" },
+  container: { flex: 1, backgroundColor: C.bg },
   bg: { flex: 1 },
   content: { flexGrow: 1, padding: 22, alignItems: "center", justifyContent: "center" },
   header: { position: "absolute", top: 18, left: 22, right: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
