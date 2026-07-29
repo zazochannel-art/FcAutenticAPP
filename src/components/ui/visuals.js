@@ -27,26 +27,15 @@ export function AmbientBackground({ style }) {
             <Stop offset="0" stopColor="#06B6D4" stopOpacity={C.isDark ? "0.14" : "0.09"} />
             <Stop offset="1" stopColor="#06B6D4" stopOpacity="0" />
           </RadialGradient>
-          {/* Instalată pe ecranul principal, aplicația nu primește tot ecranul:
-              iOS vopsește singur zona barei de stare și pe cea a indicatorului
-              de jos, cu o culoare plată. Stingem aurora exact pe margini, ca
-              primul și ultimul rând de pixeli ai paginii să fie curat `C.bg` —
-              aceeași culoare — și trecerea să nu se mai vadă. */}
-          <LinearGradient id="ambTop" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={C.bg} stopOpacity="1" />
-            <Stop offset="1" stopColor={C.bg} stopOpacity="0" />
-          </LinearGradient>
-          <LinearGradient id="ambBottom" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={C.bg} stopOpacity="0" />
-            <Stop offset="1" stopColor={C.bg} stopOpacity="1" />
-          </LinearGradient>
         </Defs>
+        {/* Instalată pe ecranul principal, pagina chiar acoperă tot ecranul,
+            inclusiv zona ceasului și pe cea a indicatorului de jos. Aurora
+            merge deci până în marginea fizică: orice stingere spre `C.bg` pe
+            capete s-ar vedea ca o bandă lipită de margine. */}
         <Rect x="0" y="0" width="100" height="100" fill={C.bg} />
         <Ellipse cx="12" cy="6" rx="52" ry="42" fill="url(#ambA)" />
         <Ellipse cx="92" cy="20" rx="46" ry="40" fill="url(#ambB)" />
         <Ellipse cx="60" cy="98" rx="58" ry="38" fill="url(#ambC)" />
-        <Rect x="0" y="0" width="100" height="9" fill="url(#ambTop)" />
-        <Rect x="0" y="91" width="100" height="9" fill="url(#ambBottom)" />
       </Svg>
     </View>
   );

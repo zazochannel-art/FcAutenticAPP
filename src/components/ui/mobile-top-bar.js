@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Image, View, Text, Pressable, StyleSheet } from "react-native";
+import { Image, Platform, View, Text, Pressable, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
 import { colors as C, radius, themedStyles } from "../../constants/theme";
@@ -22,15 +22,11 @@ export function MobileTopBar({ topInset = 0, onNotifications, notificationsCount
 
   return (
     <View style={[styles.bar, { paddingTop: topInset + 10 }]}>
-      {/* Pagina acoperă tot ecranul, deci conținutul trece pe sub bară și pe
-          sub bara de stare. Estomparea îl stinge înainte să ajungă în dreptul
-          logoului, în loc să-l lase să se ciocnească de el. */}
-      <LinearGradient
-        colors={[C.bg, C.bg, C.bg + "00"]}
-        locations={[0, 0.65, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+      {/* Bara nu are fundal propriu: aurora din spate trebuie să treacă
+          neîntreruptă până în primul rând de pixeli. O umplere cu `C.bg`, chiar
+          și estompată, se citește ca o bandă lipită de marginea de sus — exact
+          ce încercam să eliminăm. Conținutul care derulează pe dedesubt e
+          stins cu neclaritate, nu acoperit cu culoare. */}
       {/* Când pagina acoperă bara de stare, iOS scrie ceasul și bateria cu alb,
           indiferent de temă. Pe tema luminoasă ar fi alb pe aproape alb, deci
           punem o umbrire discretă exact pe înălțimea barei de stare. */}
@@ -83,6 +79,7 @@ const styles = themedStyles((C) => StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 10,
     gap: 8,
+    ...(Platform.OS === "web" ? { backdropFilter: "blur(18px) saturate(160%)" } : null),
   },
   statusScrim: { position: "absolute", top: 0, left: 0, right: 0 },
   brand: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
