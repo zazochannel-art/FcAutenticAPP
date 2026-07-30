@@ -747,7 +747,8 @@ const styles = themedStyles((C) => StyleSheet.create({
   pageSub: { color: C.muted, fontSize: 12, fontWeight: '600', marginTop: 3 },
 
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 },
-  statCard: { flexBasis: 220, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 12, minHeight: 95, borderWidth: 1, borderColor: C.line },
+  // Vezi nota din TeamScreen: la 220 intra un singur card pe rând pe telefon.
+  statCard: { flexBasis: 150, flexGrow: 1, backgroundColor: C.card, borderRadius: 14, padding: 11, minHeight: 88, borderWidth: 1, borderColor: C.line },
   statContent: { flexDirection: 'row', alignItems: 'center' },
   statIconWrap: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   statLabel: { color: C.muted, fontSize: 8.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },

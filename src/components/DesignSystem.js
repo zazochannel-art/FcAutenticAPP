@@ -14,22 +14,26 @@ export const GlassCard = ({ children, style, accent }) => (
 );
 
 // --- StatCard: Carduri statistice de sus ---
+// Pe telefon cardul era prea voluminos: o cifră singură ocupa aproape 140px
+// înălțime. Aceleași proporții, doar mai strânse — pe desktop, unde spațiul nu
+// e o problemă, rămân cele de dinainte.
 export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, spark }) => {
   const { width } = useWindowDimensions();
   const isSmallMobile = width < 380;
+  const isMobile = width < 768;
   const Icon = LucideIcons[icon] || LucideIcons.Activity;
 
   return (
-    <Surface style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]} contentStyle={styles.statContent}>
-      <View style={styles.statHeader}>
+    <Surface style={[styles.statCard, isSmallMobile && { minWidth: "45%" }]} contentStyle={isMobile ? styles.statContentMobile : styles.statContent}>
+      <View style={[styles.statHeader, isMobile && styles.statHeaderMobile]}>
         {/* .stat-icon — 40×40, rază 12, gradient 135° din culoare 0.28 → 0.10 */}
         <LinearGradient
           colors={[color + "47", color + "1A"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.statIconWrap}
+          style={[styles.statIconWrap, isMobile && styles.statIconWrapMobile]}
         >
-          <Icon size={isSmallMobile ? 16 : 20} color={color} />
+          <Icon size={isSmallMobile ? 15 : isMobile ? 17 : 20} color={color} />
         </LinearGradient>
         {trend ? (
           <View style={[styles.trendWrap, { backgroundColor: (trendUp ? C.green : C.red) + "26" }]}>
@@ -38,8 +42,8 @@ export const StatCard = ({ icon, label, value, trend, trendUp, color = C.cyan, s
           </View>
         ) : (spark ? <Sparkline data={spark} color={color} width={58} height={22} /> : null)}
       </View>
-      <Text style={[styles.statValue, isSmallMobile && { fontSize: 20 }]}>{value}</Text>
-      <Text style={[styles.statLabel, isSmallMobile && { fontSize: 11 }]} numberOfLines={1}>{label}</Text>
+      <Text style={[styles.statValue, isMobile && styles.statValueMobile, isSmallMobile && { fontSize: 19 }]}>{value}</Text>
+      <Text style={[styles.statLabel, isMobile && styles.statLabelMobile]} numberOfLines={1}>{label}</Text>
     </Surface>
   );
 };
@@ -78,10 +82,15 @@ const styles = themedStyles((C) => StyleSheet.create({
   // .stat — padding 18px
   statCard: { flex: 1, minWidth: 160, margin: spacing.xs },
   statContent: { padding: 18 },
+  statContentMobile: { padding: 13 },
   statHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  statHeaderMobile: { marginBottom: 8 },
   statIconWrap: { width: 40, height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
+  statIconWrapMobile: { width: 34, height: 34 },
   statValue: { color: C.text, fontSize: 26, fontWeight: "900", letterSpacing: -0.5 },
+  statValueMobile: { fontSize: 21 },
   statLabel: { color: C.muted, fontSize: 12, fontWeight: "500", marginTop: 2 },
+  statLabelMobile: { fontSize: 11 },
   // .stat-trend — 3px 8px, rază 8, 10px/700
   trendWrap: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm },
   trendText: { fontSize: 10, fontWeight: "700" },
