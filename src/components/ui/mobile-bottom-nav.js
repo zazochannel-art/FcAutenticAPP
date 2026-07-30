@@ -68,7 +68,11 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
 
       <Modal visible={menuOpen} transparent animationType="slide" onRequestClose={() => setMenuOpen(false)}>
         <Pressable style={styles.sheetOverlay} onPress={() => setMenuOpen(false)}>
-          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation?.()}>
+          {/* Foaia nu ținea cont de marginea de siguranță de jos: ultimul rând
+              de pagini cădea sub indicatorul de gesturi și nu se putea apăsa.
+              Iar la 75% din ecran, cu 18 pagini, restul rămânea ascuns fără
+              niciun semn că se poate derula. */}
+          <Pressable style={[styles.sheet, { paddingBottom: 16 + bottomInset }]} onPress={(e) => e.stopPropagation?.()}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{t('nav.allPages')}</Text>
@@ -76,7 +80,7 @@ export function MobileBottomNav({ tabs, activeTab, onTabPress, bottomInset = 0 }
                 <LucideIcons.X size={18} color={C.dim} />
               </Pressable>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.grid}>
+            <ScrollView contentContainerStyle={styles.grid}>
               {tabs.map((label) => {
                 const Icon = LucideIcons[tabIcons[label]] || LucideIcons.Circle;
                 const active = activeTab === label;
@@ -155,7 +159,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   labelActive: { color: "#fff", fontSize: 12, fontWeight: "600" },
 
   sheetOverlay: { flex: 1, backgroundColor: C.bgSecondary, justifyContent: "flex-end" },
-  sheet: { backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === "ios" ? 40 : 24, maxHeight: "75%" },
+  sheet: { backgroundColor: C.card, borderTopLeftRadius: 26, borderTopRightRadius: 26, borderWidth: 1, borderColor: C.line, paddingHorizontal: 16, paddingTop: 10, maxHeight: "88%" },
   sheetHandle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.lineStrong, marginBottom: 12 },
   sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   sheetTitle: { color: C.text, fontSize: 16, fontWeight: "900" },
