@@ -456,8 +456,8 @@ const styles = themedStyles((C) => StyleSheet.create({
   compareBtnText: { color: C.cyan, fontSize: 11, fontWeight: '900' },
 
   topGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
-  colLeft: { flexBasis: 340, flexGrow: 1.8 },
-  colRight: { flexBasis: 280, flexGrow: 1 },
+  colLeft: { flexBasis: 340, flexGrow: 1.8, flexShrink: 1, minWidth: 0 },
+  colRight: { flexBasis: 280, flexGrow: 1, flexShrink: 1, minWidth: 0 },
 
   cardMain: { backgroundColor: C.card, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: C.line, marginBottom: 16 },
   planTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -499,8 +499,8 @@ const styles = themedStyles((C) => StyleSheet.create({
   compareVal: { flex: 1, color: C.dim, fontSize: 9.5, fontWeight: '700', textAlign: 'center' },
 
   middleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 18 },
-  colFeatures: { flexBasis: 340, flexGrow: 1.8 },
-  colUsage: { flexBasis: 280, flexGrow: 1 },
+  colFeatures: { flexBasis: 340, flexGrow: 1.8, flexShrink: 1, minWidth: 0 },
+  colUsage: { flexBasis: 280, flexGrow: 1, flexShrink: 1, minWidth: 0 },
 
   featuresColumns: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   columnTitle: { color: C.text, fontSize: 13, fontWeight: '900', marginBottom: 16 },

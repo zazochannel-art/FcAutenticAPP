@@ -677,6 +677,7 @@ function MainApp({ onThemeChange }) {
         matches={matches}
         currentUser={effectiveUser}
         clubId={selectedClubId}
+        selectedClub={selectedClub}
       />
     ),
     Calendar: (

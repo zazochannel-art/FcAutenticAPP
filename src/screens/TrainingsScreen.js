@@ -7,6 +7,7 @@ import { TopBar, SectionTitle } from "../components/SharedComponents";
 import { BeUIButton } from "../components/ui/be-ui-button";
 import { supabaseService } from "../services/supabaseService";
 import { useTopClearance } from "../hooks/useTopClearance";
+import { useTranslation } from "../i18n";
 
 const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
 
@@ -15,15 +16,17 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
+// Cheia și iconița sunt interne; eticheta se citește din dicționar la randare.
 const attendanceOptions = [
-  ["present", "Check", "Prezent", C.green],
-  ["absent", "X", "Absent", C.red],
-  ["late", "Clock", "Întârziat", C.amber],
-  ["injured", "Plus", "Accidentat", "#D47AF0"],
-  ["excused", "Circle", "Scutit", C.blue],
+  ["present", "Check", C.green],
+  ["absent", "X", C.red],
+  ["late", "Clock", C.amber],
+  ["injured", "Plus", "#D47AF0"],
+  ["excused", "Circle", C.blue],
 ];
 
 export default function TrainingsScreen({ players, trainings, attendance = {}, setAttendance, currentUser, selectedClub, clubId }) {
+  const { t } = useTranslation();
   const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [view, setView] = useState("list");
@@ -38,7 +41,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
 
   const saveTraining = async (form) => {
     if (!form.date.trim() || !form.time.trim() || !form.location.trim()) {
-      notify("Date incomplete", "Completează data, ora și locația antrenamentului.");
+      notify(t('common.incompleteData'), t('train.modal.required'));
       return;
     }
     try {
@@ -54,7 +57,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
       setAddOpen(false);
       queryClient.invalidateQueries({ queryKey: ["trainings"] });
     } catch (e) {
-      notify("Eroare", e.message);
+      notify(t('common.error'), e.message);
     }
   };
 
@@ -72,7 +75,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
     return (
       <ScrollView contentContainerStyle={[styles.content, topClearance]}>
         <BeUIButton
-          label="Toate antrenamentele"
+          label={t('train.allTrainings')}
           variant="ghost"
           size="sm"
           icon="ChevronLeft"
@@ -86,7 +89,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
           <Text style={{color: C.text, fontWeight: '900', marginTop: 5}}><LucideIcons.MapPin size={13} color="white" /> {selected.location}</Text>
         </View>
 
-        <SectionTitle title="Prezență Jucători" />
+        <SectionTitle title={t('train.playerAttendance')} />
         {groupPlayers.map(player => {
           const currentStatus = attendance[selected.id]?.[player.id];
           return (
@@ -96,6 +99,9 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
                 {attendanceOptions.map(([key, iconName]) => (
                   <BeUIButton
                     key={key}
+                    // Butoanele au doar iconiță, deci fără asta n-ar avea
+                    // niciun nume pentru cititoarele de ecran.
+                    accessibilityLabel={t(`train.status.${key}`)}
                     variant={currentStatus === key ? (key === "present" ? "success" : key === "absent" ? "danger" : "secondary") : "ghost"}
                     size="sm"
                     icon={iconName}
@@ -117,10 +123,10 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
-        <TopBar title="Antrenamente" eyebrow="CENTRUL DE PREGĂTIRE" />
+        <TopBar title={t('train.title')} eyebrow={t('train.eyebrow')} />
         {canManage && (
           <BeUIButton
-            label="Programează antrenament"
+            label={t('train.schedule')}
             variant="primary"
             size="md"
             icon="PlusCircle"
@@ -132,7 +138,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginVertical: 15}}>
           {["Toate", ...safeGroups].map((group) => (
             <Pressable key={group} style={[styles.filterChip, filter === group && styles.filterChipActive]} onPress={() => setFilter(group)}>
-              <Text style={[styles.filterChipText, filter === group && styles.filterChipTextActive]}>{group}</Text>
+              <Text style={[styles.filterChipText, filter === group && styles.filterChipTextActive]}>{group === "Toate" ? t('team.filterAll') : group}</Text>
             </Pressable>
           ))}
         </ScrollView>
@@ -141,15 +147,15 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
             <LucideIcons.CalendarOff size={30} color={C.dim} />
             <Text style={styles.emptyText}>
               {trainings.length === 0
-                ? "Niciun antrenament programat încă. Creează primul cu butonul de mai sus."
-                : "Niciun antrenament pentru această grupă."}
+                ? t('train.empty.none')
+                : t('train.empty.group')}
             </Text>
           </View>
         )}
         {visibleTrainings.map((training) => (
           <Pressable key={training.id} style={styles.trainingCard} onPress={() => { setSelected(training); setView("detail"); }}>
             <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-              <Text style={styles.trainingTitle}>{training.theme || "Antrenament"}</Text>
+              <Text style={styles.trainingTitle}>{training.theme || t('train.untitled')}</Text>
               <Text style={{color: C.blue, fontWeight: '900'}}>{training.group}</Text>
             </View>
             <Text style={styles.trainingMeta}>{training.date} • {training.time} • {training.location}</Text>
@@ -163,6 +169,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
 }
 
 function AddTrainingModal({ visible, onClose, onSave, groups }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ date: "", time: "", location: "", group: groups[0] || "U19", coach: "", theme: "" });
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -171,31 +178,31 @@ function AddTrainingModal({ visible, onClose, onSave, groups }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Antrenament nou</Text>
+            <Text style={styles.modalTitle}>{t('train.modal.title')}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
-          <Text style={styles.modalLabel}>TEMĂ</Text>
-          <TextInput style={styles.modalInput} value={form.theme} onChangeText={(v) => update("theme", v)} placeholder="Ex: Finalizare și pressing" placeholderTextColor={C.dim} />
+          <Text style={styles.modalLabel}>{t('train.modal.theme')}</Text>
+          <TextInput style={styles.modalInput} value={form.theme} onChangeText={(v) => update("theme", v)} placeholder={t('train.modal.themeHint')} placeholderTextColor={C.dim} />
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>DATA</Text>
-              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder="29 iulie 2026" placeholderTextColor={C.dim} />
+              <Text style={styles.modalLabel}>{t('train.modal.date')}</Text>
+              <TextInput style={styles.modalInput} value={form.date} onChangeText={(v) => update("date", v)} placeholder={t('train.modal.dateHint')} placeholderTextColor={C.dim} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>ORA</Text>
+              <Text style={styles.modalLabel}>{t('train.modal.time')}</Text>
               <TextInput style={styles.modalInput} value={form.time} onChangeText={(v) => update("time", v)} placeholder="18:00" placeholderTextColor={C.dim} />
             </View>
           </View>
 
-          <Text style={styles.modalLabel}>LOCAȚIE</Text>
-          <TextInput style={styles.modalInput} value={form.location} onChangeText={(v) => update("location", v)} placeholder="Baza sportivă, Teren 1" placeholderTextColor={C.dim} />
+          <Text style={styles.modalLabel}>{t('train.modal.location')}</Text>
+          <TextInput style={styles.modalInput} value={form.location} onChangeText={(v) => update("location", v)} placeholder={t('train.modal.locationHint')} placeholderTextColor={C.dim} />
 
-          <Text style={styles.modalLabel}>ANTRENOR</Text>
-          <TextInput style={styles.modalInput} value={form.coach} onChangeText={(v) => update("coach", v)} placeholder="Numele antrenorului" placeholderTextColor={C.dim} />
+          <Text style={styles.modalLabel}>{t('train.modal.coach')}</Text>
+          <TextInput style={styles.modalInput} value={form.coach} onChangeText={(v) => update("coach", v)} placeholder={t('train.modal.coachHint')} placeholderTextColor={C.dim} />
 
-          <Text style={styles.modalLabel}>GRUPA</Text>
+          <Text style={styles.modalLabel}>{t('train.modal.group')}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
             {groups.map((g) => (
               <Pressable key={g} onPress={() => update("group", g)} style={[styles.filterChip, form.group === g && styles.filterChipActive]}>
@@ -204,7 +211,7 @@ function AddTrainingModal({ visible, onClose, onSave, groups }) {
             ))}
           </View>
 
-          <BeUIButton label="Salvează antrenamentul" variant="primary" size="lg" icon="CheckCircle2" onPress={() => onSave(form)} fullWidth />
+          <BeUIButton label={t('train.modal.save')} variant="primary" size="lg" icon="CheckCircle2" onPress={() => onSave(form)} fullWidth />
         </View>
       </View>
     </Modal>
