@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
   Platform,
+  useWindowDimensions,
   Alert
 } from "react-native";
 import * as LucideIcons from "lucide-react-native";
@@ -53,6 +54,9 @@ function statusInfo(status) {
 
 export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, setTab }) {
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  // Șase coloane nu încap pe lățimea unui telefon: „prezența” ieșea din ecran.
+  const isMobile = width < 768;
   const topClearance = useTopClearance();
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
@@ -209,14 +213,25 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                       ))}
                    </ScrollView>
 
-                   <View style={styles.tableHeader}>
-                      <Text style={[styles.th, { width: 30 }]}>{t('team.th.no')}</Text>
-                      <Text style={[styles.th, { flex: 2.5 }]}>{t('team.th.player')}</Text>
-                      <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.position')}</Text>
-                      <Text style={[styles.th, { width: 50, textAlign: 'center' }]}>{t('team.th.age')}</Text>
-                      <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.status')}</Text>
-                      <Text style={[styles.th, { flex: 2 }]}>{t('team.th.attendance')}</Text>
-                   </View>
+                   {/* Pe telefon rămân trei coloane. Poziția coboară sub nume,
+                       statusul devine bulina colorată de lângă el, iar vârsta
+                       se vede în fișa jucătorului. */}
+                   {isMobile ? (
+                     <View style={styles.tableHeader}>
+                        <Text style={[styles.th, { width: 26 }]}>{t('team.th.no')}</Text>
+                        <Text style={[styles.th, { flex: 1 }]}>{t('team.th.player')}</Text>
+                        <Text style={[styles.th, { width: 92, textAlign: 'right' }]}>{t('team.th.attendance')}</Text>
+                     </View>
+                   ) : (
+                     <View style={styles.tableHeader}>
+                        <Text style={[styles.th, { width: 30 }]}>{t('team.th.no')}</Text>
+                        <Text style={[styles.th, { flex: 2.5 }]}>{t('team.th.player')}</Text>
+                        <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.position')}</Text>
+                        <Text style={[styles.th, { width: 50, textAlign: 'center' }]}>{t('team.th.age')}</Text>
+                        <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.status')}</Text>
+                        <Text style={[styles.th, { flex: 2 }]}>{t('team.th.attendance')}</Text>
+                     </View>
+                   )}
 
                    {visiblePlayers.length === 0 && (
                      <View style={styles.emptyBox}>
@@ -233,6 +248,37 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                      const s = statusInfo(player.status);
                      const presence = presenceByPlayer[player.id];
                      const rate = presence?.total ? presence.present / presence.total : null;
+                     const bar = (
+                       <>
+                         <View style={styles.ratingBarBg}>
+                            {rate !== null && <View style={[styles.ratingBarFill, { width: `${Math.round(rate * 100)}%`, backgroundColor: C.green }]} />}
+                         </View>
+                         <Text style={[styles.ratingVal, rate === null && { color: C.dim }]}>{rate === null ? "—" : `${Math.round(rate * 100)}%`}</Text>
+                       </>
+                     );
+
+                     if (isMobile) {
+                       // Statusul apare lângă poziție doar când nu e cel normal;
+                       // altfel rândul s-ar umple cu „Activ” pentru toată lumea.
+                       const sub = [player.role, s.color === C.green ? null : s.label].filter(Boolean).join(" • ");
+                       return (
+                         <Pressable key={player.id} style={styles.tableRow} onPress={() => setDetailPlayer(player)}>
+                            <Text style={[styles.rowNum, { width: 26 }]}>{player.no || "—"}</Text>
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                               <View style={styles.miniAvatar}><LucideIcons.User size={12} color="white" /></View>
+                               <View style={{ flex: 1 }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                                     <View style={[styles.statusDot, { backgroundColor: s.color }]} />
+                                     <Text style={styles.rowMainText} numberOfLines={1}>{player.name}</Text>
+                                  </View>
+                                  <Text style={[styles.rowSubText, { color: C.blue, marginTop: 2 }]} numberOfLines={1}>{sub || "—"}</Text>
+                               </View>
+                            </View>
+                            <View style={{ width: 92, flexDirection: 'row', alignItems: 'center', gap: 8 }}>{bar}</View>
+                         </Pressable>
+                       );
+                     }
+
                      return (
                        <Pressable key={player.id} style={styles.tableRow} onPress={() => setDetailPlayer(player)}>
                           <Text style={styles.rowNum}>{player.no || "—"}</Text>
@@ -247,10 +293,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                              <Text style={[styles.rowSubText, { color: s.color === C.green ? C.muted : s.color }]} numberOfLines={1}>{s.label}</Text>
                           </View>
                           <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                             <View style={styles.ratingBarBg}>
-                                {rate !== null && <View style={[styles.ratingBarFill, { width: `${Math.round(rate * 100)}%`, backgroundColor: C.green }]} />}
-                             </View>
-                             <Text style={[styles.ratingVal, rate === null && { color: C.dim }]}>{rate === null ? "—" : `${Math.round(rate * 100)}%`}</Text>
+                             {bar}
                              <LucideIcons.ChevronRight size={13} color={C.dim} />
                           </View>
                        </Pressable>
@@ -595,16 +638,19 @@ const styles = themedStyles((C) => StyleSheet.create({
   actionBtnText: { color: C.text, fontSize: 10.5, fontWeight: '800' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  colLeft: { flexBasis: 420, flexGrow: 3 },
-  colRight: { flexBasis: 240, flexGrow: 1 },
+  // `flexShrink` e implicit 0 în React Native, spre deosebire de web. Fără el,
+  // o coloană cu baza 420 rămâne lată de 420 și pe un ecran de 358 — de aceea
+  // cardul lotului ieșea din ecran, cu „prezența” și căutarea tăiate.
+  colLeft: { flexBasis: 420, flexGrow: 3, flexShrink: 1, minWidth: 0 },
+  colRight: { flexBasis: 240, flexGrow: 1, flexShrink: 1, minWidth: 0 },
 
   cardMain: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line, marginBottom: 12 },
   cardSide: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, flexWrap: 'wrap', gap: 10 },
   cardTitle: { color: C.text, fontSize: 12.5, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 },
 
-  tableControls: { flexDirection: 'row', gap: 10 },
-  smallSearch: { width: 170, height: 28, backgroundColor: C.fill1, borderRadius: 7, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: C.line },
+  tableControls: { flexDirection: 'row', gap: 10, flexGrow: 1, flexShrink: 1, minWidth: 0 },
+  smallSearch: { flexGrow: 1, flexShrink: 1, minWidth: 150, maxWidth: 220, height: 28, backgroundColor: C.fill1, borderRadius: 7, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: C.line },
   smallSearchInput: { flex: 1, color: C.text, fontSize: 10, fontWeight: '600', marginLeft: 6 },
 
   groupChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: C.line, marginRight: 6 },
@@ -637,7 +683,7 @@ const styles = themedStyles((C) => StyleSheet.create({
   footerTrendText: { color: C.dim, fontSize: 9.5, fontWeight: '700' },
 
   bottomGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  colWidget: { flexBasis: 260, flexGrow: 1 },
+  colWidget: { flexBasis: 260, flexGrow: 1, flexShrink: 1, minWidth: 0 },
   donutArea: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
   donutWrapper: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   donutLabelWrap: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },

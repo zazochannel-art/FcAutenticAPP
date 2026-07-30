@@ -766,9 +766,9 @@ const styles = themedStyles((C) => StyleSheet.create({
   actionBtnText: { color: C.text, fontSize: 10.5, fontWeight: '800' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
-  colLeft: { flexBasis: 260, flexGrow: 1.2 },
-  colCenter: { flexBasis: 340, flexGrow: 2.2 },
-  colRight: { flexBasis: 260, flexGrow: 1.5 },
+  colLeft: { flexBasis: 260, flexGrow: 1.2, flexShrink: 1, minWidth: 0 },
+  colCenter: { flexBasis: 340, flexGrow: 2.2, flexShrink: 1, minWidth: 0 },
+  colRight: { flexBasis: 260, flexGrow: 1.5, flexShrink: 1, minWidth: 0 },
 
   cardMain: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line, marginBottom: 12 },
   cardSide: { backgroundColor: C.card, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: C.line },

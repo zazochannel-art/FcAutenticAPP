@@ -384,8 +384,8 @@ const styles = themedStyles((C) => StyleSheet.create({
   addBtnText: { color: C.text, fontSize: 12, fontWeight: '900' },
 
   mainGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  colCalendar: { flexBasis: 420, flexGrow: 3 },
-  colSidebar: { flexBasis: 250, flexGrow: 1 },
+  colCalendar: { flexBasis: 420, flexGrow: 3, flexShrink: 1, minWidth: 0 },
+  colSidebar: { flexBasis: 250, flexGrow: 1, flexShrink: 1, minWidth: 0 },
 
   cardMain: { backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: C.line },
   cardSide: { backgroundColor: C.card, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: C.line },
