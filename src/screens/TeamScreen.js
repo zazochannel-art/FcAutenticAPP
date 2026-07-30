@@ -18,6 +18,7 @@ import PlayerDetailModal from "../components/PlayerDetailModal";
 import { colors as C, themedStyles, layout } from "../constants/theme";
 import { ageFromRoDate } from "../utils/dates";
 import { useTopClearance } from "../hooks/useTopClearance";
+import { useTranslation } from "../i18n";
 
 // --- Premium Palette ---
 
@@ -29,12 +30,16 @@ function notify(title, msg) {
   else Alert.alert(title, msg);
 }
 
+// Poziția se scrie liber, iar acum sugestia din formular apare în limba
+// aleasă — deci recunoaștem și cuvintele rusești și englezești, nu doar pe cele
+// românești. Cheile rămân în română: sunt interne, nu se afișează niciodată.
 function positionBucket(role) {
   const value = (role || "").toLowerCase();
-  if (value.includes("portar") || value.includes("gk")) return "Portari";
-  if (value.includes("fundaș") || value.includes("fundas") || value.includes("cb") || value.includes("lb") || value.includes("rb")) return "Fundași";
-  if (value.includes("mijlocaș") || value.includes("mijlocas") || value.includes("cm") || value.includes("cam") || value.includes("dm")) return "Mijlocași";
-  if (value.includes("atacant") || value.includes("st") || value.includes("extrem") || value.includes("lw") || value.includes("rw")) return "Atacanți";
+  const has = (...needles) => needles.some((n) => value.includes(n));
+  if (has("portar", "вратар", "goalkeep", "gk")) return "Portari";
+  if (has("fundaș", "fundas", "защитник", "defend", "cb", "lb", "rb")) return "Fundași";
+  if (has("mijlocaș", "mijlocas", "полузащитник", "midfield", "cm", "cam", "dm")) return "Mijlocași";
+  if (has("atacant", "extrem", "нападающ", "форвард", "forward", "striker", "winger", "st", "lw", "rw")) return "Atacanți";
   return "Alții";
 }
 
@@ -47,6 +52,7 @@ function statusInfo(status) {
 }
 
 export default function TeamScreen({ players = [], setPlayers, currentUser, trainings = [], attendance = {}, selectedClub, clubId, setTab }) {
+  const { t } = useTranslation();
   const topClearance = useTopClearance();
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState("Toate");
@@ -120,7 +126,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 
   const addPlayer = (form) => {
     if (!form.name.trim()) {
-      notify("Date incomplete", "Completează numele jucătorului.");
+      notify(t('common.incompleteData'), t('team.modal.nameRequired'));
       return;
     }
     setPlayers?.((current) => [
@@ -150,25 +156,25 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
           {/* Page Header */}
           <View style={styles.pageHeader}>
             <View style={styles.pageTitleContainer}>
-              <Text style={styles.pageTitle}>Echipă</Text>
-              <Text style={styles.pageSub}>Gestionează lotul, monitorizează prezența și pregătește echipa pentru următoarele provocări.</Text>
+              <Text style={styles.pageTitle}>{t('team.title')}</Text>
+              <Text style={styles.pageSub}>{t('team.subtitle')}</Text>
             </View>
           </View>
 
           {/* Row 1: Stat Cards */}
           <View style={styles.statsGrid}>
-             <StatCard icon="Users" label="JUCĂTORI ACTIVI" val={String(activePlayers.length)} valSub={`din ${players.length} înregistrați`} iColor={C.blue} />
-             <StatCard icon="TrendingUp" label="PREZENȚĂ MEDIE" val={attendanceAverage === null ? "—" : `${attendanceAverage}%`} valSub={attendanceAverage === null ? "fără prezențe marcate" : "din prezențele marcate"} iColor={C.green} />
-             <StatCard icon="ShieldAlert" label="JUCĂTORI ACCIDENTAȚI" val={String(injuredPlayers.length)} valSub={injuredPlayers.length ? "momentan indisponibili" : "toți disponibili"} iColor={C.amber} />
-             <StatCard icon="LayoutGrid" label="GRUPE ACTIVE" val={String(groupsInUse.length)} valSub={groupsInUse.join(", ") || "nicio grupă cu jucători"} iColor={C.purple} />
+             <StatCard icon="Users" label={t('team.stat.activePlayers')} val={String(activePlayers.length)} valSub={t('team.stat.activePlayersSub', { total: players.length })} iColor={C.blue} />
+             <StatCard icon="TrendingUp" label={t('team.stat.avgAttendance')} val={attendanceAverage === null ? "—" : `${attendanceAverage}%`} valSub={attendanceAverage === null ? t('team.stat.noAttendance') : t('team.stat.fromMarked')} iColor={C.green} />
+             <StatCard icon="ShieldAlert" label={t('team.stat.injured')} val={String(injuredPlayers.length)} valSub={injuredPlayers.length ? t('team.stat.injuredSub') : t('team.stat.allAvailable')} iColor={C.amber} />
+             <StatCard icon="LayoutGrid" label={t('team.stat.activeGroups')} val={String(groupsInUse.length)} valSub={groupsInUse.join(", ") || t('team.stat.noGroups')} iColor={C.purple} />
           </View>
 
           {/* Row 2: Quick Actions */}
           {canManage && (
             <View style={styles.actionsRow}>
                <View style={styles.actionsList}>
-                  <ActionBtn icon="UserPlus" label="Adaugă jucător" color={C.blue} onPress={() => setAddOpen(true)} />
-                  <ActionBtn icon="CheckCircle" label="Marchează prezență" color={C.blue} onPress={() => setTab?.("Antren.")} />
+                  <ActionBtn icon="UserPlus" label={t('team.action.addPlayer')} color={C.blue} onPress={() => setAddOpen(true)} />
+                  <ActionBtn icon="CheckCircle" label={t('team.action.markAttendance')} color={C.blue} onPress={() => setTab?.("Antren.")} />
                </View>
             </View>
           )}
@@ -180,12 +186,12 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
              <View style={styles.colLeft}>
                 <View style={styles.cardMain}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>LOTUL ECHIPEI ({visiblePlayers.length})</Text>
+                      <Text style={styles.cardTitle}>{t('team.squad', { count: visiblePlayers.length })}</Text>
                       <View style={styles.tableControls}>
                          <View style={styles.smallSearch}>
                             <LucideIcons.Search size={14} color={C.dim} />
                             <TextInput
-                              placeholder="Caută în lot..."
+                              placeholder={t('team.searchPlaceholder')}
                               placeholderTextColor={C.dim}
                               style={styles.smallSearchInput}
                               value={search}
@@ -198,18 +204,18 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
                       {["Toate", ...clubGroups].map((g) => (
                         <Pressable key={g} onPress={() => setGroupFilter(g)} style={[styles.groupChip, groupFilter === g && styles.groupChipActive]}>
-                          <Text style={[styles.groupChipText, groupFilter === g && { color: C.cyan }]}>{g}</Text>
+                          <Text style={[styles.groupChipText, groupFilter === g && { color: C.cyan }]}>{g === "Toate" ? t('team.filterAll') : g}</Text>
                         </Pressable>
                       ))}
                    </ScrollView>
 
                    <View style={styles.tableHeader}>
-                      <Text style={[styles.th, { width: 30 }]}>NR.</Text>
-                      <Text style={[styles.th, { flex: 2.5 }]}>JUCĂTOR</Text>
-                      <Text style={[styles.th, { flex: 1.5 }]}>POZIȚIE</Text>
-                      <Text style={[styles.th, { width: 50, textAlign: 'center' }]}>VÂRSTĂ</Text>
-                      <Text style={[styles.th, { flex: 1.5 }]}>STATUS</Text>
-                      <Text style={[styles.th, { flex: 2 }]}>PREZENȚĂ</Text>
+                      <Text style={[styles.th, { width: 30 }]}>{t('team.th.no')}</Text>
+                      <Text style={[styles.th, { flex: 2.5 }]}>{t('team.th.player')}</Text>
+                      <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.position')}</Text>
+                      <Text style={[styles.th, { width: 50, textAlign: 'center' }]}>{t('team.th.age')}</Text>
+                      <Text style={[styles.th, { flex: 1.5 }]}>{t('team.th.status')}</Text>
+                      <Text style={[styles.th, { flex: 2 }]}>{t('team.th.attendance')}</Text>
                    </View>
 
                    {visiblePlayers.length === 0 && (
@@ -217,8 +223,8 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                         <LucideIcons.Users size={28} color={C.dim} />
                         <Text style={styles.emptyText}>
                           {players.length === 0
-                            ? "Niciun jucător înregistrat încă. Adaugă primul jucător cu butonul de mai sus."
-                            : "Niciun jucător nu corespunde filtrului curent."}
+                            ? t('team.empty.noPlayers')
+                            : t('team.empty.noMatch')}
                         </Text>
                      </View>
                    )}
@@ -257,13 +263,13 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
              <View style={styles.colRight}>
                 <View style={styles.cardSide}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>GRUPE & LOTURI</Text>
+                      <Text style={styles.cardTitle}>{t('team.groups')}</Text>
                    </View>
                    {clubGroups.map((group, index) => (
                      <GroupItem
                        key={group}
                        name={group}
-                       sub={`${players.filter((p) => p.group === group).length} jucători`}
+                       sub={t('team.groupPlayers', { count: players.filter((p) => p.group === group).length })}
                        count={String(players.filter((p) => p.group === group).length)}
                        color={GROUP_COLORS_()[index % GROUP_COLORS_().length]}
                      />
@@ -272,14 +278,14 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 
                 <View style={[styles.cardSide, { marginTop: 18 }]}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>PREZENȚĂ PE GRUPE</Text>
+                      <Text style={styles.cardTitle}>{t('team.attendanceByGroup')}</Text>
                    </View>
                    <GroupAttendanceChart players={players} presenceByPlayer={presenceByPlayer} groups={clubGroups} />
                    <View style={styles.attendanceFooter}>
                       <View style={styles.footerTrend}>
                          <LucideIcons.CheckCircle2 size={12} color={C.green} />
                          <Text style={styles.footerTrendText}>
-                           Medie club: <Text style={{ color: C.green }}>{attendanceAverage === null ? "—" : `${attendanceAverage}%`}</Text>
+                           {t('team.clubAverage')} <Text style={{ color: C.green }}>{attendanceAverage === null ? "—" : `${attendanceAverage}%`}</Text>
                          </Text>
                       </View>
                    </View>
@@ -292,22 +298,22 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
              {/* Position Distribution */}
              <View style={styles.colWidget}>
                 <View style={styles.cardMain}>
-                   <Text style={styles.cardTitle}>DISTRIBUȚIA PE POZIȚII</Text>
+                   <Text style={styles.cardTitle}>{t('team.positions')}</Text>
                    <View style={styles.donutArea}>
                       <View style={styles.donutWrapper}>
                         <PositionsDonut counts={positionCounts} total={players.length} />
                         <View style={styles.donutLabelWrap}>
                            <Text style={styles.donutVal}>{players.length}</Text>
-                           <Text style={styles.donutSub}>jucători</Text>
+                           <Text style={styles.donutSub}>{t('team.players')}</Text>
                         </View>
                       </View>
                       <View style={styles.legend}>
-                         <LegendItem dot={C.cyan} label="Portari" count={String(positionCounts.Portari)} per={`${pct(positionCounts.Portari)}%`} />
-                         <LegendItem dot={C.blue} label="Fundași" count={String(positionCounts["Fundași"])} per={`${pct(positionCounts["Fundași"])}%`} />
-                         <LegendItem dot={C.green} label="Mijlocași" count={String(positionCounts["Mijlocași"])} per={`${pct(positionCounts["Mijlocași"])}%`} />
-                         <LegendItem dot={C.red} label="Atacanți" count={String(positionCounts["Atacanți"])} per={`${pct(positionCounts["Atacanți"])}%`} />
+                         <LegendItem dot={C.cyan} label={t('team.pos.gk')} count={String(positionCounts.Portari)} per={`${pct(positionCounts.Portari)}%`} />
+                         <LegendItem dot={C.blue} label={t('team.pos.def')} count={String(positionCounts["Fundași"])} per={`${pct(positionCounts["Fundași"])}%`} />
+                         <LegendItem dot={C.green} label={t('team.pos.mid')} count={String(positionCounts["Mijlocași"])} per={`${pct(positionCounts["Mijlocași"])}%`} />
+                         <LegendItem dot={C.red} label={t('team.pos.fw')} count={String(positionCounts["Atacanți"])} per={`${pct(positionCounts["Atacanți"])}%`} />
                          {positionCounts["Alții"] > 0 && (
-                           <LegendItem dot={C.dim} label="Alții" count={String(positionCounts["Alții"])} per={`${pct(positionCounts["Alții"])}%`} />
+                           <LegendItem dot={C.dim} label={t('team.pos.other')} count={String(positionCounts["Alții"])} per={`${pct(positionCounts["Alții"])}%`} />
                          )}
                       </View>
                    </View>
@@ -317,12 +323,12 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
              {/* Squad Availability */}
              <View style={styles.colWidget}>
                 <View style={styles.cardMain}>
-                   <Text style={styles.cardTitle}>DISPONIBILITATEA LOTULUI</Text>
+                   <Text style={styles.cardTitle}>{t('team.availability')}</Text>
                    <View style={styles.availSummaryGrid}>
-                      <AvailMini label="Apt" count={String(availability.Apt)} per={`${pct(availability.Apt)}%`} color={C.green} />
-                      <AvailMini label="Accidentați" count={String(availability["Accidentați"])} per={`${pct(availability["Accidentați"])}%`} color={C.red} />
-                      <AvailMini label="În recuperare" count={String(availability["În recuperare"])} per={`${pct(availability["În recuperare"])}%`} color={C.amber} />
-                      <AvailMini label="Indisponibili" count={String(availability.Indisponibili)} per={`${pct(availability.Indisponibili)}%`} color={C.blue} />
+                      <AvailMini label={t('team.avail.fit')} count={String(availability.Apt)} per={`${pct(availability.Apt)}%`} color={C.green} />
+                      <AvailMini label={t('team.avail.injured')} count={String(availability["Accidentați"])} per={`${pct(availability["Accidentați"])}%`} color={C.red} />
+                      <AvailMini label={t('team.avail.recovering')} count={String(availability["În recuperare"])} per={`${pct(availability["În recuperare"])}%`} color={C.amber} />
+                      <AvailMini label={t('team.avail.unavailable')} count={String(availability.Indisponibili)} per={`${pct(availability.Indisponibili)}%`} color={C.blue} />
                    </View>
                 </View>
              </View>
@@ -330,14 +336,14 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
              {/* Next Activity */}
              <View style={styles.colWidget}>
                 <View style={styles.cardMain}>
-                   <Text style={styles.cardTitle}>URMĂTOAREA ACTIVITATE</Text>
+                   <Text style={styles.cardTitle}>{t('team.nextActivity')}</Text>
                    {nextTraining ? (
                      <View style={styles.nextActivities}>
                         <View style={styles.activityRow}>
                            <View style={styles.activityIconWrap}><LucideIcons.Dumbbell size={16} color={C.green} /></View>
                            <View style={{ flex: 1, marginLeft: 14 }}>
-                              <Text style={styles.activityLabel}>ANTRENAMENT • {nextTraining.group}</Text>
-                              <Text style={styles.activityTitle}>{nextTraining.theme || "Antrenament echipă"}</Text>
+                              <Text style={styles.activityLabel}>{t('team.trainingLabel')} • {nextTraining.group}</Text>
+                              <Text style={styles.activityTitle}>{nextTraining.theme || t('team.teamTraining')}</Text>
                               <Text style={styles.activityMeta}>{nextTraining.date} • {nextTraining.time}</Text>
                               <Text style={styles.activityLoc}>{nextTraining.location}</Text>
                            </View>
@@ -346,7 +352,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
                    ) : (
                      <View style={styles.emptyBox}>
                         <LucideIcons.CalendarOff size={24} color={C.dim} />
-                        <Text style={styles.emptyText}>Niciun antrenament programat.</Text>
+                        <Text style={styles.emptyText}>{t('team.noTraining')}</Text>
                      </View>
                    )}
                 </View>
@@ -379,6 +385,7 @@ export default function TeamScreen({ players = [], setPlayers, currentUser, trai
 // --- Add Player Modal ---
 
 function AddPlayerModal({ visible, onClose, onSave, groups }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ name: "", no: "", role: "Mijlocaș", group: groups[0] || "U19", rating: "" });
 
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -388,27 +395,27 @@ function AddPlayerModal({ visible, onClose, onSave, groups }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Adaugă jucător</Text>
+            <Text style={styles.modalTitle}>{t('team.modal.title')}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
-          <Text style={styles.modalLabel}>NUME COMPLET</Text>
+          <Text style={styles.modalLabel}>{t('team.modal.fullName')}</Text>
           <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => update("name", v)} placeholder="Andrei Popescu" placeholderTextColor={C.dim} />
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>NUMĂR</Text>
+              <Text style={styles.modalLabel}>{t('team.modal.number')}</Text>
               <TextInput style={styles.modalInput} value={form.no} onChangeText={(v) => update("no", v)} placeholder="10" placeholderTextColor={C.dim} keyboardType="numeric" />
             </View>
             <View style={{ flex: 2 }}>
-              <Text style={styles.modalLabel}>POZIȚIE</Text>
-              <TextInput style={styles.modalInput} value={form.role} onChangeText={(v) => update("role", v)} placeholder="Mijlocaș" placeholderTextColor={C.dim} />
+              <Text style={styles.modalLabel}>{t('team.modal.position')}</Text>
+              <TextInput style={styles.modalInput} value={form.role} onChangeText={(v) => update("role", v)} placeholder={t('team.pos.midOne')} placeholderTextColor={C.dim} />
             </View>
           </View>
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>GRUPA</Text>
+              <Text style={styles.modalLabel}>{t('team.modal.group')}</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
                 {groups.map((g) => (
                   <Pressable key={g} onPress={() => update("group", g)} style={[styles.groupChip, form.group === g && styles.groupChipActive]}>
@@ -418,14 +425,14 @@ function AddPlayerModal({ visible, onClose, onSave, groups }) {
               </View>
             </View>
             <View style={{ width: 96 }}>
-              <Text style={styles.modalLabel}>RATING</Text>
+              <Text style={styles.modalLabel}>{t('team.modal.rating')}</Text>
               <TextInput style={styles.modalInput} value={form.rating} onChangeText={(v) => update("rating", v.replace(/[^0-9]/g, "").slice(0, 2))} placeholder="60" placeholderTextColor={C.dim} keyboardType="number-pad" />
             </View>
           </View>
 
           <Pressable style={styles.modalSaveBtn} onPress={() => onSave(form)}>
             <LucideIcons.UserPlus size={16} color="white" />
-            <Text style={styles.modalSaveText}>Salvează jucătorul</Text>
+            <Text style={styles.modalSaveText}>{t('team.modal.save')}</Text>
           </Pressable>
         </View>
       </View>
@@ -454,9 +461,10 @@ const StatCard = ({ icon, label, val, valSub, iColor }) => {
 };
 
 const ActionBtn = ({ icon, label, color, onPress }) => {
+  const { t } = useTranslation();
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
-    <Pressable onPress={onPress || (() => notify("În lucru", `${label} va fi conectat în următoarea etapă.`))} style={styles.actionBtn}>
+    <Pressable onPress={onPress || (() => notify(t('common.wip'), t('common.wipMsg', { label })))} style={styles.actionBtn}>
        <Icon size={14} color={color} />
        <Text style={styles.actionBtnText}>{label}</Text>
     </Pressable>

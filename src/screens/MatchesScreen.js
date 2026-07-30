@@ -19,6 +19,13 @@ import { suspendedPlayerIds } from "../utils/tactics";
 import RoDateField from "../components/RoDateField";
 import { colors as C, themedStyles, layout } from "../constants/theme";
 import { useTopClearance } from "../hooks/useTopClearance";
+import { useTranslation } from "../i18n";
+
+// Tipul meciului se salvează mereu cu eticheta românească, ca datele să rămână
+// aceleași indiferent de limba în care a fost creat meciul. Afișarea trece prin
+// dicționar; valorile vechi sau scrise de mână se arată așa cum sunt.
+const MATCH_TYPES = [["Meci oficial", "official"], ["Amical", "friendly"], ["Turneu", "tournament"]];
+const matchTypeKey = (value) => (MATCH_TYPES.find(([ro]) => ro === value) || [])[1];
 
 // --- Premium Palette ---
 
@@ -29,7 +36,8 @@ function notify(title, msg) {
 
 const RESULT_COLORS_ = () => ({ V: C.green, E: C.amber, "Î": C.red });
 
-export default function MatchesScreen({ players = [], matches = [], currentUser, clubId }) {
+export default function MatchesScreen({ players = [], matches = [], currentUser, clubId, selectedClub }) {
+  const { t } = useTranslation();
   const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
@@ -72,13 +80,13 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
         } catch (_) { /* anunțul e opțional */ }
       }
     } catch (e) {
-      notify("Eroare", e.message);
+      notify(t('common.error'), e.message);
     }
   };
 
   const saveMatch = async (form) => {
     if (!form.opponent.trim() || !form.date.trim()) {
-      notify("Date incomplete", "Completează cel puțin adversarul și data meciului.");
+      notify(t('common.incompleteData'), t('match.add.required'));
       return;
     }
     try {
@@ -95,13 +103,13 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
       setAddOpen(false);
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     } catch (e) {
-      notify("Eroare", e.message);
+      notify(t('common.error'), e.message);
     }
   };
 
   const saveScore = async (match, score, postNotes, scorers) => {
     if (!parseScore(score)) {
-      notify("Scor invalid", "Folosește formatul „2 - 1” (golurile noastre primele).");
+      notify(t('match.score.invalidTitle'), t('match.score.invalidMsg'));
       return;
     }
     try {
@@ -109,7 +117,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
       setScoreFor(null);
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     } catch (e) {
-      notify("Eroare", e.message);
+      notify(t('common.error'), e.message);
     }
   };
 
@@ -150,40 +158,40 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
           {/* Page Header */}
           <View style={styles.pageHeader}>
-            <Text style={styles.pageTitle}>Meciuri</Text>
-            <Text style={styles.pageSub}>Pregătește fiecare detaliu. Controlează fiecare moment.</Text>
+            <Text style={styles.pageTitle}>{t('match.title')}</Text>
+            <Text style={styles.pageSub}>{t('match.subtitle')}</Text>
           </View>
 
           {/* Row 1: Stat Cards */}
           <View style={styles.statsGrid}>
              <StatCard
                icon="Calendar"
-               label="URMĂTORUL MECI"
+               label={t('match.stat.next')}
                val={nextMatch ? `${nextMatch.date} • ${nextMatch.time}` : "—"}
-               sub={nextMatch ? `${nextMatch.opponent} (${nextMatch.group})` : "Niciun meci programat"}
+               sub={nextMatch ? `${nextMatch.opponent} (${nextMatch.group})` : t('match.stat.noneScheduled')}
                competition={nextMatch?.location}
                iColor={C.blue}
              />
              <StatCard
                icon="LineChart"
-               label={`PUNCTE ÎN ULTIMELE ${Math.max(form.length, 1)}`}
+               label={t('match.stat.pointsLast', { n: Math.max(form.length, 1) })}
                val={form.length ? `${lastFivePoints} / ${form.length * 3}` : "—"}
-               sub={form.length ? `${seasonStats.wins} Victorii • ${seasonStats.draws} Egaluri • ${seasonStats.losses} Înfrângeri` : "Fără meciuri jucate"}
+               sub={form.length ? t('match.stat.record', { wins: seasonStats.wins, draws: seasonStats.draws, losses: seasonStats.losses }) : t('match.stat.noPlayed')}
                iColor={C.purple}
              />
              <StatCard
                icon="Trophy"
-               label="GOLAVERAJ"
+               label={t('match.stat.goalDiff')}
                val={played.length ? (seasonStats.diff >= 0 ? `+${seasonStats.diff}` : String(seasonStats.diff)) : "—"}
-               sub={played.length ? `${seasonStats.goalsFor} marcate • ${seasonStats.goalsAgainst} primite` : "Fără meciuri jucate"}
+               sub={played.length ? t('match.stat.goals', { scored: seasonStats.goalsFor, conceded: seasonStats.goalsAgainst }) : t('match.stat.noPlayed')}
                iColor={C.cyan}
              />
              <StatCard
                icon="Activity"
-               label="FORMĂ"
+               label={t('match.stat.form')}
                form={form.length ? form : null}
                val={form.length ? undefined : "—"}
-               sub={form.length ? `Ultimele ${form.length} meciuri` : "Fără meciuri jucate"}
+               sub={form.length ? t('match.stat.lastN', { n: form.length }) : t('match.stat.noPlayed')}
                iColor={C.green}
              />
           </View>
@@ -192,7 +200,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
           {canManage && (
             <View style={styles.actionsRow}>
                <View style={styles.actionsList}>
-                  <ActionBtn icon="Plus" label="Adaugă meci" color={C.blue} onPress={() => setAddOpen(true)} />
+                  <ActionBtn icon="Plus" label={t('match.action.add')} color={C.blue} onPress={() => setAddOpen(true)} />
                </View>
             </View>
           )}
@@ -204,12 +212,12 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
              <View style={styles.colLeft}>
                 <View style={styles.cardMain}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>Următoarele meciuri</Text>
+                      <Text style={styles.cardTitle}>{t('match.upcoming')}</Text>
                    </View>
                    {upcoming.length === 0 && (
                      <View style={styles.emptyBox}>
                         <LucideIcons.CalendarOff size={26} color={C.dim} />
-                        <Text style={styles.emptyText}>Niciun meci programat momentan.</Text>
+                        <Text style={styles.emptyText}>{t('match.empty.upcoming')}</Text>
                      </View>
                    )}
                    {upcoming.slice(0, 6).map((m, index) => {
@@ -219,7 +227,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                          <MatchLine
                            date={m.date}
                            opponent={m.opponent}
-                           league={`${m.type || "Meci"} • ${m.group}`}
+                           league={`${matchTypeKey(m.type) ? t(`match.type.${matchTypeKey(m.type)}`) : (m.type || t('match.defaultType'))} • ${m.group}`}
                            location={m.location}
                            time={m.time}
                            active={index === 0}
@@ -229,12 +237,12 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                              <Pressable onPress={() => setCallUpFor(m)} style={[styles.matchActionBtn, callCount > 0 && { borderColor: C.cyan + "40", backgroundColor: C.cyan + "10" }]}>
                                <LucideIcons.ClipboardCheck size={12} color={callCount > 0 ? C.cyan : C.muted} />
                                <Text style={[styles.matchActionText, callCount > 0 && { color: C.cyan }]}>
-                                 {callCount > 0 ? `Lot: ${callCount} convocați` : "Setează lotul"}
+                                 {callCount > 0 ? t('match.squadSet', { count: callCount }) : t('match.setSquad')}
                                </Text>
                              </Pressable>
                              <Pressable onPress={() => setScoreFor(m)} style={styles.matchActionBtn}>
                                <LucideIcons.Trophy size={12} color={C.muted} />
-                               <Text style={styles.matchActionText}>Scor final</Text>
+                               <Text style={styles.matchActionText}>{t('match.finalScore')}</Text>
                              </Pressable>
                            </View>
                          )}
@@ -245,18 +253,18 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
                 <View style={[styles.cardMain, { marginTop: 18 }]}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>Disponibilitate jucători</Text>
+                      <Text style={styles.cardTitle}>{t('match.availability')}</Text>
                    </View>
                    <View style={styles.availGrid}>
-                      <AvailSquare label="Disponibili" count={String(availability["Disponibili"])} color={C.green} />
-                      <AvailSquare label="Accidentați" count={String(availability["Accidentați"])} color={C.red} />
-                      <AvailSquare label="În recuperare" count={String(availability["În recuperare"])} color={C.amber} />
-                      <AvailSquare label="Indisponibili" count={String(availability["Indisponibili"])} color={C.purple} />
+                      <AvailSquare label={t('match.avail.available')} count={String(availability["Disponibili"])} color={C.green} />
+                      <AvailSquare label={t('match.avail.injured')} count={String(availability["Accidentați"])} color={C.red} />
+                      <AvailSquare label={t('match.avail.recovering')} count={String(availability["În recuperare"])} color={C.amber} />
+                      <AvailSquare label={t('match.avail.unavailable')} count={String(availability["Indisponibili"])} color={C.purple} />
                    </View>
                    <Text style={styles.availFooter}>
                      {players.length
-                       ? `${availability["Disponibili"]} din ${players.length} jucători disponibili pentru următorul meci.`
-                       : "Adaugă jucători în tab-ul Echipă pentru a vedea disponibilitatea."}
+                       ? t('match.availFooter', { count: availability["Disponibili"], total: players.length })
+                       : t('match.availEmpty')}
                    </Text>
                 </View>
              </View>
@@ -265,22 +273,22 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
              <View style={styles.colCenter}>
                 <View style={styles.cardMain}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>TEREN — VIZUALIZARE TACTICĂ</Text>
+                      <Text style={styles.cardTitle}>{t('match.pitch')}</Text>
                    </View>
                    <View style={styles.pitchVisual}>
                       <FootballPitchSVG />
                    </View>
-                   <Text style={styles.pitchHint}>Editorul de tactică va fi conectat într-o etapă viitoare.</Text>
+                   <Text style={styles.pitchHint}>{t('match.pitchHint')}</Text>
                 </View>
 
                 <View style={[styles.cardMain, { marginTop: 12 }]}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>ULTIMUL MECI JUCAT</Text>
+                      <Text style={styles.cardTitle}>{t('match.lastPlayed')}</Text>
                    </View>
                    {lastMatch ? (
                      <>
                        <View style={styles.lastMatchHeader}>
-                          <Text style={styles.teamName}>FC Autentic</Text>
+                          <Text style={styles.teamName}>{selectedClub?.name || "—"}</Text>
                           <Text style={styles.lastScore}>{lastMatch.score}</Text>
                           <Text style={styles.teamName}>{lastMatch.opponent}</Text>
                        </View>
@@ -293,7 +301,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                    ) : (
                      <View style={styles.emptyBox}>
                         <LucideIcons.Trophy size={26} color={C.dim} />
-                        <Text style={styles.emptyText}>Încă nu există meciuri jucate cu scor înregistrat.</Text>
+                        <Text style={styles.emptyText}>{t('match.empty.lastPlayed')}</Text>
                      </View>
                    )}
                 </View>
@@ -303,12 +311,12 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
              <View style={styles.colRight}>
                 <View style={styles.cardSide}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>Rezultate recente</Text>
+                      <Text style={styles.cardTitle}>{t('match.recentResults')}</Text>
                    </View>
                    {played.length === 0 && (
                      <View style={styles.emptyBox}>
                         <LucideIcons.ClipboardList size={24} color={C.dim} />
-                        <Text style={styles.emptyText}>Rezultatele apar aici după primul meci jucat.</Text>
+                        <Text style={styles.emptyText}>{t('match.empty.results')}</Text>
                      </View>
                    )}
                    {played.slice(0, 6).map((m) => {
@@ -319,7 +327,7 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
                          date={m.date}
                          opponent={m.opponent}
                          score={m.score}
-                         result={r}
+                         result={t(`match.res.${r}`)}
                          color={RESULT_COLORS_()[r]}
                        />
                      );
@@ -328,15 +336,15 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 
                 <View style={[styles.cardSide, { marginTop: 18 }]}>
                    <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>BILANȚ SEZON</Text>
+                      <Text style={styles.cardTitle}>{t('match.season')}</Text>
                    </View>
-                   <SeasonLine label="Meciuri jucate" value={String(played.length)} />
-                   <SeasonLine label="Victorii" value={String(seasonStats.wins)} color={C.green} />
-                   <SeasonLine label="Egaluri" value={String(seasonStats.draws)} color={C.amber} />
-                   <SeasonLine label="Înfrângeri" value={String(seasonStats.losses)} color={C.red} />
-                   <SeasonLine label="Goluri marcate" value={String(seasonStats.goalsFor)} />
-                   <SeasonLine label="Goluri primite" value={String(seasonStats.goalsAgainst)} />
-                   <SeasonLine label="Golaveraj" value={played.length ? (seasonStats.diff >= 0 ? `+${seasonStats.diff}` : String(seasonStats.diff)) : "—"} color={seasonStats.diff >= 0 ? C.green : C.red} />
+                   <SeasonLine label={t('match.season.played')} value={String(played.length)} />
+                   <SeasonLine label={t('match.season.wins')} value={String(seasonStats.wins)} color={C.green} />
+                   <SeasonLine label={t('match.season.draws')} value={String(seasonStats.draws)} color={C.amber} />
+                   <SeasonLine label={t('match.season.losses')} value={String(seasonStats.losses)} color={C.red} />
+                   <SeasonLine label={t('match.season.goalsFor')} value={String(seasonStats.goalsFor)} />
+                   <SeasonLine label={t('match.season.goalsAgainst')} value={String(seasonStats.goalsAgainst)} />
+                   <SeasonLine label={t('match.season.diff')} value={played.length ? (seasonStats.diff >= 0 ? `+${seasonStats.diff}` : String(seasonStats.diff)) : "—"} color={seasonStats.diff >= 0 ? C.green : C.red} />
                 </View>
              </View>
           </View>
@@ -354,10 +362,11 @@ export default function MatchesScreen({ players = [], matches = [], currentUser,
 // Convocarea la meci: statusul fiecărui jucător e „titular”, „rezerva” sau
 // neconvocat (absent din obiectul callUps). Cheile sunt id-uri de jucător.
 const CALLUP_CYCLE = { none: "titular", titular: "rezerva", rezerva: "none" };
-const CALLUP_LABEL = { titular: "Titular", rezerva: "Rezervă", none: "—" };
+const CALLUP_LABEL_KEY = { titular: "match.callup.starter", rezerva: "match.callup.sub" };
 const CALLUP_COLOR_ = () => ({ titular: C.green, rezerva: C.amber, none: C.dim });
 
 function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSave }) {
+  const { t } = useTranslation();
   const [callUps, setCallUps] = useState({});
   const [tacticsOpen, setTacticsOpen] = useState(false);
   const susp = suspendedIds || new Set();
@@ -383,7 +392,7 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
 
   const statusOf = (id) => callUps[String(id)] || "none";
   const cycle = (id) => {
-    if (susp.has(Number(id))) { notify("Jucător suspendat", "Acest jucător e suspendat și nu poate fi convocat."); return; }
+    if (susp.has(Number(id))) { notify(t('match.callup.suspendedTitle'), t('match.callup.suspendedMsg')); return; }
     const key = String(id);
     const next = CALLUP_CYCLE[statusOf(id)];
     setCallUps((prev) => {
@@ -402,28 +411,35 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
       <View style={styles.modalOverlay}>
         <View style={[styles.modalCard, { maxHeight: "85%" }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Lot: vs {match.opponent}</Text>
+            <Text style={styles.modalTitle}>{t('match.callup.title', { opponent: match.opponent })}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           <Text style={styles.callSummary}>
-            {titulari} titulari • {rezerve} rezerve • grupa {match.group}
+            {t('match.callup.summary', { starters: titulari, subs: rezerve, group: match.group })}
           </Text>
 
           {tactics.length > 0 && (
             <Pressable style={styles.importTacticBtn} onPress={() => setTacticsOpen((v) => !v)}>
               <LucideIcons.ClipboardList size={15} color={C.cyan} />
-              <Text style={styles.importTacticText}>Importă lotul dintr-o tactică</Text>
+              <Text style={styles.importTacticText}>{t('match.callup.import')}</Text>
               <LucideIcons.ChevronDown size={15} color={C.cyan} style={{ transform: [{ rotate: tacticsOpen ? "180deg" : "0deg" }] }} />
             </Pressable>
           )}
           {tacticsOpen && (
             <View style={styles.tacticsList}>
-              {tactics.map((t) => (
-                <Pressable key={t.id} style={styles.tacticRow} onPress={() => applyTactic(t)}>
+              {/* `tx`, nu `t`: altfel ar umbri funcția de traducere. */}
+              {tactics.map((tx) => (
+                <Pressable key={tx.id} style={styles.tacticRow} onPress={() => applyTactic(tx)}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.tacticName} numberOfLines={1}>{t.name}</Text>
-                    <Text style={styles.tacticMeta}>{t.formation} • {Object.keys(t.assignments || {}).length} titulari • {(t.subs || []).length} rezerve</Text>
+                    <Text style={styles.tacticName} numberOfLines={1}>{tx.name}</Text>
+                    <Text style={styles.tacticMeta}>
+                      {t('match.callup.tacticMeta', {
+                        formation: tx.formation,
+                        starters: Object.keys(tx.assignments || {}).length,
+                        subs: (tx.subs || []).length,
+                      })}
+                    </Text>
                   </View>
                   <LucideIcons.Download size={15} color={C.cyan} />
                 </Pressable>
@@ -434,7 +450,7 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
           {list.length === 0 ? (
             <View style={styles.emptyBox}>
               <LucideIcons.Users size={24} color={C.dim} />
-              <Text style={styles.emptyText}>Niciun jucător disponibil. Adaugă jucători în tab-ul Echipă.</Text>
+              <Text style={styles.emptyText}>{t('match.callup.empty')}</Text>
             </View>
           ) : (
             <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
@@ -447,11 +463,11 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
                     <Text style={styles.callName} numberOfLines={1}>{p.name}</Text>
                     {isSusp ? (
                       <View style={[styles.callBadge, { backgroundColor: C.red + "18", borderColor: C.red + "40" }]}>
-                        <Text style={[styles.callBadgeText, { color: C.red }]}>Suspendat</Text>
+                        <Text style={[styles.callBadgeText, { color: C.red }]}>{t('match.callup.suspended')}</Text>
                       </View>
                     ) : (
                       <View style={[styles.callBadge, { backgroundColor: CALLUP_COLOR_()[st] + "18", borderColor: CALLUP_COLOR_()[st] + "40" }]}>
-                        <Text style={[styles.callBadgeText, { color: CALLUP_COLOR_()[st] }]}>{CALLUP_LABEL[st]}</Text>
+                        <Text style={[styles.callBadgeText, { color: CALLUP_COLOR_()[st] }]}>{CALLUP_LABEL_KEY[st] ? t(CALLUP_LABEL_KEY[st]) : "—"}</Text>
                       </View>
                     )}
                   </Pressable>
@@ -460,11 +476,11 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
             </ScrollView>
           )}
 
-          <Text style={styles.callHint}>Apasă un jucător pentru a comuta: Titular → Rezervă → Neconvocat.</Text>
+          <Text style={styles.callHint}>{t('match.callup.hint')}</Text>
 
           <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, callUps)}>
             <LucideIcons.ClipboardCheck size={16} color="white" />
-            <Text style={styles.modalSaveText}>Salvează lotul</Text>
+            <Text style={styles.modalSaveText}>{t('match.callup.save')}</Text>
           </Pressable>
         </View>
       </View>
@@ -473,6 +489,7 @@ function CallUpModal({ match, players, tactics = [], suspendedIds, onClose, onSa
 }
 
 function AddMatchModal({ visible, onClose, onSave }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ opponent: "", group: "", date: "", time: "", location: "", type: "Meci oficial" });
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -481,47 +498,47 @@ function AddMatchModal({ visible, onClose, onSave }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Meci nou</Text>
+            <Text style={styles.modalTitle}>{t('match.add.title')}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
-          <Text style={styles.modalLabel}>ADVERSAR</Text>
-          <TextInput style={styles.modalInput} value={form.opponent} onChangeText={(v) => update("opponent", v)} placeholder="Ex: ACS Progresul" placeholderTextColor={C.dim} />
+          <Text style={styles.modalLabel}>{t('match.add.opponent')}</Text>
+          <TextInput style={styles.modalInput} value={form.opponent} onChangeText={(v) => update("opponent", v)} placeholder={t('match.add.opponentHint')} placeholderTextColor={C.dim} />
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>DATA</Text>
-              <RoDateField value={form.date} onChange={(v) => update("date", v)} placeholder="Alege data" />
+              <Text style={styles.modalLabel}>{t('match.add.date')}</Text>
+              <RoDateField value={form.date} onChange={(v) => update("date", v)} placeholder={t('match.add.dateHint')} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>ORA</Text>
+              <Text style={styles.modalLabel}>{t('match.add.time')}</Text>
               <TextInput style={styles.modalInput} value={form.time} onChangeText={(v) => update("time", v)} placeholder="11:00" placeholderTextColor={C.dim} />
             </View>
           </View>
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.modalLabel}>GRUPA</Text>
+              <Text style={styles.modalLabel}>{t('match.add.group')}</Text>
               <TextInput style={styles.modalInput} value={form.group} onChangeText={(v) => update("group", v)} placeholder="U16" placeholderTextColor={C.dim} />
             </View>
             <View style={{ flex: 2 }}>
-              <Text style={styles.modalLabel}>LOCAȚIE</Text>
-              <TextInput style={styles.modalInput} value={form.location} onChangeText={(v) => update("location", v)} placeholder="Stadionul Central" placeholderTextColor={C.dim} />
+              <Text style={styles.modalLabel}>{t('match.add.location')}</Text>
+              <TextInput style={styles.modalInput} value={form.location} onChangeText={(v) => update("location", v)} placeholder={t('match.add.locationHint')} placeholderTextColor={C.dim} />
             </View>
           </View>
 
-          <Text style={styles.modalLabel}>TIP MECI</Text>
+          <Text style={styles.modalLabel}>{t('match.add.type')}</Text>
           <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
-            {["Meci oficial", "Amical", "Turneu"].map((t) => (
-              <Pressable key={t} onPress={() => update("type", t)} style={[styles.smallChip, form.type === t && { borderColor: C.cyan, backgroundColor: C.cyan + "10" }]}>
-                <Text style={[styles.smallChipText, form.type === t && { color: C.cyan }]}>{t}</Text>
+            {MATCH_TYPES.map(([value, key]) => (
+              <Pressable key={key} onPress={() => update("type", value)} style={[styles.smallChip, form.type === value && { borderColor: C.cyan, backgroundColor: C.cyan + "10" }]}>
+                <Text style={[styles.smallChipText, form.type === value && { color: C.cyan }]}>{t(`match.type.${key}`)}</Text>
               </Pressable>
             ))}
           </View>
 
           <Pressable style={styles.modalSaveBtn} onPress={() => onSave(form)}>
             <LucideIcons.Plus size={16} color="white" />
-            <Text style={styles.modalSaveText}>Salvează meciul</Text>
+            <Text style={styles.modalSaveText}>{t('match.add.save')}</Text>
           </Pressable>
         </View>
       </View>
@@ -530,6 +547,7 @@ function AddMatchModal({ visible, onClose, onSave }) {
 }
 
 function ScoreModal({ match, players = [], onClose, onSave }) {
+  const { t } = useTranslation();
   const [score, setScore] = useState("");
   const [notes, setNotes] = useState("");
   const [scorers, setScorers] = useState({});
@@ -562,20 +580,20 @@ function ScoreModal({ match, players = [], onClose, onSave }) {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalCard, { maxHeight: "88%" }]}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Scor final: vs {match.opponent}</Text>
+            <Text style={styles.modalTitle}>{t('match.score.title', { opponent: match.opponent })}</Text>
             <Pressable onPress={onClose}><LucideIcons.X size={18} color={C.muted} /></Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.modalLabel}>SCOR (NOI - EI)</Text>
+            <Text style={styles.modalLabel}>{t('match.score.label')}</Text>
             <TextInput style={styles.modalInput} value={score} onChangeText={setScore} placeholder="2 - 1" placeholderTextColor={C.dim} />
 
             <View style={styles.scorersHead}>
-              <Text style={styles.modalLabel}>MARCATORI</Text>
-              <Text style={styles.scorersTotal}>{totalGoals} {totalGoals === 1 ? "gol" : "goluri"}</Text>
+              <Text style={styles.modalLabel}>{t('match.score.scorers')}</Text>
+              <Text style={styles.scorersTotal}>{totalGoals} {totalGoals === 1 ? t('match.score.goal') : t('match.score.goals')}</Text>
             </View>
             {calledUp.length === 0 ? (
-              <Text style={styles.scorersHint}>Setează întâi lotul (butonul „Lot”) ca să poți marca golurile pe jucători.</Text>
+              <Text style={styles.scorersHint}>{t('match.score.hint')}</Text>
             ) : (
               calledUp.map((p) => {
                 const g = goalsOf(p.id);
@@ -593,19 +611,19 @@ function ScoreModal({ match, players = [], onClose, onSave }) {
               })
             )}
 
-            <Text style={[styles.modalLabel, { marginTop: 12 }]}>OBSERVAȚII (OPȚIONAL)</Text>
+            <Text style={[styles.modalLabel, { marginTop: 12 }]}>{t('match.score.notes')}</Text>
             <TextInput
               style={[styles.modalInput, { height: 70, textAlignVertical: "top", paddingTop: 10 }]}
               value={notes}
               onChangeText={setNotes}
-              placeholder="Cum a decurs meciul..."
+              placeholder={t('match.score.notesHint')}
               placeholderTextColor={C.dim}
               multiline
             />
 
             <Pressable style={styles.modalSaveBtn} onPress={() => onSave(match, score, notes, scorers)}>
               <LucideIcons.Trophy size={16} color="white" />
-              <Text style={styles.modalSaveText}>Înregistrează rezultatul</Text>
+              <Text style={styles.modalSaveText}>{t('match.score.save')}</Text>
             </Pressable>
           </ScrollView>
         </View>
@@ -649,9 +667,10 @@ const StatCard = ({ icon, label, val, sub, competition, form, iColor }) => {
 };
 
 const ActionBtn = ({ icon, label, color, onPress }) => {
+  const { t } = useTranslation();
   const Icon = LucideIcons[icon] || LucideIcons.Circle;
   return (
-    <Pressable onPress={onPress || (() => notify("În lucru", `${label} va fi conectat în următoarea etapă.`))} style={styles.actionBtn}>
+    <Pressable onPress={onPress || (() => notify(t('common.wip'), t('common.wipMsg', { label })))} style={styles.actionBtn}>
        <Icon size={14} color={color} />
        <Text style={styles.actionBtnText}>{label}</Text>
     </Pressable>
