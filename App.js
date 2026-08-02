@@ -968,6 +968,7 @@ function MainApp({ onThemeChange }) {
               selectedClub={managingClub || selectedClub}
               onLogout={logout}
               notificationsCount={notifications.length}
+              searchData={{ players, matches, trainings, tasks }}
             >
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </SaaSAppShell>

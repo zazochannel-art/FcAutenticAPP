@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Platform, Image, View, Text, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
 import * as LucideIcons from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,6 +7,7 @@ import ProfileSheet from "./ProfileSheet";
 import { AmbientBackground } from "./ui/visuals";
 import { BRAND_NAME } from "../constants/brand";
 import { useTranslation } from "../i18n";
+import { searchAll } from "../utils/search";
 
 // Iconițe pentru fiecare tab. Meniul din sidebar se construiește dinamic din
 // lista `tabs` primită, ca să reflecte exact ce vede rolul curent.
@@ -40,7 +41,7 @@ const TAB_ICONS = {
 // Taburile care aparțin secțiunii de administrare a platformei.
 const ADMIN_LABELS = ["Panou SaaS", "Cluburi", "Abonamente SaaS", "Utilizatori"];
 
-export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout, notificationsCount = 0 }) {
+export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, selectedClub, onLogout, notificationsCount = 0, searchData }) {
   const toItem = (label) => ({ label, icon: TAB_ICONS[label] || "Circle" });
   // „Mai mult” nu se mai afișează în sidebar; setările/cluburile sunt accesibile
   // din cardul de profil (dreapta sus).
@@ -58,7 +59,7 @@ export function SaaSAppShell({ children, activeTab, setTab, tabs = [], user, sel
         selectedClub={selectedClub}
       />
       <View style={styles.main}>
-        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} notificationsCount={notificationsCount} />
+        <Topbar user={user} selectedClub={selectedClub} setTab={setTab} onLogout={onLogout} onNotifications={() => setTab("Notif.")} notificationsCount={notificationsCount} searchData={searchData} />
         <View style={styles.pageFrame}>{children}</View>
       </View>
     </View>
@@ -133,22 +134,72 @@ function MenuItem({ tab, activeTab, setTab }) {
   );
 }
 
-function Topbar({ user, selectedClub, setTab, onLogout, onNotifications, notificationsCount = 0 }) {
+function Topbar({ user, selectedClub, setTab, onLogout, onNotifications, notificationsCount = 0, searchData }) {
   const { t } = useTranslation();
   const [profileOpen, setProfileOpen] = useState(false);
+  // Caseta era decorativă: `editable={false}`, cu o insignă „⌘ K” care nu
+  // deschidea nimic. Acum caută prin datele deja încărcate.
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+  const results = searchAll(searchData, query);
+
+  // Scurtătura promisă de insignă chiar funcționează acum.
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return undefined;
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      if (e.key === "Escape") setQuery("");
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const go = (result) => { setQuery(""); setTab(result.tab); };
+
   return (
     <View style={styles.topbar}>
-      <View style={styles.searchBox}>
-        <LucideIcons.Search size={18} color={C.muted} />
-        <TextInput
-          value=""
-          editable={false}
-          pointerEvents="none"
-          placeholder={t('nav.search')}
-          placeholderTextColor={C.dim}
-          style={styles.searchInput}
-        />
-        <View style={styles.shortcut}><Text style={styles.shortcutText}>⌘ K</Text></View>
+      <View>
+        <View style={styles.searchBox}>
+          <LucideIcons.Search size={18} color={C.muted} />
+          <TextInput
+            ref={inputRef}
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('nav.search')}
+            placeholderTextColor={C.dim}
+            style={styles.searchInput}
+          />
+          {query ? (
+            <Pressable onPress={() => setQuery("")} accessibilityRole="button" accessibilityLabel={t('common.close')}>
+              <LucideIcons.X size={15} color={C.dim} />
+            </Pressable>
+          ) : (
+            <View style={styles.shortcut}><Text style={styles.shortcutText}>⌘ K</Text></View>
+          )}
+        </View>
+
+        {query.trim().length >= 2 && (
+          <View style={styles.searchResults}>
+            {results.length === 0 ? (
+              <Text style={styles.searchEmpty}>{t('nav.searchEmpty')}</Text>
+            ) : results.map((r) => {
+              const Icon = LucideIcons[r.icon] || LucideIcons.Circle;
+              return (
+                <Pressable key={r.id} style={styles.searchRow} onPress={() => go(r)} accessibilityRole="button">
+                  <Icon size={15} color={C.cyan} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.searchTitle} numberOfLines={1}>{r.title}</Text>
+                    {!!r.subtitle && <Text style={styles.searchSub} numberOfLines={1}>{r.subtitle}</Text>}
+                  </View>
+                  <Text style={styles.searchTab}>{t(`nav.tab.${r.tab}`)}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
       </View>
 
       <View style={{ flex: 1 }} />
@@ -279,9 +330,17 @@ const styles = themedStyles((C) => StyleSheet.create({
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.green, borderWidth: 1.5, borderColor: C.card },
   seasonButton: { marginTop: 8, height: 34, borderRadius: 10, borderWidth: 1, borderColor: C.line, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   seasonText: { color: C.muted, fontSize: 10, fontWeight: "800" },
-  topbar: { height: 62, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4 },
+  // Antetul stă peste pagină: altfel panoul de rezultate al căutării era
+  // acoperit de conținutul de dedesubt și nu se putea apăsa.
+  topbar: { height: 62, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 4, zIndex: 20 },
   searchBox: { width: 440, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
-  searchInput: { flex: 1, color: C.text, fontSize: 12, fontWeight: "600" },
+  searchInput: { flex: 1, color: C.text, fontSize: 12, fontWeight: "600", outlineStyle: "none" },
+  searchResults: { position: "absolute", top: 52, left: 0, width: 440, maxHeight: 340, backgroundColor: C.cardSolid, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, paddingVertical: 6, zIndex: 50, ...elevation.nav },
+  searchRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 9 },
+  searchTitle: { color: C.text, fontSize: 12, fontWeight: "800" },
+  searchSub: { color: C.dim, fontSize: 10, fontWeight: "600", marginTop: 1 },
+  searchTab: { color: C.muted, fontSize: 9.5, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.6 },
+  searchEmpty: { color: C.muted, fontSize: 11.5, fontWeight: "600", paddingHorizontal: 14, paddingVertical: 12 },
   shortcut: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, backgroundColor: C.fill3, borderWidth: 1, borderColor: C.line },
   shortcutText: { color: C.dim, fontSize: 9, fontWeight: "900" },
   notifyButton: { width: 46, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
