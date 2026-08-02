@@ -75,6 +75,8 @@ import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
 import { themedStyles, colors, applyTheme } from "./src/constants/theme";
 import { loadSavedLanguage } from "./src/i18n";
+import { loadNotificationPrefs, useNotificationPrefs } from "./src/hooks/useNotificationPrefs";
+import { buildNotifications } from "./src/utils/notifications";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
@@ -142,6 +144,7 @@ export default function App() {
         .then((saved) => { if (saved === "light") applyTheme("light"); })
         .catch(() => {}),
       loadSavedLanguage(),
+      loadNotificationPrefs(),
     ]).finally(() => setPrefsReady(true));
   }, []);
 
@@ -236,6 +239,12 @@ function MainApp({ onThemeChange }) {
     queryFn: () => supabaseService.getChatMessages(selectedClubId),
     enabled: isSupabaseConfigured && !!selectedClubId,
   });
+  // Aceeași cheie ca ecranul de notificări: insigna și lista numără la fel.
+  const { data: monthlyPayments = {} } = useQuery({
+    queryKey: ["monthlyPayments", selectedClubId],
+    queryFn: () => supabaseService.getMonthlyPayments(selectedClubId),
+    enabled: isSupabaseConfigured && !!selectedClubId,
+  });
   const { data: events = [] } = useQuery({
     queryKey: ["events", selectedClubId],
     queryFn: () => supabaseService.getEvents(selectedClubId),
@@ -304,6 +313,20 @@ function MainApp({ onThemeChange }) {
     : null;
 
   const isSuperAdmin = effectiveUser?.role === "super_admin";
+
+  // Insigna clopoțelului numără exact ce vede utilizatorul pe ecranul de
+  // notificări — inclusiv categoriile pe care le-a oprit din Setări. Înainte
+  // număra doar anunțurile, indiferent de preferințe.
+  const notificationPrefs = useNotificationPrefs();
+  const notifications = buildNotifications({
+    announcements: chatMessages,
+    matches,
+    trainings,
+    monthlyPayments,
+    myPlayer: ["player", "parent"].includes(effectiveUser?.role) ? players[0] || null : null,
+    isStaff: ["super_admin", "club_owner", "admin", "coach"].includes(effectiveUser?.role),
+    prefs: notificationPrefs,
+  });
   const managingClub = isSuperAdmin && managingClubId ? clubs.find((c) => c.id === managingClubId) : null;
 
   // Super-adminul vede taburile de platformă; când intră în gestiunea unui
@@ -734,7 +757,14 @@ function MainApp({ onThemeChange }) {
       <AdminUsersScreen clubs={clubs} onManageClub={enterClubManagement} />
     ),
     "Notif.": (
-      <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} />
+      <NotificationsScreen
+        currentUser={effectiveUser}
+        clubId={selectedClubId}
+        selectedClub={selectedClub}
+        players={players}
+        matches={matches}
+        trainings={trainings}
+      />
     ),
     "Documente": (
       <DocumentsScreen
@@ -937,7 +967,7 @@ function MainApp({ onThemeChange }) {
               user={effectiveUser}
               selectedClub={managingClub || selectedClub}
               onLogout={logout}
-              notificationsCount={chatMessages.length}
+              notificationsCount={notifications.length}
             >
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </SaaSAppShell>
@@ -954,7 +984,7 @@ function MainApp({ onThemeChange }) {
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </View>
             {/* Bara de sus vine după pagină, ca să stea peste ea. */}
-            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
+            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={notifications.length} />
             <MobileBottomNav
               tabs={activeTabs}
               activeTab={tab}

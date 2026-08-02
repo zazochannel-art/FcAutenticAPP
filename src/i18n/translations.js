@@ -388,6 +388,24 @@ export const ro = {
   "common.save": "Salvează",
   "common.saved": "Salvat",
   "more.club.savedMsg": "Datele clubului au fost actualizate.",
+  // Notificări
+  "notif.title": "Notificări",
+  "notif.eyebrow": "CE E NOU PENTRU TINE",
+  "notif.empty": "Nimic nou. Aici apar anunțurile, convocările, antrenamentele apropiate și cotizațiile.",
+  "notif.allOff": "Ai oprit toate categoriile de notificări din Setări.",
+  "notif.kind.announcement": "Anunț de la {author}",
+  "notif.kind.calledUp": "Ai fost convocat",
+  "notif.kind.squadMissing": "Lot nestabilit",
+  "notif.kind.training": "Antrenament apropiat",
+  "notif.kind.feeDue": "Cotizație neachitată",
+  "notif.kind.feesDue": "Cotizații neachitate",
+  "notif.matchLine": "vs {opponent} • {date}",
+  "notif.trainingLine": "{date} • {time} • {location}",
+  "notif.feeLine": "Perioada {period}",
+  "notif.feesLine": "{count} jucători cu plata restantă",
+  "notif.compose": "Scrie un anunț pentru {club}...",
+  "notif.post": "Publică anunțul",
+  "notif.loading": "Se încarcă...",
 };
 
 export const ru = {
@@ -764,6 +782,24 @@ export const ru = {
   "common.save": "Сохранить",
   "common.saved": "Сохранено",
   "more.club.savedMsg": "Данные клуба обновлены.",
+  // Уведомления
+  "notif.title": "Уведомления",
+  "notif.eyebrow": "ЧТО НОВОГО ДЛЯ ВАС",
+  "notif.empty": "Ничего нового. Здесь появляются объявления, вызовы, ближайшие тренировки и взносы.",
+  "notif.allOff": "Вы отключили все категории уведомлений в настройках.",
+  "notif.kind.announcement": "Объявление от {author}",
+  "notif.kind.calledUp": "Вас вызвали",
+  "notif.kind.squadMissing": "Состав не задан",
+  "notif.kind.training": "Ближайшая тренировка",
+  "notif.kind.feeDue": "Взнос не оплачен",
+  "notif.kind.feesDue": "Неоплаченные взносы",
+  "notif.matchLine": "против {opponent} • {date}",
+  "notif.trainingLine": "{date} • {time} • {location}",
+  "notif.feeLine": "Период {period}",
+  "notif.feesLine": "{count} игроков с задолженностью",
+  "notif.compose": "Напишите объявление для {club}...",
+  "notif.post": "Опубликовать",
+  "notif.loading": "Загрузка...",
 };
 
 export const en = {
@@ -1140,6 +1176,24 @@ export const en = {
   "common.save": "Save",
   "common.saved": "Saved",
   "more.club.savedMsg": "The club details have been updated.",
+  // Notifications
+  "notif.title": "Notifications",
+  "notif.eyebrow": "WHAT IS NEW FOR YOU",
+  "notif.empty": "Nothing new. Announcements, call-ups, upcoming trainings and fees show up here.",
+  "notif.allOff": "You turned off every notification category in Settings.",
+  "notif.kind.announcement": "Announcement from {author}",
+  "notif.kind.calledUp": "You have been called up",
+  "notif.kind.squadMissing": "Squad not set",
+  "notif.kind.training": "Upcoming training",
+  "notif.kind.feeDue": "Fee unpaid",
+  "notif.kind.feesDue": "Unpaid fees",
+  "notif.matchLine": "vs {opponent} • {date}",
+  "notif.trainingLine": "{date} • {time} • {location}",
+  "notif.feeLine": "Period {period}",
+  "notif.feesLine": "{count} players with outstanding payments",
+  "notif.compose": "Write an announcement for {club}...",
+  "notif.post": "Publish",
+  "notif.loading": "Loading...",
 };
 
 export const dictionaries = { ro, ru, en };
