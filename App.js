@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  QueryCache,
   QueryClient,
   useQuery,
   useMutation,
@@ -26,6 +27,12 @@ import { ProfileContext } from "./src/context/ProfileContext";
 import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
+  // Orice cerere care eșuează raportează într-un singur loc, iar carcasa arată
+  // o bandă. Înainte, ecranele afișau starea goală și păreau să spună că nu
+  // există date, deși cererea căzuse.
+  queryCache: new QueryCache({
+    onError: (error) => reportQueryError(error),
+  }),
   defaultOptions: {
     queries: {
       gcTime: 1000 * 60 * 60 * 24,
@@ -77,6 +84,8 @@ import { themedStyles, colors, applyTheme } from "./src/constants/theme";
 import { loadSavedLanguage, useTranslation } from "./src/i18n";
 import { loadNotificationPrefs, useNotificationPrefs } from "./src/hooks/useNotificationPrefs";
 import { buildNotifications } from "./src/utils/notifications";
+import { reportQueryError } from "./src/hooks/useQueryError";
+import { ErrorBanner } from "./src/components/ui/error-banner";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
@@ -981,6 +990,7 @@ function MainApp({ onThemeChange }) {
               notificationsCount={notifications.length}
               searchData={{ players, matches, trainings, tasks }}
             >
+              <ErrorBanner onRetry={() => queryClient.invalidateQueries()} style={{ marginHorizontal: 0, marginBottom: 10 }} />
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </SaaSAppShell>
           </View>
@@ -994,6 +1004,11 @@ function MainApp({ onThemeChange }) {
                 `layout.topBarClearance` și `layout.navClearance`. */}
             <View style={styles.app}>
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
+            </View>
+            {/* Banda de eroare stă peste pagină, sub antet, ca să se vadă
+                indiferent pe ce ecran a picat cererea. */}
+            <View style={[styles.errorSlot, { top: insets.top + 58 }]} pointerEvents="box-none">
+              <ErrorBanner onRetry={() => queryClient.invalidateQueries()} />
             </View>
             {/* Bara de sus vine după pagină, ca să stea peste ea. */}
             <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={notifications.length} />
@@ -1012,6 +1027,8 @@ function MainApp({ onThemeChange }) {
 
 const styles = themedStyles((C) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
+  // Ordine explicită, ca banda să rămână peste conținutul paginii.
+  errorSlot: { position: "absolute", left: 0, right: 0, zIndex: 30 },
   app: { flex: 1 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
   pendingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
