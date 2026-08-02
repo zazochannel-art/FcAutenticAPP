@@ -74,7 +74,7 @@ import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
 import { themedStyles, colors, applyTheme } from "./src/constants/theme";
-import { loadSavedLanguage } from "./src/i18n";
+import { loadSavedLanguage, useTranslation } from "./src/i18n";
 import { loadNotificationPrefs, useNotificationPrefs } from "./src/hooks/useNotificationPrefs";
 import { buildNotifications } from "./src/utils/notifications";
 
@@ -167,6 +167,7 @@ export default function App() {
 }
 
 function MainApp({ onThemeChange }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -377,6 +378,16 @@ function MainApp({ onThemeChange }) {
     if (!Array.isArray(next)) return;
 
     if (next.length > players.length) {
+      // Limita planului era salvată și afișată în panoul de administrare, dar
+      // nimic nu o impunea: se puteau adăuga oricâți jucători pe planul Free.
+      const max = subscription?.maxPlayers;
+      if (max != null && players.length >= max) {
+        Alert.alert(
+          t('plan.limitTitle'),
+          t('plan.limitMsg', { plan: subscription?.planName || "", max, count: players.length }),
+        );
+        return;
+      }
       const newPlayer = next.find((p) => !players.some((existing) => existing.id === p.id));
       if (newPlayer) {
         playerMutation.mutate({

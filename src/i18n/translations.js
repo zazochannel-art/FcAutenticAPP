@@ -407,6 +407,8 @@ export const ro = {
   "notif.compose": "Scrie un anunț pentru {club}...",
   "notif.post": "Publică anunțul",
   "notif.loading": "Se încarcă...",
+  "plan.limitTitle": "Limita planului atinsă",
+  "plan.limitMsg": "Planul {plan} permite {max} jucători, iar clubul are deja {count}. Treci la un plan superior ca să adaugi mai mulți.",
 };
 
 export const ru = {
@@ -802,6 +804,8 @@ export const ru = {
   "notif.compose": "Напишите объявление для {club}...",
   "notif.post": "Опубликовать",
   "notif.loading": "Загрузка...",
+  "plan.limitTitle": "Достигнут лимит тарифа",
+  "plan.limitMsg": "Тариф {plan} допускает {max} игроков, а в клубе уже {count}. Перейдите на более высокий тариф, чтобы добавить больше.",
 };
 
 export const en = {
@@ -1197,6 +1201,8 @@ export const en = {
   "notif.compose": "Write an announcement for {club}...",
   "notif.post": "Publish",
   "notif.loading": "Loading...",
+  "plan.limitTitle": "Plan limit reached",
+  "plan.limitMsg": "The {plan} plan allows {max} players and the club already has {count}. Upgrade to add more.",
 };
 
 export const dictionaries = { ro, ru, en };
