@@ -414,6 +414,18 @@ export const ro = {
   "more.club.nameHint": "Numele clubului",
   "more.club.cityHint": "Chișinău",
   "more.club.countryHint": "Moldova",
+  "train.repeat": "REPETĂ SĂPTĂMÂNAL",
+  "train.repeatHint": "Alege zilele și pentru câte săptămâni. Fără nicio zi aleasă se creează un singur antrenament.",
+  "train.weeks": "SĂPTĂMÂNI",
+  "train.seriesSaved": "Serie creată",
+  "train.seriesSavedMsg": "Am creat {count} antrenamente.",
+  "train.day.1": "Lu",
+  "train.day.2": "Ma",
+  "train.day.3": "Mi",
+  "train.day.4": "Jo",
+  "train.day.5": "Vi",
+  "train.day.6": "Sâ",
+  "train.day.7": "Du",
 };
 
 export const ru = {
@@ -816,6 +828,18 @@ export const ru = {
   "more.club.nameHint": "Название клуба",
   "more.club.cityHint": "Кишинёв",
   "more.club.countryHint": "Молдова",
+  "train.repeat": "ПОВТОРЯТЬ ЕЖЕНЕДЕЛЬНО",
+  "train.repeatHint": "Выберите дни и количество недель. Без выбранных дней создаётся одна тренировка.",
+  "train.weeks": "НЕДЕЛИ",
+  "train.seriesSaved": "Серия создана",
+  "train.seriesSavedMsg": "Создано тренировок: {count}.",
+  "train.day.1": "Пн",
+  "train.day.2": "Вт",
+  "train.day.3": "Ср",
+  "train.day.4": "Чт",
+  "train.day.5": "Пт",
+  "train.day.6": "Сб",
+  "train.day.7": "Вс",
 };
 
 export const en = {
@@ -1218,6 +1242,18 @@ export const en = {
   "more.club.nameHint": "Club name",
   "more.club.cityHint": "Chisinau",
   "more.club.countryHint": "Moldova",
+  "train.repeat": "REPEAT WEEKLY",
+  "train.repeatHint": "Pick the days and how many weeks. With no day selected a single training is created.",
+  "train.weeks": "WEEKS",
+  "train.seriesSaved": "Series created",
+  "train.seriesSavedMsg": "Created {count} trainings.",
+  "train.day.1": "Mo",
+  "train.day.2": "Tu",
+  "train.day.3": "We",
+  "train.day.4": "Th",
+  "train.day.5": "Fr",
+  "train.day.6": "Sa",
+  "train.day.7": "Su",
 };
 
 export const dictionaries = { ro, ru, en };
