@@ -89,6 +89,17 @@ import { ErrorBanner } from "./src/components/ui/error-banner";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
 
+// Fixtură pentru verificarea automată a aspectului (`npm run check:layout`).
+// Ecranele pe care le păzește stau după autentificare, iar robotul n-are cont;
+// aici pornește direct în interfață, cu un utilizator fals.
+//
+// Se aprinde doar la build, cu `EXPO_PUBLIC_LAYOUT_CHECK=1`. Build-urile de
+// producție nu o setează, deci expresia se compilează la `null` și tot ce
+// depinde de ea dispare din pachet.
+const LAYOUT_CHECK_USER = process.env.EXPO_PUBLIC_LAYOUT_CHECK === "1"
+  ? { id: "layout-check", name: "Test", email: "test@local", role: "admin", status: "active" }
+  : null;
+
 // Rezervă folosită doar când utilizatorul nu are încă niciun club. Nu conține
 // date inventate — numele, orașul, emailul și telefonul rămân goale, ca să nu
 // arătăm un club care nu există. Grupele sunt cele implicite din schema bazei.
@@ -182,8 +193,8 @@ function MainApp({ onThemeChange }) {
   const { width } = useWindowDimensions();
   const isDesktopLayout = width >= 768;
 
-  const [authView, setAuthView] = useState("login");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [authView, setAuthView] = useState(LAYOUT_CHECK_USER ? "app" : "login");
+  const [currentUser, setCurrentUser] = useState(LAYOUT_CHECK_USER);
   const [tab, setTab] = useState("Dashboard");
   const [selectedClubId, setSelectedClubId] = useState(null);
   // Când super-adminul intră în gestiunea unui club anume (null = mod platformă).

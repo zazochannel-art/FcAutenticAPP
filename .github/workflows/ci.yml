@@ -29,3 +29,36 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # Prinde conținutul care iese lateral din ecran pe telefon. Bug-ul cu
+  # `flexShrink` implicit 0 a stat ascuns pe patru ecrane până a fost văzut
+  # într-o captură — verificarea asta l-ar fi oprit la primul push.
+  layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build web
+        run: npm run build:web
+        env:
+          # Pornește aplicația direct în interfață: ecranele verificate stau
+          # după autentificare, iar robotul n-are cont.
+          EXPO_PUBLIC_LAYOUT_CHECK: "1"
+
+      - name: Serve and check
+        run: |
+          npx serve -s dist -l 4173 &
+          npx wait-on http://localhost:4173 --timeout 60000
+          npm run check:layout

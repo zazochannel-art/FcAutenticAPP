@@ -411,6 +411,9 @@ export const ro = {
   "plan.limitMsg": "Planul {plan} permite {max} jucători, iar clubul are deja {count}. Treci la un plan superior ca să adaugi mai mulți.",
   "error.loadFailed": "Nu am putut încărca datele",
   "error.retry": "Reîncearcă",
+  "more.club.nameHint": "Numele clubului",
+  "more.club.cityHint": "Chișinău",
+  "more.club.countryHint": "Moldova",
 };
 
 export const ru = {
@@ -810,6 +813,9 @@ export const ru = {
   "plan.limitMsg": "Тариф {plan} допускает {max} игроков, а в клубе уже {count}. Перейдите на более высокий тариф, чтобы добавить больше.",
   "error.loadFailed": "Не удалось загрузить данные",
   "error.retry": "Повторить",
+  "more.club.nameHint": "Название клуба",
+  "more.club.cityHint": "Кишинёв",
+  "more.club.countryHint": "Молдова",
 };
 
 export const en = {
@@ -1209,6 +1215,9 @@ export const en = {
   "plan.limitMsg": "The {plan} plan allows {max} players and the club already has {count}. Upgrade to add more.",
   "error.loadFailed": "Could not load the data",
   "error.retry": "Retry",
+  "more.club.nameHint": "Club name",
+  "more.club.cityHint": "Chisinau",
+  "more.club.countryHint": "Moldova",
 };
 
 export const dictionaries = { ro, ru, en };

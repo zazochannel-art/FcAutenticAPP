@@ -312,10 +312,10 @@ function ClubSettingsModal({ visible, club, onClose, onSaved }) {
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.modalLabel}>{t('more.club.name')}</Text>
-            <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => set("name", v)} placeholder="FC Autentic" placeholderTextColor={C.dim} />
+            <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => set("name", v)} placeholder={t('more.club.nameHint')} placeholderTextColor={C.dim} />
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.city')}</Text><TextInput style={styles.modalInput} value={form.city} onChangeText={(v) => set("city", v)} placeholder="Chișinău" placeholderTextColor={C.dim} /></View>
-              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.country')}</Text><TextInput style={styles.modalInput} value={form.country} onChangeText={(v) => set("country", v)} placeholder="Moldova" placeholderTextColor={C.dim} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.city')}</Text><TextInput style={styles.modalInput} value={form.city} onChangeText={(v) => set("city", v)} placeholder={t('more.club.cityHint')} placeholderTextColor={C.dim} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.country')}</Text><TextInput style={styles.modalInput} value={form.country} onChangeText={(v) => set("country", v)} placeholder={t('more.club.countryHint')} placeholderTextColor={C.dim} /></View>
             </View>
             <View style={{ flexDirection: "row", gap: 10 }}>
               <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.email')}</Text><TextInput style={styles.modalInput} value={form.email} onChangeText={(v) => set("email", v)} placeholder="contact@club.md" placeholderTextColor={C.dim} autoCapitalize="none" /></View>
