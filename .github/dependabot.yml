@@ -1,0 +1,37 @@
+version: 2
+
+updates:
+  # Expo și React Native se mișcă repede, iar până acum nimic nu urmărea
+  # actualizările. Săptămânal, grupat, ca să nu se umple lista de propuneri.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      expo:
+        patterns:
+          - "expo"
+          - "expo-*"
+          - "@expo/*"
+          - "react-native"
+          - "react-native-*"
+      unelte-de-dezvoltare:
+        patterns:
+          - "eslint*"
+          - "jest*"
+          - "babel-*"
+          - "typescript"
+          - "playwright"
+          - "serve"
+          - "wait-on"
+      restul:
+        patterns:
+          - "*"
+
+  # Acțiunile din fluxurile de lucru se învechesc la fel de tăcut.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

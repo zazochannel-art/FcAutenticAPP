@@ -10,9 +10,9 @@ import { authService } from "../services/authService";
 import { supabaseService } from "../services/supabaseService";
 import { useTopClearance } from "../hooks/useTopClearance";
 import { LANGUAGES, useTranslation } from "../i18n";
+import { toggleNotificationPref, useNotificationPrefs } from "../hooks/useNotificationPrefs";
 
 const APP_VERSION = "1.0.0";
-const NOTIF_KEY = "fc_notif_prefs";
 const THEME_KEY = "fc_theme";
 
 // Cheia și iconița sunt interne; eticheta vine din dicționar la randare.
@@ -56,7 +56,9 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, switch
   const isStaff = ["super_admin", "club_owner", "admin", "coach"].includes(currentUser?.role);
 
   const queryClient = useQueryClient();
-  const [prefs, setPrefs] = useState({ announcements: true, callups: true, trainings: true, payments: true });
+  // Preferințele vin dintr-un magazin comun: aici se schimbă, iar ecranul de
+  // notificări și clopoțelul din antet citesc aceeași sursă.
+  const prefs = useNotificationPrefs();
   const [nameOpen, setNameOpen] = useState(false);
   const [passOpen, setPassOpen] = useState(false);
   const [clubEditOpen, setClubEditOpen] = useState(false);
@@ -75,20 +77,6 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, switch
     const msg = t('more.deleteMsg');
     if (Platform.OS === "web") { if (window.confirm(`${t('more.deleteAccount')}\n\n${msg}`)) run(); }
     else Alert.alert(t('more.deleteAccount'), msg, [{ text: t('more.cancel'), style: "cancel" }, { text: t('more.deleteForever'), style: "destructive", onPress: run }]);
-  };
-
-  useEffect(() => {
-    AsyncStorage.getItem(NOTIF_KEY).then((raw) => {
-      if (raw) { try { setPrefs((p) => ({ ...p, ...JSON.parse(raw) })); } catch (_) { /* ignore */ } }
-    });
-  }, []);
-
-  const togglePref = (key) => {
-    setPrefs((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      AsyncStorage.setItem(NOTIF_KEY, JSON.stringify(next));
-      return next;
-    });
   };
 
   const copyJoinCode = async () => {
@@ -162,7 +150,7 @@ export default function MoreScreen({ currentUser, onLogout, selectedClub, switch
               <Text style={styles.rowLabel}>{t(`more.notif.${key}`)}</Text>
               <Switch
                 value={!!prefs[key]}
-                onValueChange={() => togglePref(key)}
+                onValueChange={() => toggleNotificationPref(key)}
                 trackColor={{ false: C.line, true: C.cyan + "88" }}
                 thumbColor={prefs[key] ? C.cyan : "#64748b"}
               />
@@ -324,10 +312,10 @@ function ClubSettingsModal({ visible, club, onClose, onSaved }) {
           </View>
           <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.modalLabel}>{t('more.club.name')}</Text>
-            <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => set("name", v)} placeholder="FC Autentic" placeholderTextColor={C.dim} />
+            <TextInput style={styles.modalInput} value={form.name} onChangeText={(v) => set("name", v)} placeholder={t('more.club.nameHint')} placeholderTextColor={C.dim} />
             <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.city')}</Text><TextInput style={styles.modalInput} value={form.city} onChangeText={(v) => set("city", v)} placeholder="Chișinău" placeholderTextColor={C.dim} /></View>
-              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.country')}</Text><TextInput style={styles.modalInput} value={form.country} onChangeText={(v) => set("country", v)} placeholder="Moldova" placeholderTextColor={C.dim} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.city')}</Text><TextInput style={styles.modalInput} value={form.city} onChangeText={(v) => set("city", v)} placeholder={t('more.club.cityHint')} placeholderTextColor={C.dim} /></View>
+              <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.country')}</Text><TextInput style={styles.modalInput} value={form.country} onChangeText={(v) => set("country", v)} placeholder={t('more.club.countryHint')} placeholderTextColor={C.dim} /></View>
             </View>
             <View style={{ flexDirection: "row", gap: 10 }}>
               <View style={{ flex: 1 }}><Text style={styles.modalLabel}>{t('more.club.email')}</Text><TextInput style={styles.modalInput} value={form.email} onChangeText={(v) => set("email", v)} placeholder="contact@club.md" placeholderTextColor={C.dim} autoCapitalize="none" /></View>

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  QueryCache,
   QueryClient,
   useQuery,
   useMutation,
@@ -26,6 +27,12 @@ import { ProfileContext } from "./src/context/ProfileContext";
 import { authService } from "./src/services/authService";
 
 const queryClient = new QueryClient({
+  // Orice cerere care eșuează raportează într-un singur loc, iar carcasa arată
+  // o bandă. Înainte, ecranele afișau starea goală și păreau să spună că nu
+  // există date, deși cererea căzuse.
+  queryCache: new QueryCache({
+    onError: (error) => reportQueryError(error),
+  }),
   defaultOptions: {
     queries: {
       gcTime: 1000 * 60 * 60 * 24,
@@ -74,9 +81,24 @@ import { SaaSAppShell } from "./src/components/SaaSShell";
 import { AmbientBackground } from "./src/components/ui/visuals";
 import SplashScreen from "./src/components/SplashScreen";
 import { themedStyles, colors, applyTheme } from "./src/constants/theme";
-import { loadSavedLanguage } from "./src/i18n";
+import { loadSavedLanguage, useTranslation } from "./src/i18n";
+import { loadNotificationPrefs, useNotificationPrefs } from "./src/hooks/useNotificationPrefs";
+import { buildNotifications } from "./src/utils/notifications";
+import { reportQueryError } from "./src/hooks/useQueryError";
+import { ErrorBanner } from "./src/components/ui/error-banner";
 
 const DEFAULT_SUBSCRIPTION_ID = "sub-fc-autentic-free";
+
+// Fixtură pentru verificarea automată a aspectului (`npm run check:layout`).
+// Ecranele pe care le păzește stau după autentificare, iar robotul n-are cont;
+// aici pornește direct în interfață, cu un utilizator fals.
+//
+// Se aprinde doar la build, cu `EXPO_PUBLIC_LAYOUT_CHECK=1`. Build-urile de
+// producție nu o setează, deci expresia se compilează la `null` și tot ce
+// depinde de ea dispare din pachet.
+const LAYOUT_CHECK_USER = process.env.EXPO_PUBLIC_LAYOUT_CHECK === "1"
+  ? { id: "layout-check", name: "Test", email: "test@local", role: "admin", status: "active" }
+  : null;
 
 // Rezervă folosită doar când utilizatorul nu are încă niciun club. Nu conține
 // date inventate — numele, orașul, emailul și telefonul rămân goale, ca să nu
@@ -142,6 +164,7 @@ export default function App() {
         .then((saved) => { if (saved === "light") applyTheme("light"); })
         .catch(() => {}),
       loadSavedLanguage(),
+      loadNotificationPrefs(),
     ]).finally(() => setPrefsReady(true));
   }, []);
 
@@ -164,13 +187,14 @@ export default function App() {
 }
 
 function MainApp({ onThemeChange }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isDesktopLayout = width >= 768;
 
-  const [authView, setAuthView] = useState("login");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [authView, setAuthView] = useState(LAYOUT_CHECK_USER ? "app" : "login");
+  const [currentUser, setCurrentUser] = useState(LAYOUT_CHECK_USER);
   const [tab, setTab] = useState("Dashboard");
   const [selectedClubId, setSelectedClubId] = useState(null);
   // Când super-adminul intră în gestiunea unui club anume (null = mod platformă).
@@ -234,6 +258,12 @@ function MainApp({ onThemeChange }) {
   const { data: chatMessages = [] } = useQuery({
     queryKey: ["announcements", selectedClubId],
     queryFn: () => supabaseService.getChatMessages(selectedClubId),
+    enabled: isSupabaseConfigured && !!selectedClubId,
+  });
+  // Aceeași cheie ca ecranul de notificări: insigna și lista numără la fel.
+  const { data: monthlyPayments = {} } = useQuery({
+    queryKey: ["monthlyPayments", selectedClubId],
+    queryFn: () => supabaseService.getMonthlyPayments(selectedClubId),
     enabled: isSupabaseConfigured && !!selectedClubId,
   });
   const { data: events = [] } = useQuery({
@@ -304,6 +334,20 @@ function MainApp({ onThemeChange }) {
     : null;
 
   const isSuperAdmin = effectiveUser?.role === "super_admin";
+
+  // Insigna clopoțelului numără exact ce vede utilizatorul pe ecranul de
+  // notificări — inclusiv categoriile pe care le-a oprit din Setări. Înainte
+  // număra doar anunțurile, indiferent de preferințe.
+  const notificationPrefs = useNotificationPrefs();
+  const notifications = buildNotifications({
+    announcements: chatMessages,
+    matches,
+    trainings,
+    monthlyPayments,
+    myPlayer: ["player", "parent"].includes(effectiveUser?.role) ? players[0] || null : null,
+    isStaff: ["super_admin", "club_owner", "admin", "coach"].includes(effectiveUser?.role),
+    prefs: notificationPrefs,
+  });
   const managingClub = isSuperAdmin && managingClubId ? clubs.find((c) => c.id === managingClubId) : null;
 
   // Super-adminul vede taburile de platformă; când intră în gestiunea unui
@@ -354,6 +398,16 @@ function MainApp({ onThemeChange }) {
     if (!Array.isArray(next)) return;
 
     if (next.length > players.length) {
+      // Limita planului era salvată și afișată în panoul de administrare, dar
+      // nimic nu o impunea: se puteau adăuga oricâți jucători pe planul Free.
+      const max = subscription?.maxPlayers;
+      if (max != null && players.length >= max) {
+        Alert.alert(
+          t('plan.limitTitle'),
+          t('plan.limitMsg', { plan: subscription?.planName || "", max, count: players.length }),
+        );
+        return;
+      }
       const newPlayer = next.find((p) => !players.some((existing) => existing.id === p.id));
       if (newPlayer) {
         playerMutation.mutate({
@@ -734,7 +788,14 @@ function MainApp({ onThemeChange }) {
       <AdminUsersScreen clubs={clubs} onManageClub={enterClubManagement} />
     ),
     "Notif.": (
-      <NotificationsScreen currentUser={effectiveUser} clubId={selectedClubId} selectedClub={selectedClub} />
+      <NotificationsScreen
+        currentUser={effectiveUser}
+        clubId={selectedClubId}
+        selectedClub={selectedClub}
+        players={players}
+        matches={matches}
+        trainings={trainings}
+      />
     ),
     "Documente": (
       <DocumentsScreen
@@ -937,8 +998,10 @@ function MainApp({ onThemeChange }) {
               user={effectiveUser}
               selectedClub={managingClub || selectedClub}
               onLogout={logout}
-              notificationsCount={chatMessages.length}
+              notificationsCount={notifications.length}
+              searchData={{ players, matches, trainings, tasks }}
             >
+              <ErrorBanner onRetry={() => queryClient.invalidateQueries()} style={{ marginHorizontal: 0, marginBottom: 10 }} />
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </SaaSAppShell>
           </View>
@@ -953,8 +1016,13 @@ function MainApp({ onThemeChange }) {
             <View style={styles.app}>
               {pages[tab] || pages[activeTabs[0]] || pages.Dashboard}
             </View>
+            {/* Banda de eroare stă peste pagină, sub antet, ca să se vadă
+                indiferent pe ce ecran a picat cererea. */}
+            <View style={[styles.errorSlot, { top: insets.top + 58 }]} pointerEvents="box-none">
+              <ErrorBanner onRetry={() => queryClient.invalidateQueries()} />
+            </View>
             {/* Bara de sus vine după pagină, ca să stea peste ea. */}
-            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={chatMessages.length} />
+            <MobileTopBar topInset={insets.top} onNotifications={() => navigateTab("Notif.")} notificationsCount={notifications.length} />
             <MobileBottomNav
               tabs={activeTabs}
               activeTab={tab}
@@ -970,6 +1038,8 @@ function MainApp({ onThemeChange }) {
 
 const styles = themedStyles((C) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
+  // Ordine explicită, ca banda să rămână peste conținutul paginii.
+  errorSlot: { position: "absolute", left: 0, right: 0, zIndex: 30 },
   app: { flex: 1 },
   appDesktop: { paddingTop: 92, paddingBottom: 24 },
   pendingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },

@@ -6,15 +6,26 @@ import { colors as C, themedStyles, layout } from "../constants/theme";
 import { TopBar } from "../components/SharedComponents";
 import { supabaseService } from "../services/supabaseService";
 import { useTopClearance } from "../hooks/useTopClearance";
+import { useNotificationPrefs } from "../hooks/useNotificationPrefs";
+import { buildNotifications } from "../utils/notifications";
+import { useTranslation } from "../i18n";
+
+// Iconița și culoarea fiecărei categorii.
+const KIND_LOOK = {
+  announcements: ["Megaphone", "cyan"],
+  callups: ["ClipboardCheck", "green"],
+  trainings: ["Dumbbell", "purple"],
+  payments: ["Wallet", "amber"],
+};
 
 function notify(title, msg) {
   if (Platform.OS === "web") window.alert(`${title}\n\n${msg}`);
   else Alert.alert(title, msg);
 }
 
-function timeAgo(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
+function timeAgo(value) {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return "";
   const diff = Math.floor((Date.now() - d.getTime()) / 1000);
   if (diff < 60) return "acum";
@@ -23,7 +34,9 @@ function timeAgo(iso) {
   return d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
 }
 
-export default function NotificationsScreen({ currentUser, clubId, selectedClub }) {
+export default function NotificationsScreen({ currentUser, clubId, selectedClub, players = [], matches = [], trainings = [] }) {
+  const { t } = useTranslation();
+  const prefs = useNotificationPrefs();
   const topClearance = useTopClearance();
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
@@ -37,7 +50,27 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
     enabled: !!clubId,
   });
 
-  const feed = [...messages].reverse();
+  const { data: monthlyPayments = {} } = useQuery({
+    queryKey: ["monthlyPayments", clubId],
+    queryFn: () => supabaseService.getMonthlyPayments(clubId),
+    enabled: !!clubId,
+  });
+
+  // Pentru jucător și părinte, politicile bazei întorc doar jucătorul propriu.
+  const isPlayerSide = ["player", "parent"].includes(currentUser?.role);
+  const myPlayer = isPlayerSide ? players[0] || null : null;
+
+  const feed = buildNotifications({
+    announcements: messages,
+    matches,
+    trainings,
+    monthlyPayments,
+    myPlayer,
+    isStaff: canPost,
+    prefs,
+  });
+
+  const allOff = Object.values(prefs).every((v) => v === false);
 
   const post = async () => {
     if (!text.trim()) return;
@@ -53,7 +86,7 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
       setText("");
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
     } catch (e) {
-      notify("Eroare", e.message);
+      notify(t('common.error'), e.message);
     } finally {
       setPosting(false);
     }
@@ -61,7 +94,7 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
 
   return (
     <ScrollView contentContainerStyle={[styles.content, topClearance]} showsVerticalScrollIndicator={false}>
-      <TopBar title="Anunțuri" eyebrow="COMUNICARE CLUB" />
+      <TopBar title={t('notif.title')} eyebrow={t('notif.eyebrow')} />
 
       {canPost && (
         <View style={styles.composer}>
@@ -69,40 +102,47 @@ export default function NotificationsScreen({ currentUser, clubId, selectedClub 
             style={styles.input}
             value={text}
             onChangeText={setText}
-            placeholder={`Scrie un anunț pentru ${selectedClub?.name || "club"}...`}
+            placeholder={t('notif.compose', { club: selectedClub?.name || "" })}
             placeholderTextColor={C.dim}
             multiline
           />
           <Pressable onPress={post} disabled={posting || !text.trim()} style={[styles.postBtn, (posting || !text.trim()) && { opacity: 0.5 }]}>
             <LucideIcons.Send size={15} color="white" />
-            <Text style={styles.postBtnText}>Publică anunțul</Text>
+            <Text style={styles.postBtnText}>{t('notif.post')}</Text>
           </Pressable>
         </View>
       )}
 
-      {isLoading && <Text style={styles.empty}>Se încarcă anunțurile...</Text>}
+      {/* Fără club selectat cererea nu pleacă niciodată; înainte rămânea „se
+          încarcă” la nesfârșit și ascundea starea goală. */}
+      {isLoading && !!clubId && <Text style={styles.empty}>{t('notif.loading')}</Text>}
 
-      {!isLoading && feed.length === 0 && (
+      {(!isLoading || !clubId) && feed.length === 0 && (
         <View style={styles.emptyState}>
           <LucideIcons.BellOff size={38} color={C.muted} />
-          <Text style={styles.emptyText}>
-            {canPost ? "Niciun anunț încă. Publică primul mesaj pentru club." : "Niciun anunț nou de la club."}
-          </Text>
+          <Text style={styles.emptyText}>{allOff ? t('notif.allOff') : t('notif.empty')}</Text>
         </View>
       )}
 
-      {feed.map((m) => (
-        <View key={m.id} style={styles.card}>
-          <View style={styles.cardIcon}><LucideIcons.Megaphone size={16} color={C.cyan} /></View>
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <View style={styles.cardHead}>
-              <Text style={styles.author}>{m.author_name || "Club"}</Text>
-              <Text style={styles.time}>{timeAgo(m.created_at)}</Text>
+      {feed.map((item) => {
+        const [iconName, colorKey] = KIND_LOOK[item.kind] || KIND_LOOK.announcements;
+        const Icon = LucideIcons[iconName] || LucideIcons.Bell;
+        const color = C[colorKey] || C.cyan;
+        return (
+          <View key={item.id} style={styles.card}>
+            <View style={[styles.cardIcon, { backgroundColor: color + "1A" }]}>
+              <Icon size={16} color={color} />
             </View>
-            <Text style={styles.msgText}>{m.text}</Text>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <View style={styles.cardHead}>
+                <Text style={styles.author}>{t(item.titleKey, item.vars)}</Text>
+                <Text style={styles.time}>{timeAgo(item.at)}</Text>
+              </View>
+              <Text style={styles.msgText}>{item.bodyKey ? t(item.bodyKey, item.vars) : item.body}</Text>
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </ScrollView>
   );
 }

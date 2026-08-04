@@ -8,6 +8,7 @@ import { BeUIButton } from "../components/ui/be-ui-button";
 import { supabaseService } from "../services/supabaseService";
 import { useTopClearance } from "../hooks/useTopClearance";
 import { useTranslation } from "../i18n";
+import { expandRecurrence, WEEKDAYS } from "../utils/recurrence";
 
 const clubGroups = ["U13", "U16", "U19", "Juniori", "Seniori"];
 
@@ -44,18 +45,30 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
       notify(t('common.incompleteData'), t('train.modal.required'));
       return;
     }
+    // Fără zile bifate rămâne un singur antrenament, ca înainte. Cu zile
+    // bifate, aceleași detalii se repetă pe câte săptămâni s-au cerut.
+    const series = expandRecurrence({
+      startLabel: form.date.trim(),
+      weekdays: form.weekdays,
+      weeks: form.weeks,
+    });
+    const dates = series.length ? series : [form.date.trim()];
+
     try {
-      await supabaseService.insertTraining({
-        date: form.date.trim(),
-        time: form.time.trim(),
-        location: form.location.trim(),
-        group: form.group,
-        coach: form.coach.trim() || currentUser?.name || "Antrenor",
-        theme: form.theme.trim() || null,
-        clubId,
-      });
+      for (const date of dates) {
+        await supabaseService.insertTraining({
+          date,
+          time: form.time.trim(),
+          location: form.location.trim(),
+          group: form.group,
+          coach: form.coach.trim() || currentUser?.name || "Antrenor",
+          theme: form.theme.trim() || null,
+          clubId,
+        });
+      }
       setAddOpen(false);
       queryClient.invalidateQueries({ queryKey: ["trainings"] });
+      if (dates.length > 1) notify(t('train.seriesSaved'), t('train.seriesSavedMsg', { count: dates.length }));
     } catch (e) {
       notify(t('common.error'), e.message);
     }
@@ -170,7 +183,7 @@ export default function TrainingsScreen({ players, trainings, attendance = {}, s
 
 function AddTrainingModal({ visible, onClose, onSave, groups }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ date: "", time: "", location: "", group: groups[0] || "U19", coach: "", theme: "" });
+  const [form, setForm] = useState({ date: "", time: "", location: "", group: groups[0] || "U19", coach: "", theme: "", weekdays: [], weeks: 4 });
   const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   return (
@@ -201,6 +214,37 @@ function AddTrainingModal({ visible, onClose, onSave, groups }) {
 
           <Text style={styles.modalLabel}>{t('train.modal.coach')}</Text>
           <TextInput style={styles.modalInput} value={form.coach} onChangeText={(v) => update("coach", v)} placeholder={t('train.modal.coachHint')} placeholderTextColor={C.dim} />
+
+          {/* Repetarea: fără nicio zi bifată se creează un singur antrenament. */}
+          <Text style={styles.modalLabel}>{t('train.repeat')}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+            {WEEKDAYS.map((d) => {
+              const on = form.weekdays.includes(d);
+              return (
+                <Pressable
+                  key={d}
+                  onPress={() => update("weekdays", on ? form.weekdays.filter((x) => x !== d) : [...form.weekdays, d])}
+                  style={[styles.filterChip, on && styles.filterChipActive]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                >
+                  <Text style={[styles.filterChipText, on && styles.filterChipTextActive]}>{t(`train.day.${d}`)}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {form.weekdays.length > 0 && (
+            <>
+              <Text style={styles.modalLabel}>{t('train.weeks')}</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={String(form.weeks)}
+                onChangeText={(v) => update("weeks", Math.max(1, Math.min(52, Number(v.replace(/[^0-9]/g, "")) || 1)))}
+                keyboardType="number-pad"
+              />
+            </>
+          )}
+          <Text style={[styles.emptyText, { textAlign: "left", marginBottom: 14 }]}>{t('train.repeatHint')}</Text>
 
           <Text style={styles.modalLabel}>{t('train.modal.group')}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
